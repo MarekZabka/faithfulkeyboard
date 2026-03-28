@@ -1,0 +1,3549 @@
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+
+<!-- Perplexity Computer Attribution — SEO Meta Tags -->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faithful Keyboard — JI Tone System Explorer</title>
+  <meta name="description" content="Interactive demonstration of pitch-faithful keyboard layouts for just-intonation tone systems, based on planar projections of JI spaces.">
+
+  <!-- Fonts: Cabinet Grotesk (display) + Satoshi (body) -->
+  <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Design tokens ── */
+    :root, [data-theme="light"] {
+      --color-bg:             #f5f4f0;
+      --color-surface:        #f8f7f4;
+      --color-surface-2:      #fcfbf9;
+      --color-surface-offset: #edeae4;
+      --color-surface-dynamic:#e3e0da;
+      --color-divider:        #d8d4cc;
+      --color-border:         #ccc8bf;
+      --color-text:           #1e1c17;
+      --color-text-muted:     #706e68;
+      --color-text-faint:     #b0ae9f;
+      --color-primary:        #5b3fa0;
+      --color-primary-hover:  #472f80;
+      --color-primary-active: #341e60;
+      --color-primary-highlight: #dbd3f0;
+      --color-accent:         #c4882e;
+      --color-accent-hover:   #a36924;
+      --color-danger:         #c03030;
+      --color-danger-bg:      #fdeaea;
+      --color-success:        #2a7a48;
+      --color-key-pythagorean:#6490c4;
+      --color-key-syntonic:   #50a874;
+      --color-key-septimal:   #d9844a;
+      --color-key-undecimal:  #a05fb0;
+      --color-key-13limit:    #c64060;
+      --color-key-active:     #f7e56a;
+      --color-key-stroke:     #c8c4bb;
+      --shadow-sm: 0 1px 3px rgba(30,28,23,0.08);
+      --shadow-md: 0 4px 14px rgba(30,28,23,0.12);
+      --shadow-lg: 0 12px 36px rgba(30,28,23,0.18);
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+      --transition: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+      --font-display: 'Cabinet Grotesk', 'Helvetica Neue', sans-serif;
+      --font-body:    'Satoshi', 'Inter', sans-serif;
+      --text-xs:   clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm:   clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg:   clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl:   clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+    }
+
+    [data-theme="dark"] {
+      --color-bg:             #13120f;
+      --color-surface:        #18170e;
+      --color-surface-2:      #1d1c14;
+      --color-surface-offset: #1a1915;
+      --color-surface-dynamic:#25231c;
+      --color-divider:        #2b2922;
+      --color-border:         #3a3830;
+      --color-text:           #e8e6de;
+      --color-text-muted:     #8a8880;
+      --color-text-faint:     #5a5850;
+      --color-primary:        #9b7ee0;
+      --color-primary-hover:  #b296ec;
+      --color-primary-active: #c8b0f5;
+      --color-primary-highlight: #2d2545;
+      --color-accent:         #e8a44a;
+      --color-accent-hover:   #f0b860;
+      --color-danger:         #e05050;
+      --color-danger-bg:      #2a1515;
+      --color-success:        #4aaa70;
+      --color-key-pythagorean:#4a78b8;
+      --color-key-syntonic:   #3a9060;
+      --color-key-septimal:   #c0703a;
+      --color-key-undecimal:  #8a4e9c;
+      --color-key-13limit:    #a83050;
+      --color-key-active:     #ffe566;
+      --color-key-stroke:     #3a3830;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.25);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.35);
+      --shadow-lg: 0 12px 36px rgba(0,0,0,0.5);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme]) {
+        --color-bg: #f5f4f0; --color-surface: #f8f7f4; --color-surface-2: #fcfbf9;
+        --color-surface-offset: #edeae4; --color-surface-dynamic: #e3e0da;
+        --color-divider: #d8d4cc; --color-border: #ccc8bf;
+        --color-text: #1e1c17; --color-text-muted: #706e68; --color-text-faint: #b0ae9f;
+        --color-primary: #5b3fa0; --color-primary-hover: #472f80;
+        --color-primary-highlight: #dbd3f0;
+        --color-danger: #c03030; --color-danger-bg: #fdeaea;
+        --color-key-pythagorean: #6490c4; --color-key-syntonic: #50a874;
+        --color-key-septimal: #d9844a; --color-key-undecimal: #a05fb0;
+        --color-key-13limit: #c64060; --color-key-active: #f7e56a;
+        --color-key-stroke: #c8c4bb;
+      }
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+    body { height: 100dvh; overflow: hidden; font-family: var(--font-body); font-size: var(--text-base); color: var(--color-text); background: var(--color-bg); display: flex; flex-direction: column; }
+    button { cursor: pointer; background: none; border: none; font: inherit; color: inherit; }
+    input, select, textarea { font: inherit; color: inherit; background: none; border: none; }
+    svg { display: block; }
+
+    /* ── Layout ── */
+    .app { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+
+    /* Header */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-divider);
+      gap: 1rem;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 0.625rem; flex-shrink: 0; }
+    .logo-svg { color: var(--color-primary); }
+    .logo-text { font-family: var(--font-display); font-size: var(--text-lg); font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+    .logo-sub { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: 400; margin-top: 1px; }
+    .header-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .btn-icon {
+      width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-md); color: var(--color-text-muted);
+      transition: background var(--transition), color var(--transition);
+    }
+    .btn-icon:hover { background: var(--color-surface-dynamic); color: var(--color-text); }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      padding: 0.4rem 0.875rem;
+      background: var(--color-primary); color: #fff;
+      border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: 600;
+      transition: background var(--transition), transform var(--transition);
+    }
+    .btn-primary:hover { background: var(--color-primary-hover); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      padding: 0.4rem 0.875rem;
+      background: var(--color-surface-dynamic); color: var(--color-text);
+      border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: 500;
+      border: 1px solid var(--color-border);
+      transition: background var(--transition);
+    }
+    .btn-secondary:hover { background: var(--color-divider); }
+    .btn-danger {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      padding: 0.3rem 0.625rem;
+      background: var(--color-danger-bg); color: var(--color-danger);
+      border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: 600;
+      border: 1px solid currentColor;
+      transition: opacity var(--transition);
+    }
+    .btn-danger:hover { opacity: 0.8; }
+    .btn-sm {
+      padding: 0.25rem 0.5rem; font-size: var(--text-xs); font-weight: 600;
+      border-radius: var(--radius-sm); border: 1px solid var(--color-border);
+      background: var(--color-surface-dynamic); color: var(--color-text);
+      display: inline-flex; align-items: center; gap: 0.25rem;
+      transition: background var(--transition);
+    }
+    .btn-sm:hover { background: var(--color-divider); }
+    .btn-sm.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+
+    /* Main */
+    .main { flex: 1; display: flex; flex-direction: column; gap: 0; overflow: hidden; min-height: 0; position: relative; }
+
+    /* Keyboard stage */
+    .stage-wrap {
+      flex: 1; position: relative; overflow: hidden;
+      background: var(--color-bg);
+      cursor: grab;
+      min-height: 300px;
+    }
+    .stage-wrap.panning { cursor: grabbing; }
+    #keyboard-svg {
+      display: block; width: 100%; height: 100%;
+      touch-action: none;
+    }
+    .stage-hint {
+      position: absolute; bottom: 1rem; right: 1rem;
+      font-size: var(--text-xs); color: var(--color-text-faint);
+      pointer-events: none;
+      background: var(--color-surface); padding: 0.25rem 0.5rem;
+      border-radius: var(--radius-sm); border: 1px solid var(--color-border);
+    }
+
+    /* Axes labels overlay */
+    .axis-label {
+      position: absolute; font-size: var(--text-xs); color: var(--color-text-faint);
+      pointer-events: none; font-family: var(--font-body);
+    }
+    .axis-label-x { bottom: 0.5rem; left: 50%; transform: translateX(-50%); }
+    .axis-label-y { top: 50%; left: 0.5rem; transform: translateY(-50%) rotate(-90deg); transform-origin: center; }
+
+    /* Panel — overlay mode on all screen sizes */
+    .panel {
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 360px;
+      background: var(--color-surface);
+      border-left: 1px solid var(--color-divider);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      z-index: 10;
+      box-shadow: -4px 0 16px rgba(0,0,0,0.12);
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+      transform: translateX(0);
+      opacity: 1;
+    }
+    .panel:not(.open) {
+      transform: translateX(100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.625rem 1rem 0.625rem 1.25rem;
+      border-bottom: 1px solid var(--color-divider);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .panel-title { font-family: var(--font-display); font-weight: 700; font-size: var(--text-sm); letter-spacing: 0.01em; }
+    .panel-close-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border); background: var(--color-surface-dynamic);
+      cursor: pointer; color: var(--color-text-muted);
+      transition: background var(--transition), color var(--transition);
+      flex-shrink: 0;
+    }
+    .panel-close-btn:hover { background: var(--color-divider); color: var(--color-text); }
+    .panel-body { flex: 1; overflow-y: auto; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+    /* Gear FAB — shown when panel is closed */
+    .panel-gear-fab {
+      position: absolute;
+      top: 0.75rem; right: 0.75rem;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--color-text-muted);
+      z-index: 20;
+      transition: background var(--transition), color var(--transition), box-shadow var(--transition);
+    }
+    .panel-gear-fab:hover { background: var(--color-primary); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .panel-gear-fab.hidden { display: none; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--color-divider); margin-bottom: 0.75rem; }
+    .tab {
+      padding: 0.4rem 0.75rem; font-size: var(--text-sm); font-weight: 500; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      color: var(--color-text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color var(--transition), border-color var(--transition);
+    }
+    .tab:hover { color: var(--color-text); }
+    .tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Form rows */
+    .field-row { display: flex; flex-direction: column; gap: 0.25rem; }
+    .field-label { font-size: var(--text-xs); font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .field-hint { font-size: var(--text-xs); color: var(--color-text-faint); }
+    .field-input {
+      width: 100%; padding: 0.5rem 0.75rem;
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); font-size: var(--text-sm); color: var(--color-text);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      outline: none;
+    }
+    .field-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-highlight); }
+    .field-select {
+      width: 100%; padding: 0.5rem 0.75rem;
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); font-size: var(--text-sm); color: var(--color-text);
+      transition: border-color var(--transition); outline: none; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.75rem center;
+      padding-right: 2rem;
+    }
+    .field-select:focus { border-color: var(--color-primary); }
+    .field-row-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+    /* Harmony list */
+    .harmony-list { display: flex; flex-direction: column; gap: 0.375rem; }
+    .harmony-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.4rem 0.5rem;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--color-border);
+      background: var(--color-surface-2);
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+      user-select: none;
+    }
+    .harmony-item.selected {
+      border-color: var(--color-primary);
+      background: var(--color-primary-highlight);
+    }
+    .harmony-item.dirty .harmony-name::after {
+      content: ' ★';
+      color: var(--color-accent);
+      font-size: 0.7em;
+    }
+    .harmony-vis-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .harmony-name { font-size: var(--text-sm); font-weight: 500; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .harmony-vis-toggle {
+      width: 1.4rem; height: 1.4rem; display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-sm); flex-shrink: 0; color: var(--color-text-muted);
+      transition: color var(--transition);
+    }
+    .harmony-vis-toggle.hidden { color: var(--color-text-faint); }
+    .harmony-drag-handle {
+      color: var(--color-text-faint); cursor: grab; flex-shrink: 0;
+      display: flex; align-items: center;
+    }
+    .harmony-actions { display: flex; gap: 0.25rem; margin-top: 0.5rem; }
+
+    /* Harmony editor */
+    .harmony-editor {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 0.875rem;
+      background: var(--color-surface-offset);
+      display: flex; flex-direction: column; gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+    .project-name-row {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.5rem 0.25rem;
+      border-bottom: 1px solid var(--color-divider);
+      margin-bottom: 0.25rem;
+    }
+    .project-name-display {
+      font-family: var(--font-display); font-size: var(--text-sm); font-weight: 600;
+      color: var(--color-text); flex: 1; cursor: default; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .project-name-edit-btn {
+      background: none; border: none; cursor: pointer; padding: 0.2rem;
+      color: var(--color-text-muted); border-radius: var(--radius-sm);
+      display: flex; align-items: center;
+    }
+    .project-name-edit-btn:hover { color: var(--color-primary); }
+    .project-name-input { font-family: var(--font-display); font-weight: 600; }
+
+    .harmony-editor-header {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: var(--text-sm); font-weight: 600; color: var(--color-text);
+      border-bottom: 1px solid var(--color-divider); padding-bottom: 0.5rem;
+    }
+    .harmony-editor-actions { display: flex; gap: 0.375rem; flex-wrap: wrap; margin-top: 0.25rem; }
+
+    /* Width sliders */
+    .width-row { display: flex; align-items: center; gap: 0.625rem; }
+    .width-label { font-size: var(--text-xs); font-weight: 600; color: var(--color-text-muted); min-width: 5rem; font-family: 'Courier New', monospace; }
+    .width-slider { flex: 1; accent-color: var(--color-primary); }
+    .width-value { font-size: var(--text-xs); color: var(--color-text-muted); min-width: 2.5rem; text-align: right; font-variant-numeric: tabular-nums; }
+    .widths-dirty-bar {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.4rem 0.625rem;
+      background: var(--color-primary-highlight);
+      border-radius: var(--radius-md);
+      font-size: var(--text-xs); color: var(--color-primary);
+      margin-top: 0.25rem;
+    }
+
+    /* Tone table */
+    .tone-table { width: 100%; border-collapse: collapse; font-size: var(--text-xs); }
+    .tone-table th { text-align: left; padding: 0.3rem 0.5rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--color-divider); }
+    .tone-table td { padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--color-divider); }
+    .tone-table tr:last-child td { border-bottom: none; }
+    .tone-table tr:hover td { background: var(--color-surface-offset); }
+    .tone-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+
+    /* Tooltip */
+    .tooltip {
+      position: fixed; pointer-events: none; z-index: 200;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-md); padding: 0.5rem 0.75rem;
+      box-shadow: var(--shadow-md); font-size: var(--text-xs);
+      opacity: 0; transition: opacity 0.15s;
+      max-width: 240px;
+    }
+    .tooltip.visible { opacity: 1; }
+    .tooltip-ratio { font-family: var(--font-display); font-size: var(--text-sm); font-weight: 700; color: var(--color-text); }
+    .tooltip-cents { color: var(--color-text-muted); margin-top: 1px; }
+    .tooltip-freq { color: var(--color-accent); margin-top: 1px; }
+    .tooltip-harmony { color: var(--color-text-faint); font-size: 0.7rem; margin-top: 2px; }
+
+    /* Color picker inline */
+    .color-picker-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+    .color-swatch {
+      width: 28px; height: 28px; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-border); cursor: pointer; flex-shrink: 0;
+      overflow: hidden; padding: 0;
+    }
+    .color-swatch input[type="color"] {
+      width: 200%; height: 200%; transform: translate(-25%, -25%);
+      border: none; padding: 0; cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (min-width: 960px) {
+      .main { flex-direction: row; overflow: hidden; }
+      .stage-wrap { flex: 1; }
+    }
+    /* Mobile: panel is full-width overlay */
+    @media (max-width: 959px) {
+      .panel { width: 100%; max-width: 420px; }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-text-faint); }
+
+    /* Footer */
+    .footer { padding: 0.4rem 1.25rem; font-size: var(--text-xs); color: var(--color-text-faint); border-top: 1px solid var(--color-divider); background: var(--color-surface); display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; flex-shrink: 0; }
+    .footer a { color: var(--color-text-faint); text-decoration: none; }
+    .footer a:hover { color: var(--color-primary); }
+
+    /* SVG key flash animation */
+    .key-active { filter: brightness(1.4); }
+    @keyframes keyflash { 0% { filter: brightness(2); } 100% { filter: brightness(1); } }
+
+    /* Drag over highlight */
+    .harmony-item.drag-over { border-color: var(--color-accent); background: var(--color-surface-dynamic); }
+
+    /* Unsaved indicator */
+    .unsaved-badge {
+      font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.3rem;
+      background: var(--color-accent); color: #fff;
+      border-radius: 0.25rem; flex-shrink: 0;
+    }
+
+    /* Section separator */
+    .section-sep { border: none; border-top: 1px solid var(--color-divider); margin: 0.25rem 0; }
+
+    /* Small range */
+    input[type="range"].range-sm {
+      width: 100%; accent-color: var(--color-primary);
+      padding: 0.2rem 0; background: none; border: none;
+    }
+
+    /* key shape transform controls */
+    .transform-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+    /* Width row with min/max inputs */
+    .width-row { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.1rem; }
+    .width-scope-btn {
+      font-size: 0.6rem; padding: 0.1rem 0.25rem; border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); background: var(--color-surface-dynamic);
+      color: var(--color-text-faint); cursor: pointer; flex-shrink: 0; line-height: 1;
+    }
+    .width-scope-btn:hover { background: var(--color-divider); color: var(--color-text); }
+    .width-num-input {
+      width: 3.8rem; font-size: var(--text-xs); text-align: right;
+      padding: 0.15rem 0.25rem; border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); background: var(--color-surface-dynamic);
+      color: var(--color-text);
+    }
+    .width-num-input:focus { outline: none; border-color: var(--color-primary); }
+    .width-minmax { width: 2.8rem; font-size: var(--text-xs); color: var(--color-text-faint);
+      background: var(--color-surface-2); border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); padding: 0.15rem 0.3rem;
+      text-align: center; outline: none; -moz-appearance: textfield; }
+    .width-minmax::-webkit-outer-spin-button, .width-minmax::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .width-minmax:focus { border-color: var(--color-primary); }
+
+    /* View controls in Layout tab */
+    .view-control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.25rem; }
+    .view-control-row { display: flex; flex-direction: column; gap: 0.25rem; }
+
+    /* Octave/semitone line options */
+    .options-grid { display: flex; flex-direction: column; gap: 0.4rem; }
+    .option-row { display: flex; align-items: center; gap: 0.5rem; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <svg class="logo-svg" aria-label="Faithful Keyboard logo" viewBox="0 0 32 32" width="32" height="32" fill="none">
+        <polygon points="16,3 25,9 22,20 10,20 7,9" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>
+        <polygon points="16,12 22,16 20,24 12,24 10,16" fill="currentColor" opacity="0.25"/>
+        <line x1="4" y1="28" x2="28" y2="28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="28" y1="28" x2="24" y2="24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="28" y1="28" x2="24" y2="28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="logo-text">Faithful Keyboard</div>
+        <div class="logo-sub">JI Tone System Explorer</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" id="btn-export" title="Export project as JSON">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+      <button class="btn-secondary" id="btn-import" title="Import project from JSON">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import
+      </button>
+      <input type="file" id="import-file" accept=".json" style="display:none">
+      <button class="btn-icon" data-theme-toggle aria-label="Toggle theme" title="Toggle light/dark mode">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="btn-secondary" id="btn-reset-view" title="Reset pan/zoom">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Reset View
+      </button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- SVG stage -->
+    <div class="stage-wrap" id="stage-wrap">
+      <svg id="keyboard-svg" xmlns="http://www.w3.org/2000/svg">
+        <g id="svg-axes"></g>
+        <g id="svg-connections"></g>
+        <g id="svg-keys"></g>
+      </svg>
+
+      <div class="stage-hint">Scroll to zoom · Drag to pan · Click/touch key to play · Two fingers: pinch-zoom &amp; rotate</div>
+    </div>
+
+    <!-- Gear FAB — shown when panel is collapsed -->
+    <button class="panel-gear-fab hidden" id="panel-gear-fab" title="Open Configuration" aria-label="Open Configuration">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+
+    <!-- Side panel -->
+    <aside class="panel open" id="side-panel">
+      <div class="panel-header" id="panel-header">
+        <span class="panel-title">Configuration</span>
+        <button class="panel-close-btn" id="panel-toggle" title="Collapse panel" aria-label="Close Configuration">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="panel-body" id="panel-body">
+
+        <!-- Project Name -->
+        <div class="project-name-row" id="project-name-row">
+          <span class="project-name-display" id="project-name-display">My Project</span>
+          <button class="project-name-edit-btn" id="project-name-edit-btn" title="Edit project name">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
+          <input class="project-name-input field-input" id="project-name-input" type="text" value="My Project" style="display:none;flex:1;padding:0.2rem 0.4rem;font-size:var(--text-sm);">
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab active" data-tab="harmony">Harmonies</button>
+          <button class="tab" data-tab="layout">Layout</button>
+          <button class="tab" data-tab="sound">Sound</button>
+          <button class="tab" data-tab="info">Info</button>
+        </div>
+
+        <!-- Tab: Harmony -->
+        <div class="tab-panel active" id="tab-harmony">
+          <!-- Harmony list -->
+          <div class="field-row">
+            <div class="field-label" style="margin-bottom:0.3rem;">Harmony Layers</div>
+            <div class="harmony-list" id="harmony-list"></div>
+            <div class="harmony-actions">
+              <button class="btn-sm" id="btn-add-harmony">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Harmony
+              </button>
+            </div>
+          </div>
+
+          <!-- Harmony editor (shown when one is selected) -->
+          <div class="harmony-editor" id="harmony-editor" style="display:none;"></div>
+        </div>
+
+        <!-- Tab: Layout -->
+        <div class="tab-panel" id="tab-layout">
+          <div class="field-row">
+            <label class="field-label" for="coord-select">Coordinate System (basis for widths)</label>
+            <select class="field-select" id="coord-select">
+              <option value="primes">Primes: 2, 3, 5, 7, 11, 13</option>
+              <option value="reduced" selected>Reduced Primes: 2, 3/2, 5/4, 7/4, 11/8, 13/8</option>
+              <option value="pythagorean">Pythagorean + Commas: 2, 3/2, 81/80, 64/63, 33/32, 27/26</option>
+              <option value="other">Other (custom basis)</option>
+            </select>
+          </div>
+
+          <!-- Custom basis input (shown only for "other") -->
+          <div id="custom-basis-wrap" style="display:none;">
+            <div class="field-row">
+              <label class="field-label">Custom Basis Vectors (as ratios, one per line)</label>
+              <textarea class="field-input" id="custom-basis-input" rows="6" placeholder="2&#10;3/2&#10;5/4&#10;7/4&#10;11/8&#10;13/8"></textarea>
+              <span class="field-hint">Enter 6 ratios (or exponent tuples like [1,0,0,0,0,0]) defining the basis generators.</span>
+            </div>
+          </div>
+
+          <div class="field-row" style="margin-top:0.25rem;">
+            <div class="field-label" style="margin-bottom:0.375rem;">Width Assignments</div>
+            <span class="field-hint" style="margin-bottom:0.5rem;">Assign width to each basis generator. Click ± to set the slider range per row.</span>
+            <div id="width-controls"></div>
+            <div id="widths-dirty-indicator" style="display:none;">
+              <div class="widths-dirty-bar">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Unsaved changes
+                <button class="btn-sm" id="btn-save-widths" style="margin-left:auto;">Save</button>
+                <button class="btn-sm" id="btn-revert-widths">Revert</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Display Options -->
+          <div class="field-row">
+            <div class="field-label" style="margin-bottom:0.375rem;">Display Options</div>
+            <div class="options-grid">
+              <div class="option-row">
+                <input type="checkbox" id="show-octave-lines" checked style="accent-color:var(--color-primary);width:14px;height:14px;">
+                <label for="show-octave-lines" style="font-size:var(--text-sm);cursor:pointer;flex:1;">Show octave lines</label>
+              </div>
+              <div class="option-row">
+                <input type="checkbox" id="show-semitone-lines" style="accent-color:var(--color-primary);width:14px;height:14px;">
+                <label for="show-semitone-lines" style="font-size:var(--text-sm);cursor:pointer;flex:1;">Show semitone lines</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Keyboard Rotation -->
+          <div class="field-row">
+            <label class="field-label" for="keyboard-rotation">Keyboard Rotation (°)</label>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <input type="range" id="keyboard-rotation" class="range-sm" min="-180" max="180" value="0" style="flex:1;">
+              <input class="field-input" type="number" id="keyboard-rotation-num" value="0" min="-180" max="180" step="1" style="width:4rem;padding:0.3rem 0.5rem;">
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label class="field-label" for="base-freq">Base Frequency (Hz)</label>
+            <input class="field-input" type="number" id="base-freq" value="261.63" step="0.01" min="20" max="2000">
+            <span class="field-hint">Frequency for 1/1. Default: C4 = 261.63 Hz</span>
+          </div>
+
+          <!-- View Controls -->
+          <div class="field-row">
+            <label class="field-label">Zoom</label>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <input type="range" id="view-zoom-slider" class="range-sm" min="-2" max="3" step="0.01" value="0" style="flex:1;" title="Zoom (log scale: 0 = 1×)">
+              <input class="field-input" type="number" id="view-zoom" value="1" min="0.01" max="1000" step="0.01" style="width:5rem;padding:0.3rem 0.5rem;">
+            </div>
+          </div>
+          <div class="view-control-grid" style="margin-top:0.25rem;">
+            <div class="view-control-row">
+              <label class="field-label" style="font-size:0.65rem;">Pan X (px)</label>
+              <input class="field-input" type="number" id="view-panx" value="0" step="1" style="padding:0.3rem 0.5rem;">
+            </div>
+            <div class="view-control-row">
+              <label class="field-label" style="font-size:0.65rem;">Pan Y (px)</label>
+              <input class="field-input" type="number" id="view-pany" value="0" step="1" style="padding:0.3rem 0.5rem;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Sound -->
+        <div class="tab-panel" id="tab-sound">
+          <div class="field-row">
+            <label class="field-label" for="waveform">Waveform</label>
+            <select class="field-select" id="waveform">
+              <option value="sine">Sine (pure tone)</option>
+              <option value="triangle">Triangle</option>
+              <option value="sawtooth">Sawtooth</option>
+              <option value="square">Square</option>
+              <option value="organ">Organ (additive harmonics)</option>
+              <option value="bell">Bell (FM)</option>
+              <option value="pluck">Pluck (Karplus-Strong)</option>
+              <option value="marimba">Marimba (mallet)</option>
+              <option value="flute">Flute (breathy)</option>
+              <option value="glass">Glass harmonica</option>
+              <option value="pad">Pad / Strings</option>
+              <option value="choir">Choir / Vowel</option>
+              <option value="clavinet">Clavinet / Electric piano</option>
+              <option value="gamelan">Gamelan (inharmonic)</option>
+            </select>
+          </div>
+          <div class="field-row-inline">
+            <div class="field-row">
+              <label class="field-label" for="env-attack">Attack (ms)</label>
+              <input class="field-input" type="number" id="env-attack" value="10" min="0" max="500" step="5">
+            </div>
+            <div class="field-row">
+              <label class="field-label" for="env-release">Release (ms)</label>
+              <input class="field-input" type="number" id="env-release" value="600" min="50" max="5000" step="50">
+            </div>
+          </div>
+          <div class="field-row-inline">
+            <div class="field-row">
+              <label class="field-label" for="env-sustain">Sustain (0–1)</label>
+              <input class="field-input" type="number" id="env-sustain" value="0.4" min="0" max="1" step="0.05">
+            </div>
+            <div class="field-row">
+              <label class="field-label" for="master-vol">Volume (0–1)</label>
+              <input class="field-input" type="number" id="master-vol" value="0.5" min="0" max="1" step="0.05">
+            </div>
+          </div>
+          <div class="field-row">
+            <label class="field-label" for="polyphony">Max Polyphony</label>
+            <input class="field-input" type="number" id="polyphony" value="8" min="1" max="32">
+          </div>
+          <div class="field-row" style="margin-top:0.5rem;">
+            <button class="btn-secondary" id="btn-test-sound" style="width:100%; justify-content: center;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Test Sound (play 1/1)
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab: Info -->
+        <div class="tab-panel" id="tab-info">
+          <p style="font-size: var(--text-sm); line-height:1.6; color: var(--color-text-muted);">
+            This app demonstrates the <strong style="color:var(--color-text)">faithful keyboard</strong> construction from:
+          </p>
+          <p style="font-size: var(--text-sm); line-height:1.6; color: var(--color-text-muted); margin-top:0.5rem;">
+            <em>Planar Projections of Tone Systems and Faithful Keyboards</em><br>
+            Marek Žabka, Komenský University Bratislava, 2026.
+          </p>
+          <hr style="border:none; border-top: 1px solid var(--color-divider); margin: 0.75rem 0;">
+          <p style="font-size: var(--text-sm); line-height:1.6; color: var(--color-text-muted);">
+            <strong style="color:var(--color-text)">Pitch height</strong> (x-axis) is the standard cents value:
+            h = 1200·log₂(ratio).
+          </p>
+          <p style="font-size: var(--text-sm); line-height:1.6; color: var(--color-text-muted); margin-top:0.5rem;">
+            <strong style="color:var(--color-text)">Pitch width</strong> (y-axis) is determined by your width assignments to the basis generators of the chosen coordinate system.
+          </p>
+          <p style="font-size: var(--text-sm); line-height:1.6; color: var(--color-text-muted); margin-top:0.5rem;">
+            A projection is <strong style="color:var(--color-text)">pitch-faithful</strong> iff the pitch-height vector lies in the projection plane (Theorem 1). This guarantees distinct JI tones always map to distinct positions.
+          </p>
+          <p style="font-size: var(--text-sm); line-height:1.6; color: var(--color-text-muted); margin-top:0.5rem;">
+            Multiple harmony layers can be shown simultaneously. Click or touch any key to hear it.
+          </p>
+        </div>
+
+      </div>
+    </aside>
+  </div>
+
+  <footer class="footer">
+    <span>Faithful Keyboard Explorer &mdash; based on M. Žabka, <em>Planar Projections of Tone Systems and Faithful Keyboards</em>, MCM 2026</span>
+    <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity Computer</a>
+  </footer>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-ratio" id="tt-ratio">1/1</div>
+  <div class="tooltip-cents" id="tt-cents">0.0 ¢</div>
+  <div class="tooltip-freq" id="tt-freq">261.6 Hz</div>
+  <div class="tooltip-harmony" id="tt-harmony"></div>
+</div>
+
+<script>
+// ═════════════════════════════════════════════════════════════════════════════
+//  MATH UTILITIES
+// ═════════════════════════════════════════════════════════════════════════════
+
+function gcd(a, b) { a=Math.abs(a); b=Math.abs(b); while(b){[a,b]=[b,a%b];} return a; }
+
+function parseRatio(s) {
+  s = s.trim();
+  if (!s) return null;
+  // support exponent tuple like [1,-1,0,0,0,0]
+  if (s.startsWith('[')) {
+    try {
+      const arr = JSON.parse(s);
+      if (Array.isArray(arr)) return { expsOverride: arr.map(Number) };
+    } catch(e) {}
+  }
+  if (s.includes('/')) {
+    const [n,d] = s.split('/').map(x=>parseInt(x.trim()));
+    if (isNaN(n)||isNaN(d)||d===0) return null;
+    const g = gcd(Math.abs(n),Math.abs(d));
+    return { num: n/g, den: d/g };
+  }
+  const v = parseFloat(s);
+  if (isNaN(v)||v<=0) return null;
+  const den=1000; const num=Math.round(v*den); const g=gcd(num,den);
+  return { num: num/g, den: den/g };
+}
+
+function ratioVal(r) { return r.num/r.den; }
+function ratioToCents(r) { return 1200*Math.log2(ratioVal(r)); }
+
+function reduceOctave(r) {
+  let v=ratioVal(r), num=r.num, den=r.den;
+  while(v>=2){num/=2;v/=2;}
+  while(v<1){num*=2;v*=2;}
+  const factor=den;
+  let n=Math.round(num*factor), d=Math.round(den*factor);
+  const g=gcd(Math.abs(n),Math.abs(d));
+  return {num:n/g, den:d/g};
+}
+
+const PRIMES=[2,3,5,7,11,13];
+function factorize(n) {
+  const exps=new Array(PRIMES.length).fill(0);
+  if(n===0) return exps;
+  for(let i=0;i<PRIMES.length;i++) while(n%PRIMES[i]===0){exps[i]++;n/=PRIMES[i];}
+  return exps;
+}
+function ratioExponents(r) {
+  if (r.expsOverride) return r.expsOverride.concat(new Array(Math.max(0,6-r.expsOverride.length)).fill(0));
+  const en=factorize(r.num), ed=factorize(r.den);
+  return en.map((e,i)=>e-ed[i]);
+}
+function jiLimit(r) {
+  const exps=ratioExponents(r); let lim=1;
+  for(let i=0;i<PRIMES.length;i++) if(exps[i]!==0) lim=Math.max(lim,PRIMES[i]);
+  return lim;
+}
+
+const H_VEC = PRIMES.map(p=>1200*Math.log2(p));
+function expsToHeight(exps) { return exps.reduce((s,e,i)=>s+e*H_VEC[i],0); }
+function expsToWidth(exps, wVec) { return exps.reduce((s,e,i)=>s+e*(wVec[i]||0),0); }
+function formatRatio(r) { if(r.den===1) return `${r.num}`; return `${r.num}/${r.den}`; }
+
+// Dot product
+function dot(a,b) { return a.reduce((s,v,i)=>s+v*(b[i]||0),0); }
+
+// Matrix-vector product
+function matVec(M, v) { return M.map(row => dot(row, v)); }
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  MATRIX UTILITIES
+// ═════════════════════════════════════════════════════════════════════════════
+
+// Invert a 6x6 matrix using Gaussian elimination. Returns null if singular.
+function invertMatrix6(M) {
+  const n = 6;
+  // Augment with identity
+  const A = M.map(row => [...row, ...Array.from({length:n}, (_,j)=>row===M[M.indexOf(row)]&&false?0:0)]);
+  // Rebuild correctly
+  const mat = M.map((row, i) => {
+    const aug = new Array(n*2).fill(0);
+    for (let j=0;j<n;j++) aug[j]=row[j];
+    aug[n+i]=1;
+    return aug;
+  });
+  for (let col=0; col<n; col++) {
+    // Find pivot
+    let pivotRow = -1;
+    for (let r=col; r<n; r++) if (Math.abs(mat[r][col])>1e-10) { pivotRow=r; break; }
+    if (pivotRow===-1) return null; // singular
+    [mat[col], mat[pivotRow]] = [mat[pivotRow], mat[col]];
+    const pivot = mat[col][col];
+    for (let j=0;j<n*2;j++) mat[col][j]/=pivot;
+    for (let r=0;r<n;r++) {
+      if (r===col) continue;
+      const factor=mat[r][col];
+      for (let j=0;j<n*2;j++) mat[r][j]-=factor*mat[col][j];
+    }
+  }
+  return mat.map(row=>row.slice(n));
+}
+
+// Transpose a 6x6 matrix
+function transposeMatrix6(M) {
+  return Array.from({length:6}, (_,i) => Array.from({length:6}, (_,j) => M[j][i]));
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  COORDINATE SYSTEMS
+// ═════════════════════════════════════════════════════════════════════════════
+
+const COORD_SYSTEMS = {
+  primes: {
+    name: 'Primes',
+    labels: ['2', '3', '5', '7', '11', '13'],
+    // basis rows in prime-exponent space — identity
+    basis: [
+      [1,0,0,0,0,0],
+      [0,1,0,0,0,0],
+      [0,0,1,0,0,0],
+      [0,0,0,1,0,0],
+      [0,0,0,0,1,0],
+      [0,0,0,0,0,1]
+    ],
+    defaults: [0, 0.9, 4.5, 4.0, 3.5, 1.6]
+  },
+  reduced: {
+    name: 'Reduced Primes',
+    labels: ['2 (oct)', '3/2 (fifth)', '5/4 (M3)', '7/4 (nat7)', '11/8 (nat11)', '13/8 (nat13)'],
+    basis: [
+      [1, 0, 0, 0, 0, 0],   // 2
+      [-1, 1, 0, 0, 0, 0],  // 3/2
+      [-2, 0, 1, 0, 0, 0],  // 5/4
+      [-2, 0, 0, 1, 0, 0],  // 7/4
+      [-3, 0, 0, 0, 1, 0],  // 11/8
+      [-3, 0, 0, 0, 0, 1]   // 13/8
+    ],
+    defaults: [0, 0.9, 4.5, 4.0, 3.5, 1.6]
+  },
+  pythagorean: {
+    name: 'Pythagorean + Commas',
+    labels: ['2 (oct)', '3/2 (fifth)', '81/80 (syntonic)', '64/63 (septimal)', '33/32 (undecimal)', '27/26 (tridecimal)'],
+    basis: [
+      [1, 0, 0, 0, 0, 0],   // 2
+      [-1, 1, 0, 0, 0, 0],  // 3/2
+      [4, -4, 1, 0, 0, 0],  // 81/80
+      [6, -2, 0, -1, 0, 0], // 64/63
+      [-5, 1, 0, 0, 1, 0],  // 33/32
+      [-1, 3, 0, 0, 0, -1]  // 27/26
+    ],
+    defaults: [0, 0.9, 1.0, 1.25, 3.0, 1.6]
+  },
+  other: {
+    name: 'Other (custom)',
+    labels: ['b1','b2','b3','b4','b5','b6'],
+    basis: [
+      [1, 0, 0, 0, 0, 0],
+      [-1, 1, 0, 0, 0, 0],
+      [-2, 0, 1, 0, 0, 0],
+      [-2, 0, 0, 1, 0, 0],
+      [-3, 0, 0, 0, 1, 0],
+      [-3, 0, 0, 0, 0, 1]
+    ],
+    defaults: [0, 0.9, 4.5, 4.0, 3.5, 1.6]
+  }
+};
+
+// Compute width for a tone given basis and width assignments.
+// The width is w · c, where c are the coordinates of exps in the given basis.
+// Since basis rows span the space, we solve B * c = e (treating basis as row matrix)
+// i.e. c = B^{-1} * e. Then width = w^T * c = w^T * B^{-1} * e.
+// We precompute B^{-1} when the basis changes to avoid re-inverting per key.
+let _cachedBasis = null;
+let _cachedBasisInvT = null;
+
+function getBasisInvT(basis) {
+  // Cache (B^T)^{-1} = (B^{-1})^T — used to find coordinates in basis
+  // Decomposition: e = sum_i c_i * row_i  =>  B^T * c = e  =>  c = (B^T)^{-1} * e
+  if (basis === _cachedBasis) return _cachedBasisInvT;
+  _cachedBasis = basis;
+  _cachedBasisInvT = invertMatrix6(transposeMatrix6(basis));
+  return _cachedBasisInvT;
+}
+
+function computeWidth(exps, basis, widthAssignments) {
+  const invT = getBasisInvT(basis);
+  if (!invT) {
+    // Singular basis — fall back to dot product with basis rows
+    return basis.reduce((sum, basisRow, i) => sum + (widthAssignments[i]||0) * dot(exps, basisRow), 0);
+  }
+  // c = (B^T)^{-1} * exps  (coordinates of exps in the basis)
+  const coords = invT.map(row => dot(row, exps));
+  return coords.reduce((sum, c, i) => sum + (widthAssignments[i]||0) * c, 0);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  APP STATE
+// ═════════════════════════════════════════════════════════════════════════════
+
+let harmonies = []; // Array of harmony objects
+let selectedHarmonyId = null;
+let nextHarmonyId = 1;
+
+const layout = {
+  coordSystem: 'reduced',
+  customBasis: null, // for 'other' mode
+  widths: [0, 0.9, 4.5, 4.0, 3.5, 1.6],
+  savedWidths: [0, 0.9, 4.5, 4.0, 3.5, 1.6],
+  widthScopes: [5, 5, 5, 5, 5, 5], // slider range: ±scope per row
+  keySize: 42,
+  showOctaveLines: true,
+  showSemitoneLines: false,
+  keyboardRotation: 0
+};
+
+function makeHarmony(overrides = {}) {
+  const id = 'h' + (nextHarmonyId++);
+  const h = {
+    id,
+    name: overrides.name || 'Harmony ' + (harmonies.length + 1),
+    visible: true,
+    ratios: overrides.ratios !== undefined ? overrides.ratios : '1, 9/8, 5/4, 11/8, 3/2, 13/8, 7/4, 15/8',
+    octaveEquiv: overrides.octaveEquiv !== undefined ? overrides.octaveEquiv : true,
+    showLabels: overrides.showLabels !== undefined ? overrides.showLabels : true,
+    labelFontSize: overrides.labelFontSize || 11,
+    labelOffsetX: overrides.labelOffsetX || 0,
+    labelOffsetY: overrides.labelOffsetY || 0,
+    labelColor: overrides.labelColor || '',
+    labelType: overrides.labelType || 'ratio', // 'ratio' or 'heji'
+    toneMode: overrides.toneMode || 'ratios', // 'ratios' | 'primepowers' | 'vectors'
+    keySize: overrides.keySize !== undefined ? overrides.keySize : 42,
+    keyShape: overrides.keyShape || 'round',
+    keyRotation: overrides.keyRotation || 0,
+    keyStretchX: overrides.keyStretchX !== undefined ? overrides.keyStretchX : 1.0,
+    keyStretchY: overrides.keyStretchY !== undefined ? overrides.keyStretchY : 1.0,
+    colorMode: overrides.colorMode || 'limit',
+    uniformColor: overrides.uniformColor || '#6490c4',
+    // edit state (null = no unsaved changes)
+    editState: null,
+    // saved snapshot
+    savedState: null
+  };
+  h.savedState = snapshotHarmony(h);
+  return h;
+}
+
+function snapshotHarmony(h) {
+  return {
+    name: h.name, ratios: h.ratios, octaveEquiv: h.octaveEquiv,
+    showLabels: h.showLabels, labelFontSize: h.labelFontSize,
+    labelOffsetX: h.labelOffsetX, labelOffsetY: h.labelOffsetY,
+    labelColor: h.labelColor || '',
+    labelType: h.labelType || 'ratio',
+    toneMode: h.toneMode || 'ratios',
+    keySize: h.keySize !== undefined ? h.keySize : 42,
+    keyShape: h.keyShape, keyRotation: h.keyRotation,
+    keyStretchX: h.keyStretchX, keyStretchY: h.keyStretchY,
+    colorMode: h.colorMode, uniformColor: h.uniformColor
+  };
+}
+
+function harmonyIsDirty(h) {
+  if (!h.savedState) return true;
+  const snap = snapshotHarmony(h);
+  return JSON.stringify(snap) !== JSON.stringify(h.savedState);
+}
+
+function saveHarmony(h) {
+  h.savedState = snapshotHarmony(h);
+  h.editState = null;
+}
+
+function revertHarmony(h) {
+  if (!h.savedState) return;
+  Object.assign(h, h.savedState);
+  h.editState = null;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  TONE COMPUTATION
+// ═════════════════════════════════════════════════════════════════════════════
+
+function getBaseFreq() { return parseFloat(document.getElementById('base-freq').value) || 261.63; }
+
+// Get the current basis for width computation
+function getCurrentBasis() {
+  const coordSys = layout.coordSystem;
+  if (coordSys === 'other' && layout.customBasis) return layout.customBasis;
+  return COORD_SYSTEMS[coordSys].basis;
+}
+
+// Parse ratios for a harmony (respecting octaveEquiv flag)
+// Returns array of { ratio, cents, freq, limit, x_logical, y_logical, label, harmonyId, harmonyName }
+// Split a tone list string on commas that are NOT inside parentheses
+function splitToneList(raw) {
+  const result = [];
+  let depth = 0, cur = '';
+  for (const ch of raw) {
+    if (ch === '(') { depth++; cur += ch; }
+    else if (ch === ')') { depth--; cur += ch; }
+    else if (ch === ',' && depth === 0) {
+      const t = cur.trim(); if (t) result.push(t);
+      cur = '';
+    } else { cur += ch; }
+  }
+  const t = cur.trim(); if (t) result.push(t);
+  return result;
+}
+
+function computeKeysForHarmony(harmony, baseFreq) {
+  const raw = harmony.ratios;
+  const toneMode = harmony.toneMode || 'ratios';
+  // For vector mode, commas inside () are separators within a vector — split outside parens only
+  const parts = (toneMode === 'vectors') ? splitToneList(raw) : raw.split(',').map(s=>s.trim()).filter(Boolean);
+  const parsedRatios = [];
+
+  for (const p of parts) {
+    if (toneMode === 'vectors') {
+      const exps = parseVectorStr(p);
+      if (exps) {
+        parsedRatios.push({expsOverride: exps});
+        continue;
+      }
+      // fallback: try ratio parser
+    } else if (toneMode === 'primepowers') {
+      const exps = parsePrimePowersToExps(p);
+      if (exps) {
+        parsedRatios.push({expsOverride: exps});
+        continue;
+      }
+      // fallback: try ratio parser
+    }
+    // ratios mode (or fallback): try formula evaluation first (handles (3/2)^2 etc.)
+    if (toneMode === 'ratios') {
+      try {
+        const r = evalRationalExpr(p.replace(/\s+/g,''));
+        if (r && !r.isFloat && r.n > 0 && r.d > 0) {
+          // Push as {num, den} to match parseRatio format
+          const g = _gcd(Math.abs(r.n), Math.abs(r.d));
+          parsedRatios.push({num: r.n/g, den: r.d/g});
+          continue;
+        }
+      } catch(e2) {}
+    }
+    const r = parseRatio(p);
+    if (!r || r.expsOverride) {
+      if (r && r.expsOverride) parsedRatios.push(r);
+      continue;
+    }
+    parsedRatios.push(r);
+  }
+
+  const basis = getCurrentBasis();
+  const keys = [];
+  const seen = new Set();
+
+  for (const r of parsedRatios) {
+    const baseRatio = r.expsOverride ? r : (harmony.octaveEquiv ? reduceOctave(r) : r);
+    const baseVal = r.expsOverride ? Math.exp(dot(r.expsOverride, H_VEC.map(x=>x/1200))*Math.LN2) : ratioVal(baseRatio);
+
+    if (harmony.octaveEquiv && !r.expsOverride) {
+      // Generate all octave transpositions within [20, 4000] Hz
+      for (let oct = -10; oct <= 10; oct++) {
+        const freq = baseFreq * baseVal * Math.pow(2, oct);
+        if (freq < 18 || freq > 4200) continue;
+        const ratio_cents = ratioToCents(baseRatio);
+        const actual_cents = ratio_cents + oct * 1200;
+        const exps = ratioExponents(baseRatio).map((e,i)=>i===0?e+oct:e);
+        const width = computeWidth(exps, basis, layout.widths);
+        const labelBase = r.expsOverride ? `[${r.expsOverride.join(',')}]` : formatRatio(baseRatio);
+        const label = oct === 0 ? labelBase : `${labelBase}·2^${oct}`;
+        const key = `${labelBase}_${oct}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        keys.push({
+          ratio: baseRatio, label, cents: actual_cents, freq, width,
+          limit: jiLimit(baseRatio),
+          x_logical: actual_cents, y_logical: width,
+          harmonyId: harmony.id, harmonyName: harmony.name,
+          oct: oct
+        });
+      }
+    } else {
+      // No octave equivalence — use ratio exactly once
+      const cents = r.expsOverride ? expsToHeight(r.expsOverride) : ratioToCents(r);
+      const exps = r.expsOverride ? r.expsOverride : ratioExponents(r);
+      const width = computeWidth(exps, basis, layout.widths);
+      const label = r.expsOverride ? `[${r.expsOverride.join(',')}]` : formatRatio(r);
+      if (seen.has(label)) continue;
+      seen.add(label);
+      keys.push({
+        ratio: r.expsOverride ? null : r, label, cents, freq: baseFreq * Math.pow(2, cents/1200),
+        width, limit: r.expsOverride ? 13 : jiLimit(r),
+        x_logical: cents, y_logical: width,
+        harmonyId: harmony.id, harmonyName: harmony.name,
+        oct: null
+      });
+    }
+  }
+
+  keys.sort((a,b)=>a.cents-b.cents);
+  return keys;
+}
+
+function getAllKeys() {
+  const baseFreq = getBaseFreq();
+  const allKeys = [];
+  for (const h of harmonies) {
+    if (!h.visible) continue;
+    const keys = computeKeysForHarmony(h, baseFreq);
+    for (const k of keys) k.harmony = h;
+    allKeys.push(...keys);
+  }
+  return allKeys;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  COLOR
+// ═════════════════════════════════════════════════════════════════════════════
+
+function limitColor(limit) {
+  const cs = getComputedStyle(document.documentElement);
+  if (limit <= 3) return cs.getPropertyValue('--color-key-pythagorean').trim();
+  if (limit <= 5) return cs.getPropertyValue('--color-key-syntonic').trim();
+  if (limit <= 7) return cs.getPropertyValue('--color-key-septimal').trim();
+  if (limit <= 11) return cs.getPropertyValue('--color-key-undecimal').trim();
+  return cs.getPropertyValue('--color-key-13limit').trim();
+}
+
+function pitchGradColor(cents, minC, maxC) {
+  const t = maxC > minC ? (cents-minC)/(maxC-minC) : 0.5;
+  return `hsl(${240-t*240},70%,55%)`;
+}
+
+function widthGradColor(w, minW, maxW) {
+  const t = maxW > minW ? (w-minW)/(maxW-minW) : 0.5;
+  return `hsl(${120-t*120},65%,50%)`;
+}
+
+function getKeyColor(key, harmony, allKeys) {
+  const cs = getComputedStyle(document.documentElement);
+  const mode = harmony.colorMode;
+  if (mode === 'limit') return limitColor(key.limit);
+  if (mode === 'pitch') {
+    const cents = allKeys.map(k=>k.cents);
+    return pitchGradColor(key.cents, Math.min(...cents), Math.max(...cents));
+  }
+  if (mode === 'width') {
+    const ws = allKeys.map(k=>k.width);
+    return widthGradColor(key.width, Math.min(...ws), Math.max(...ws));
+  }
+  if (mode === 'uniform') return harmony.uniformColor;
+  return cs.getPropertyValue('--color-primary').trim();
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  HEJI TONE NAME ENGINE
+// ═════════════════════════════════════════════════════════════════════════════
+
+// HEJI (Helmholtz-Ellis JI) notation as described in M. Žabka's paper.
+// Given prime exponents [e2, e3, e5, e7, e11, e13], produce a tone name.
+//
+// Base note from Pythagorean (3-limit) chain: e3 fifths from D
+// D is chosen as origin (0 fifths). Each fifth = +4 semitones (approx)
+// Note names cycle: ...F C G D A E B F# C# G# D# A# E#...
+// Accidentals: sharps/flats from e3
+// Then overlay JI adjustments with HEJI microtonal symbols.
+
+const HEJI_PYTH_NOTES = ['F','C','G','D','A','E','B']; // each is n fifths above F
+// D is at index 3 (D = 3 fifths above F in the chain F C G D A E B)
+// A "fifth" in the chain of fifths from F:
+// F=0, C=1, G=2, D=3, A=4, E=5, B=6, then F#=7, C#=8...
+// So note at position k is: base = HEJI_PYTH_NOTES[((k%7)+7)%7]
+// sharps: k >= 7 means sharps, k <= -1 means flats
+// k = e3 (fifths above D, where D is at 0).
+// Actually: D corresponds to e3=0. Each +1 in e3 goes up a fifth.
+// The fifth chain centered on D:
+//   ... Gb  Db  Ab  Eb  Bb  F   C   G   D   A   E   B   F#  C#  G#  D#  A# ...
+//   k= -6  -5  -4  -3  -2  -1  0   1   2   3   4   5   6   7   8   9   10  11
+//   Note: k here = e3 - 3 (since D is at k=3 in 0-indexed chain from F)
+//   Wait - let me re-index: D = e3=0 => we just use e3 directly.
+// fifths chain for e3: 0=D, 1=A, 2=E, 3=B, 4=F#, 5=C#, 6=G#, -1=G, -2=C, -3=F, -4=Bb, -5=Eb, -6=Ab, -7=Db, -8=Gb
+
+function hejiBaseName(e3) {
+  // Note in chain of fifths from D
+  // Map e3 to letter + accidentals
+  const noteOrder = ['D','A','E','B','F','C','G']; // cycling through fifths up from D
+  // Fifths chain going up: D A E B F# C# G# D# A# ...
+  // Fifths chain going down: D G C F Bb Eb Ab Db Gb Cb ...
+  // We represent e3 as position in the chain:
+  // position 0=D,1=A,2=E,3=B,4=F#,5=C#,6=G#,-1=G,-2=C,-3=F,-4=Bb,-5=Eb,-6=Ab
+  const letters = ['D','A','E','B','F','C','G'];
+  // e3 mod 7 gives letter index (with wraparound), e3 div 7 gives sharps
+  let pos = ((e3 % 7) + 7) % 7;  // 0..6
+  let sharpsFromMod = Math.floor(e3 / 7);  // each 7 fifths = 1 additional sharp
+  // But we need to handle the F-to-B octave position
+  // Simple approach: use the standard "chain of fifths" indexing
+  // Letters in order of fifths: C G D A E B F# (and Cb Gb Db Ab Eb Bb F)
+  const LETTERS = ['F','C','G','D','A','E','B'];
+  // F is at -3, C at -2, G at -1, D at 0... wait let me just hard-code:
+  // Fifths chain: ...Fbb Cbb Gbb Dbb Abb Ebb Bbb Fb Cb Gb Db Ab Eb Bb F C G D A E B F# C# G# D# A# E# B# Fx...
+  // Position in chain (D=0):
+  const CHAIN_LETTERS = ['F','C','G','D','A','E','B']; // index 0..6 mod 7
+  // Sharps/flats: each 7 steps in the chain adds one sharp
+  // Position p: letter = CHAIN_LETTERS[((p+3)%7+7)%7], accidentals = floor((p+3)/7)
+  // (offset +3 so that D=0 maps to CHAIN_LETTERS[3]='D')
+  const p = e3;
+  const letterIdx = ((p + 3) % 7 + 7) % 7;
+  const accidentalCount = Math.floor((p + 3) / 7);
+  const letter = CHAIN_LETTERS[letterIdx];
+  let acc = '';
+  if (accidentalCount > 0) acc = '#'.repeat(accidentalCount);
+  else if (accidentalCount < 0) acc = 'b'.repeat(-accidentalCount);
+  return letter + acc;
+}
+
+// HEJI JI accidentals for each prime (as Unicode/text approximations)
+// 5-limit: syntonic comma ±1 = e5 adjustment (each unit of e5)
+//   +1 syntonic up: 'ˬ' or '\u1d141' — we'll use a small arrow up '↑' for readability
+//   -1 syntonic down: '↓'
+// But HEJI uses specific symbols. We'll use a text approximation:
+//   e5 > 0: each +1 = small arrow up ↑ (5-limit comma up)
+//   e5 < 0: each -1 = ↓
+//   e7 > 0: '7' superscript up
+//   e7 < 0: '7' subscript
+//   e11 > 0: '11' superscript up
+//   e11 < 0: '11' subscript
+//   e13 > 0: '13' superscript
+//   e13 < 0: '13' subscript
+// We encode these as a suffix string for text labels
+
+function hejiAccidentals(exps) {
+  // exps = [e2, e3, e5, e7, e11, e13]
+  // e2 and e3 are handled by octave number and note letter
+  let suffix = '';
+  const e5  = exps[2] || 0;
+  const e7  = exps[3] || 0;
+  const e11 = exps[4] || 0;
+  const e13 = exps[5] || 0;
+  // Syntonic comma adjustments (5-limit)
+  if (e5 > 0) suffix += '\u2191'.repeat(e5);  // ↑ arrow up
+  if (e5 < 0) suffix += '\u2193'.repeat(-e5); // ↓ arrow down
+  // Septimal comma (7-limit)
+  if (e7 !== 0) suffix += e7 > 0 ? '\u2077'.repeat(e7) : '\u2087'.repeat(-e7); // ⁷ or ₇
+  // Undecimal (11-limit)
+  if (e11 !== 0) suffix += e11 > 0 ? '\u00B9\u00B9' : '\u2081\u2081'; // ¹¹ or ₁₁
+  // Tridecimal (13-limit)
+  if (e13 !== 0) suffix += e13 > 0 ? '\u00B9\u00B3' : '\u2081\u2083'; // ¹³ or ₁₃
+  return suffix;
+}
+
+// Compute octave number from e2 (octaves above D4)
+// D4 = [2, 0, 0, 0, 0, 0] exponents
+// We number octaves as prefix: the octave that contains the tone
+// e2 directly gives the octave relative to D in octave 0
+function hejiOctaveNum(e2) {
+  // D4 has e2 typically 0 in our system (base 1/1 = D somewhere)
+  // We display the octave index as a superscript prefix
+  // For simplicity: just return e2 as the octave offset
+  return e2;
+}
+
+function expsToHEJI(exps, baseRatio) {
+  // exps = [e2, e3, e5, e7, e11, e13]
+  // If baseRatio provided, use its exponents (already resolved)
+  const e2  = exps[0] || 0;
+  const e3  = exps[1] || 0;
+  const noteName = hejiBaseName(e3);
+  const acc = hejiAccidentals(exps);
+  // Octave: we include e2 as superscript
+  // Positive e2: higher octaves; negative: lower
+  // Display: note + accidentals (syntonic/JI) + octave as superscript
+  const octStr = e2 !== 0 ? (e2 > 0 ? '\u207A' + superDigit(e2) : '\u207B' + superDigit(-e2)) : '';
+  return noteName + acc + octStr;
+}
+
+function superDigit(n) {
+  const SUP = '\u2070\u00B9\u00B2\u00B3\u2074\u2075\u2076\u2077\u2078\u2079';
+  return String(n).split('').map(c=>SUP[parseInt(c)]||c).join('');
+}
+
+function getKeyLabel(key, h) {
+  if ((h.labelType || 'ratio') === 'heji') {
+    // Compute HEJI name from exponents
+    if (key.ratio) {
+      const exps = ratioExponents(key.ratio);
+      // Add octave transposition from key.oct
+      const oct = key.oct || 0;
+      const fullExps = exps.map((e,i)=>i===0?e+oct:e);
+      return expsToHEJI(fullExps, key.ratio);
+    } else if (key._exps) {
+      return expsToHEJI(key._exps);
+    }
+    return key.label; // fallback
+  }
+  return key.label; // ratio label
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  SVG KEYBOARD RENDERER
+// ═════════════════════════════════════════════════════════════════════════════
+
+const svgEl = document.getElementById('keyboard-svg');
+const axesGroup = document.getElementById('svg-axes');
+const connGroup = document.getElementById('svg-connections');
+const keysGroup = document.getElementById('svg-keys');
+
+let viewState = { panX: 0, panY: 0, scaleX: 1, scaleY: 1 };
+let allKeysCache = [];
+let activeKeyIds = new Set();
+const touchKeyMap = new Map(); // touch.identifier → { key, releaseFunc }
+
+const NS = 'http://www.w3.org/2000/svg';
+function svgEl2(tag, attrs = {}) {
+  const el = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+function logicalToPixel(x, y) {
+  return {
+    px: x * viewState.scaleX + viewState.panX,
+    py: -y * viewState.scaleY + viewState.panY
+  };
+}
+
+function pixelToLogical(px, py) {
+  return {
+    x: (px - viewState.panX) / viewState.scaleX,
+    y: -(py - viewState.panY) / viewState.scaleY
+  };
+}
+
+function resetView() {
+  const keys = allKeysCache;
+  if (!keys.length) return;
+  const xs = keys.map(k=>k.x_logical);
+  const ys = keys.map(k=>k.y_logical);
+  const minX=Math.min(...xs), maxX=Math.max(...xs);
+  const minY=Math.min(...ys), maxY=Math.max(...ys);
+  const wrap = svgEl.parentElement;
+  const cw=wrap.clientWidth, ch=wrap.clientHeight;
+  const padX=80, padY=70;
+  const rangeX=(maxX-minX)||1200;
+  const rangeY=(maxY-minY)||1;
+  viewState.scaleX=Math.max(0.1,Math.min(8,(cw-2*padX)/rangeX));
+  viewState.scaleY=Math.max(0.1,Math.min(300,(ch-2*padY)/(rangeY||1)));
+  const midX=(minX+maxX)/2, midY=(minY+maxY)/2;
+  viewState.panX=cw/2-midX*viewState.scaleX;
+  viewState.panY=ch/2+midY*viewState.scaleY;
+  renderSVG();
+}
+
+// Build key shape path for SVG
+function buildKeyPath(cx, cy, ks, harmony, isActive) {
+  const shape = harmony.keyShape;
+  const rotation = harmony.keyRotation || 0;
+  const sx = harmony.keyStretchX || 1;
+  const sy = harmony.keyStretchY || 1;
+  const r = ks / 2;
+
+  let points = [];
+  let pathData = '';
+  let useCircle = false;
+  let circleR = r;
+
+  if (shape === 'round') {
+    useCircle = true;
+    circleR = r;
+  } else if (shape === 'hex') {
+    for (let i=0; i<6; i++) {
+      const ang = Math.PI/6 + i*Math.PI/3 + rotation*Math.PI/180;
+      points.push([r*Math.cos(ang)*sx, r*Math.sin(ang)*sy]);
+    }
+  } else if (shape === 'diamond') {
+    points = [[0,-r*sy],[r*0.75*sx,0],[0,r*sy],[-r*0.75*sx,0]];
+    if (rotation) rotatePoints(points, rotation);
+  } else if (shape === 'rect') {
+    const hw=r*0.8*sx, hh=r*0.5*sy;
+    points = [[-hw,-hh],[hw,-hh],[hw,hh],[-hw,hh]];
+    if (rotation) rotatePoints(points, rotation);
+  } else if (shape === 'triangle') {
+    const h_t = r*1.1*sy;
+    points = [[0,-h_t],[r*0.9*sx,h_t*0.6],[-r*0.9*sx,h_t*0.6]];
+    if (rotation) rotatePoints(points, rotation);
+  } else {
+    useCircle = true;
+  }
+
+  if (useCircle) {
+    if (sx !== 1 || sy !== 1 || rotation) {
+      // Use ellipse or rotated circle
+      const el = svgEl2('ellipse', {
+        cx: cx.toFixed(2), cy: cy.toFixed(2),
+        rx: (circleR*sx).toFixed(2), ry: (circleR*sy).toFixed(2),
+        transform: rotation ? `rotate(${rotation},${cx.toFixed(2)},${cy.toFixed(2)})` : ''
+      });
+      return { type: 'ellipse', el };
+    }
+    return { type: 'circle', cx, cy, r: circleR };
+  }
+
+  // Polygon path
+  const absPoints = points.map(([px,py])=>[cx+px, cy+py]);
+  pathData = absPoints.map(([px,py],i)=>`${i===0?'M':'L'}${px.toFixed(2)},${py.toFixed(2)}`).join(' ')+'Z';
+  return { type: 'path', d: pathData };
+}
+
+function rotatePoints(points, degrees) {
+  const rad = degrees * Math.PI / 180;
+  const cos = Math.cos(rad), sin = Math.sin(rad);
+  for (let i=0; i<points.length; i++) {
+    const [x,y] = points[i];
+    points[i] = [x*cos-y*sin, x*sin+y*cos];
+  }
+}
+
+function getEffectiveKeySize(h) {
+  const base = (h && h.keySize !== undefined) ? h.keySize : layout.keySize;
+  return Math.max(base*0.4, Math.min(base*2, base*Math.min(viewState.scaleX, 2)));
+}
+
+// Update view controls display (called after any pan/zoom)
+function syncViewControls() {
+  const zoom = (viewState.scaleX + viewState.scaleY) / 2;
+  const zoomEl = document.getElementById('view-zoom');
+  const zoomSlider = document.getElementById('view-zoom-slider');
+  const panxEl = document.getElementById('view-panx');
+  const panyEl = document.getElementById('view-pany');
+  if (zoomEl) zoomEl.value = zoom.toFixed(4);
+  if (zoomSlider) zoomSlider.value = Math.log10(Math.max(0.01, zoom)).toFixed(4);
+  if (panxEl) panxEl.value = Math.round(viewState.panX);
+  if (panyEl) panyEl.value = Math.round(viewState.panY);
+}
+
+function renderSVG() {
+  const cs = getComputedStyle(document.documentElement);
+  const wrap = svgEl.parentElement;
+  const cw = wrap.clientWidth, ch = wrap.clientHeight;
+  svgEl.setAttribute('viewBox', `0 0 ${cw} ${ch}`);
+
+  const bgColor = cs.getPropertyValue('--color-bg').trim();
+  const divColor = cs.getPropertyValue('--color-divider').trim();
+  const textFaint = cs.getPropertyValue('--color-text-faint').trim();
+  const activeColor = cs.getPropertyValue('--color-key-active').trim();
+
+  // Clear groups
+  axesGroup.innerHTML = '';
+  connGroup.innerHTML = '';
+  keysGroup.innerHTML = '';
+
+  const keys = allKeysCache;
+
+  if (!keys.length) {
+    const txt = svgEl2('text', {
+      x: (cw/2).toFixed(0), y: (ch/2).toFixed(0),
+      'text-anchor': 'middle', 'dominant-baseline': 'middle',
+      fill: textFaint, 'font-size': '14', 'font-family': cs.getPropertyValue('--font-body').trim()
+    });
+    txt.textContent = 'Configure your harmony layers and click Apply';
+    axesGroup.appendChild(txt);
+    return;
+  }
+
+  // Background
+  const bg = svgEl2('rect', { x:0, y:0, width:cw, height:ch, fill:bgColor });
+  axesGroup.appendChild(bg);
+
+  // Octave and semitone lines (horizontal, across full width)
+  const showOct = layout.showOctaveLines;
+  const showSemi = layout.showSemitoneLines;
+  if (showOct || showSemi) {
+    const minCents = Math.min(...keys.map(k=>k.cents));
+    const maxCents = Math.max(...keys.map(k=>k.cents));
+    const step = showSemi ? 100 : 1200;
+    const startC = Math.floor(minCents/1200)*1200 - 1200;
+    const endC = Math.ceil(maxCents/1200)*1200 + 1200;
+    for (let c=startC; c<=endC; c+=step) {
+      const isOct = c%1200===0;
+      if (!showSemi && !isOct) continue;
+      if (!showOct && isOct) continue;
+      const {py} = logicalToPixel(0, 0);
+      // Horizontal line at width=0 is at py. But lines should span y-axis for a given cent value.
+      // Actually octave/semitone lines are HORIZONTAL lines across the stage (width axis)
+      // representing constant pitch heights.
+      // We draw them as vertical lines (constant cent = constant x position)
+      const {px} = logicalToPixel(c, 0);
+      if (px < -200 || px > cw+200) continue;
+      if (isOct) {
+        if (!showOct) continue;
+        const line = svgEl2('line', {
+          x1: px.toFixed(1), y1: 0, x2: px.toFixed(1), y2: ch,
+          stroke: divColor, 'stroke-width': '2', opacity: '0.55'
+        });
+        axesGroup.appendChild(line);
+      } else {
+        if (!showSemi) continue;
+        const line = svgEl2('line', {
+          x1: px.toFixed(1), y1: 0, x2: px.toFixed(1), y2: ch,
+          stroke: divColor, 'stroke-width': '1', opacity: '0.35'
+        });
+        axesGroup.appendChild(line);
+      }
+    }
+  }
+
+  // Zero-width horizontal axis line
+  const {py: y0} = logicalToPixel(0, 0);
+  const axisLine = svgEl2('line', {
+    x1: 0, y1: y0.toFixed(1), x2: cw, y2: y0.toFixed(1),
+    stroke: divColor, 'stroke-width': 1, opacity: '0.18'
+  });
+  axesGroup.appendChild(axisLine);
+
+  // connGroup is now empty (dashed connections removed)
+
+  // Overall keyboard rotation
+  const kbRot = layout.keyboardRotation || 0;
+  if (kbRot !== 0) {
+    keysGroup.setAttribute('transform', `rotate(${kbRot},${(cw/2).toFixed(1)},${(ch/2).toFixed(1)})`);
+    axesGroup.setAttribute('transform', `rotate(${kbRot},${(cw/2).toFixed(1)},${(ch/2).toFixed(1)})`);
+  } else {
+    keysGroup.removeAttribute('transform');
+    axesGroup.removeAttribute('transform');
+  }
+
+  // Keys
+  const allCents = keys.map(k=>k.cents);
+  const allWidths = keys.map(k=>k.width);
+  const minC=Math.min(...allCents), maxC=Math.max(...allCents);
+  const minW=Math.min(...allWidths), maxW=Math.max(...allWidths);
+
+  for (const key of keys) {
+    const h = key.harmony;
+    const ks = getEffectiveKeySize(h);
+    const {px, py} = logicalToPixel(key.x_logical, key.y_logical);
+    const isActive = activeKeyIds.has(key.label+'_'+key.harmonyId);
+    const color = isActive ? activeColor : getKeyColor(key, h, keys);
+    const strokeColor = isActive ? '#fff' : cs.getPropertyValue('--color-key-stroke').trim();
+    const strokeW = isActive ? 2 : 1.5;
+
+    const g = svgEl2('g', {
+      class: 'svg-key' + (isActive ? ' key-active' : ''),
+      'data-label': key.label,
+      'data-hid': h.id,
+      style: isActive ? 'filter:drop-shadow(0 0 8px gold)' : ''
+    });
+
+    const shape = buildKeyPath(px, py, ks, h, isActive);
+    let shapeEl;
+    if (shape.type === 'circle') {
+      shapeEl = svgEl2('circle', {
+        cx: px.toFixed(2), cy: py.toFixed(2), r: shape.r.toFixed(2),
+        fill: color, stroke: strokeColor, 'stroke-width': strokeW
+      });
+    } else if (shape.type === 'ellipse') {
+      shapeEl = shape.el;
+      shapeEl.setAttribute('fill', color);
+      shapeEl.setAttribute('stroke', strokeColor);
+      shapeEl.setAttribute('stroke-width', strokeW);
+    } else {
+      shapeEl = svgEl2('path', {
+        d: shape.d, fill: color, stroke: strokeColor, 'stroke-width': strokeW
+      });
+    }
+    g.appendChild(shapeEl);
+
+    // Label — when octave equivalence is on, only show in base octave (oct===0)
+    const showLabel = h.showLabels &&
+      (h.octaveEquiv ? key.oct === 0 : true);
+    if (showLabel) {
+      const fontSize = Math.max(8, Math.min(h.labelFontSize || 11, ks * 0.5));
+      const defaultLblColor = isActive ? '#1a1a1a' : 'rgba(255,255,255,0.92)';
+      const lblColor = isActive ? '#1a1a1a' : (h.labelColor && h.labelColor !== '' ? h.labelColor : defaultLblColor);
+      const lbl = svgEl2('text', {
+        x: (px + (h.labelOffsetX||0)).toFixed(2),
+        y: (py + (h.labelOffsetY||0)).toFixed(2),
+        'text-anchor': 'middle', 'dominant-baseline': 'middle',
+        fill: lblColor,
+        'font-size': fontSize,
+        'font-family': cs.getPropertyValue('--font-body').trim(),
+        'font-weight': '600',
+        'pointer-events': 'none'
+      });
+      lbl.textContent = getKeyLabel(key, h);
+      g.appendChild(lbl);
+    }
+
+    // Invisible hit area
+    const hit = svgEl2('circle', {
+      cx: px.toFixed(2), cy: py.toFixed(2),
+      r: Math.max(ks*0.7, 8).toFixed(2),
+      fill: 'transparent', stroke: 'none',
+      style: 'cursor:pointer'
+    });
+    hit.addEventListener('click', () => handleKeyClick(key));
+    // Touch: sustained — sound on, release on touchend
+    hit.addEventListener('touchstart', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      for (const t of e.changedTouches) {
+        const releaseFunc = playKeySustained(key);
+        touchKeyMap.set(t.identifier, { key, releaseFunc });
+        const id = key.label+'_'+key.harmonyId;
+        activeKeyIds.add(id);
+      }
+      renderSVG();
+    }, {passive:false});
+    hit.addEventListener('touchend', e => {
+      e.preventDefault();
+      for (const t of e.changedTouches) {
+        const entry = touchKeyMap.get(t.identifier);
+        if (entry) {
+          entry.releaseFunc();
+          touchKeyMap.delete(t.identifier);
+          // Only remove active highlight if no other touch holds same key
+          const stillActive = [...touchKeyMap.values()].some(v => v.key.label === entry.key.label && v.key.harmonyId === entry.key.harmonyId);
+          if (!stillActive) activeKeyIds.delete(entry.key.label+'_'+entry.key.harmonyId);
+        }
+      }
+      renderSVG();
+    }, {passive:false});
+    hit.addEventListener('touchcancel', e => {
+      for (const t of e.changedTouches) {
+        const entry = touchKeyMap.get(t.identifier);
+        if (entry) { entry.releaseFunc(); touchKeyMap.delete(t.identifier); }
+      }
+    }, {passive:false});
+    hit.addEventListener('mouseover', e => showTooltip(e.clientX, e.clientY, key));
+    hit.addEventListener('mousemove', e => showTooltip(e.clientX, e.clientY, key));
+    hit.addEventListener('mouseout', hideTooltip);
+    g.appendChild(hit);
+
+    keysGroup.appendChild(g);
+  }
+
+  syncViewControls();
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  PAN / ZOOM (pointer events on stage)
+// ═════════════════════════════════════════════════════════════════════════════
+
+(function initPanZoom() {
+  const stage = document.getElementById('stage-wrap');
+  let isPanning = false, lastX = 0, lastY = 0;
+  let lastTouchDist = 0, lastTouchAngle = 0, lastTouchMid = null;
+
+  stage.addEventListener('pointerdown', e => {
+    if (e.target.tagName === 'circle' && e.target.getAttribute('fill') === 'transparent') return;
+    isPanning = true;
+    lastX = e.clientX; lastY = e.clientY;
+    stage.classList.add('panning');
+    stage.setPointerCapture(e.pointerId);
+  });
+
+  stage.addEventListener('pointermove', e => {
+    if (!isPanning) return;
+    const dx = e.clientX-lastX, dy = e.clientY-lastY;
+    lastX=e.clientX; lastY=e.clientY;
+    viewState.panX += dx; viewState.panY += dy;
+    renderSVG();
+  });
+
+  stage.addEventListener('pointerup', () => {
+    isPanning = false;
+    stage.classList.remove('panning');
+  });
+
+  stage.addEventListener('pointerleave', () => {
+    isPanning = false;
+    stage.classList.remove('panning');
+    hideTooltip();
+  });
+
+  stage.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.1 : 0.9;
+    const rect = stage.getBoundingClientRect();
+    const mx = e.clientX-rect.left, my = e.clientY-rect.top;
+    viewState.panX = mx + (viewState.panX-mx)*factor;
+    viewState.panY = my + (viewState.panY-my)*factor;
+    viewState.scaleX *= factor; viewState.scaleY *= factor;
+    renderSVG();
+  }, {passive:false});
+
+  function getTouchAngle(t0, t1) {
+    return Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX) * 180 / Math.PI;
+  }
+
+  stage.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+      const t0=e.touches[0], t1=e.touches[1];
+      lastTouchDist = Math.hypot(t1.clientX-t0.clientX, t1.clientY-t0.clientY);
+      lastTouchAngle = getTouchAngle(t0, t1);
+      lastTouchMid = {x:(t0.clientX+t1.clientX)/2, y:(t0.clientY+t1.clientY)/2};
+    } else if (e.touches.length === 1) {
+      lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+    }
+  }, {passive:false});
+
+  stage.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+      const t0=e.touches[0], t1=e.touches[1];
+      const dist = Math.hypot(t1.clientX-t0.clientX, t1.clientY-t0.clientY);
+      const angle = getTouchAngle(t0, t1);
+      const mid = {x:(t0.clientX+t1.clientX)/2, y:(t0.clientY+t1.clientY)/2};
+      // Zoom
+      const factor = dist / (lastTouchDist || dist);
+      const rect = stage.getBoundingClientRect();
+      const mx = mid.x-rect.left, my = mid.y-rect.top;
+      viewState.panX = mx + (viewState.panX-mx)*factor;
+      viewState.panY = my + (viewState.panY-my)*factor;
+      viewState.scaleX *= factor; viewState.scaleY *= factor;
+      // Pan with midpoint
+      if (lastTouchMid) { viewState.panX+=mid.x-lastTouchMid.x; viewState.panY+=mid.y-lastTouchMid.y; }
+      // Rotate: delta angle mapped to keyboard rotation
+      let dAngle = angle - lastTouchAngle;
+      // Wrap delta to [-180,180]
+      if (dAngle > 180) dAngle -= 360;
+      if (dAngle < -180) dAngle += 360;
+      layout.keyboardRotation = ((layout.keyboardRotation || 0) + dAngle);
+      // Sync UI controls
+      const rotSlider = document.getElementById('keyboard-rotation');
+      const rotNum = document.getElementById('keyboard-rotation-num');
+      if (rotSlider) rotSlider.value = layout.keyboardRotation;
+      if (rotNum) rotNum.value = Math.round(layout.keyboardRotation);
+      lastTouchDist=dist; lastTouchAngle=angle; lastTouchMid=mid;
+      renderSVG();
+    } else if (e.touches.length === 1) {
+      const dx=e.touches[0].clientX-lastX, dy=e.touches[0].clientY-lastY;
+      lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+      viewState.panX+=dx; viewState.panY+=dy;
+      renderSVG();
+    }
+  }, {passive:false});
+
+  stage.addEventListener('touchend', e => {
+    // If dropping back to 1 touch, reinit single-touch state
+    if (e.touches.length === 1) {
+      lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+      lastTouchMid = null;
+    }
+  }, {passive:false});
+})();
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  AUDIO ENGINE
+// ═════════════════════════════════════════════════════════════════════════════
+
+let audioCtx=null, activeNodes=[];
+function getAudioCtx() {
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  return audioCtx;
+}
+function getEnvelope() {
+  return {
+    attack: parseFloat(document.getElementById('env-attack').value)/1000,
+    sustain: parseFloat(document.getElementById('env-sustain').value),
+    release: parseFloat(document.getElementById('env-release').value)/1000,
+    volume: parseFloat(document.getElementById('master-vol').value)
+  };
+}
+
+function handleKeyClick(key) {
+  playKey(key);
+  const id = key.label+'_'+key.harmonyId;
+  activeKeyIds.add(id);
+  renderSVG();
+  setTimeout(()=>{ activeKeyIds.delete(id); renderSVG(); }, 400);
+}
+
+// Sustained play: returns a release() function. Holds note at sustain level until released.
+function playKeySustained(key) {
+  const ctx = getAudioCtx(), env = getEnvelope();
+  const waveform = document.getElementById('waveform').value;
+  const now = ctx.currentTime;
+  // Build a simple sustained oscillator regardless of waveform type
+  // (complex waveforms still use attack+hold+release model)
+  const masterGain = ctx.createGain();
+  masterGain.gain.setValueAtTime(0, now);
+  masterGain.gain.linearRampToValueAtTime(env.volume * env.sustain, now + env.attack);
+  masterGain.connect(ctx.destination);
+
+  const nodes = [];
+  const freq = key.freq;
+
+  if (waveform === 'sine' || waveform === 'triangle' || waveform === 'square' || waveform === 'sawtooth') {
+    const osc = ctx.createOscillator();
+    osc.type = waveform; osc.frequency.value = freq;
+    osc.connect(masterGain); osc.start(now);
+    nodes.push(osc);
+  } else if (waveform === 'organ') {
+    const harmonics=[1,2,3,4,6,8], amps=[0.5,0.3,0.15,0.1,0.05,0.03];
+    harmonics.forEach((h,i) => {
+      const osc=ctx.createOscillator(), g=ctx.createGain();
+      osc.type='sine'; osc.frequency.value=freq*h; g.gain.value=amps[i];
+      osc.connect(g); g.connect(masterGain); osc.start(now);
+      nodes.push(osc);
+    });
+  } else if (waveform === 'pad' || waveform === 'choir' || waveform === 'flute') {
+    // Pad-style: two detuned oscillators
+    [-4,4].forEach(det => {
+      const osc=ctx.createOscillator(); osc.type='sine';
+      osc.frequency.value=freq*(1+det/1200);
+      osc.connect(masterGain); osc.start(now); nodes.push(osc);
+    });
+  } else {
+    // Fallback: simple sine
+    const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=freq;
+    osc.connect(masterGain); osc.start(now); nodes.push(osc);
+  }
+
+  // Return release function
+  return function release() {
+    const t = ctx.currentTime;
+    masterGain.gain.cancelScheduledValues(t);
+    masterGain.gain.setValueAtTime(masterGain.gain.value, t);
+    masterGain.gain.linearRampToValueAtTime(0, t + env.release);
+    nodes.forEach(n => { try { n.stop(t + env.release + 0.05); } catch(e) {} });
+  };
+}
+
+function playKey(key) {
+  const ctx=getAudioCtx(), env=getEnvelope();
+  const waveform=document.getElementById('waveform').value;
+  const maxV=parseInt(document.getElementById('polyphony').value)||8;
+  const now=ctx.currentTime;
+  if(activeNodes.length>=maxV){
+    const oldest=activeNodes.shift();
+    try{oldest.gain.gain.setTargetAtTime(0,now,0.02);oldest.stop&&oldest.stop(now+0.1);}catch(e){}
+  }
+  if(waveform==='organ') playOrgan(ctx,key.freq,env,now);
+  else if(waveform==='bell') playBell(ctx,key.freq,env,now);
+  else if(waveform==='pluck') playPluck(ctx,key.freq,env,now);
+  else if(waveform==='marimba') playMarimba(ctx,key.freq,env,now);
+  else if(waveform==='flute') playFlute(ctx,key.freq,env,now);
+  else if(waveform==='glass') playGlass(ctx,key.freq,env,now);
+  else if(waveform==='pad') playPad(ctx,key.freq,env,now);
+  else if(waveform==='choir') playChoir(ctx,key.freq,env,now);
+  else if(waveform==='clavinet') playClavinet(ctx,key.freq,env,now);
+  else if(waveform==='gamelan') playGamelan(ctx,key.freq,env,now);
+  else playSynth(ctx,key.freq,env,now,waveform);
+}
+
+function playSynth(ctx,freq,env,now,type) {
+  const osc=ctx.createOscillator(), gain=ctx.createGain();
+  osc.type=type; osc.frequency.value=freq;
+  gain.gain.setValueAtTime(0,now);
+  gain.gain.linearRampToValueAtTime(env.volume*env.sustain,now+env.attack);
+  gain.gain.setTargetAtTime(0,now+env.attack+0.05,env.release/3);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(now); osc.stop(now+env.attack+env.release*3);
+  activeNodes.push({gain, stop:(t)=>{osc.stop(t);}});
+}
+
+function playOrgan(ctx,freq,env,now) {
+  const harmonics=[1,2,3,4,6,8], amps=[0.5,0.3,0.15,0.1,0.05,0.03];
+  const master=ctx.createGain();
+  master.gain.setValueAtTime(0,now);
+  master.gain.linearRampToValueAtTime(env.volume*0.4,now+env.attack);
+  master.gain.setTargetAtTime(0,now+env.attack+0.05,env.release/3);
+  master.connect(ctx.destination);
+  harmonics.forEach((h,i)=>{
+    const osc=ctx.createOscillator(),g=ctx.createGain();
+    osc.type='sine'; osc.frequency.value=freq*h; g.gain.value=amps[i];
+    osc.connect(g);g.connect(master);osc.start(now);osc.stop(now+env.attack+env.release*3);
+  });
+}
+
+function playBell(ctx,freq,env,now) {
+  const carrier=ctx.createOscillator(),mod=ctx.createOscillator();
+  const modGain=ctx.createGain(),masterGain=ctx.createGain();
+  carrier.type='sine';mod.type='sine';
+  carrier.frequency.value=freq; mod.frequency.value=freq*3.5;
+  modGain.gain.setValueAtTime(freq*6,now);
+  modGain.gain.exponentialRampToValueAtTime(freq*0.5,now+2);
+  masterGain.gain.setValueAtTime(env.volume*0.6,now);
+  masterGain.gain.exponentialRampToValueAtTime(0.001,now+3);
+  mod.connect(modGain);modGain.connect(carrier.frequency);
+  carrier.connect(masterGain);masterGain.connect(ctx.destination);
+  carrier.start(now);mod.start(now);carrier.stop(now+3.5);mod.stop(now+3.5);
+}
+
+function playPluck(ctx,freq,env,now) {
+  const bufSize=Math.round(ctx.sampleRate/freq);
+  const buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+  const data=buf.getChannelData(0);
+  for(let i=0;i<bufSize;i++) data[i]=Math.random()*2-1;
+  const src=ctx.createBufferSource();
+  src.buffer=buf;src.loop=true;
+  const filter=ctx.createBiquadFilter();
+  filter.type='lowpass';filter.frequency.value=freq*2;filter.Q.value=20;
+  const gain=ctx.createGain();
+  gain.gain.setValueAtTime(env.volume*0.5,now);
+  gain.gain.exponentialRampToValueAtTime(0.001,now+env.release*2);
+  src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+  src.start(now);src.stop(now+env.release*2+0.1);
+}
+
+function playMarimba(ctx,freq,env,now) {
+  // Mallet: strong attack, quick decay, inharmonic overtones
+  const partials=[1,3.93,9.85], amps=[1,0.4,0.1];
+  const master=ctx.createGain();
+  master.gain.setValueAtTime(env.volume*0.6,now);
+  master.gain.exponentialRampToValueAtTime(0.001,now+env.release*1.5+0.4);
+  master.connect(ctx.destination);
+  partials.forEach((p,i)=>{
+    const osc=ctx.createOscillator(), g=ctx.createGain();
+    osc.type='sine'; osc.frequency.value=freq*p;
+    g.gain.setValueAtTime(amps[i],now);
+    g.gain.exponentialRampToValueAtTime(0.001,now+0.3/(i+1));
+    osc.connect(g);g.connect(master);
+    osc.start(now);osc.stop(now+0.5);
+  });
+}
+
+function playFlute(ctx,freq,env,now) {
+  // Breathy flute: sine + noise + vibrato
+  const osc=ctx.createOscillator();
+  osc.type='sine'; osc.frequency.setValueAtTime(freq,now);
+  // Gentle vibrato
+  const vib=ctx.createOscillator(); vib.frequency.value=5.5;
+  const vibGain=ctx.createGain(); vibGain.gain.value=freq*0.004;
+  vib.connect(vibGain); vibGain.connect(osc.frequency);
+  // Breathiness via bandpass-filtered noise
+  const noiseLen=Math.round(ctx.sampleRate*0.5);
+  const noiseBuf=ctx.createBuffer(1,noiseLen,ctx.sampleRate);
+  const nd=noiseBuf.getChannelData(0); for(let i=0;i<noiseLen;i++) nd[i]=(Math.random()*2-1);
+  const noiseSrc=ctx.createBufferSource(); noiseSrc.buffer=noiseBuf; noiseSrc.loop=true;
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq*2; bp.Q.value=0.5;
+  const noiseGain=ctx.createGain(); noiseGain.gain.value=0.08;
+  noiseSrc.connect(bp);bp.connect(noiseGain);
+  const master=ctx.createGain();
+  master.gain.setValueAtTime(0,now);
+  master.gain.linearRampToValueAtTime(env.volume*0.55,now+env.attack+0.1);
+  master.gain.setTargetAtTime(0,now+env.attack+0.1,env.release/2.5);
+  osc.connect(master); noiseGain.connect(master); master.connect(ctx.destination);
+  const dur=env.attack+env.release*2.5+0.2;
+  osc.start(now); vib.start(now); noiseSrc.start(now);
+  osc.stop(now+dur); vib.stop(now+dur); noiseSrc.stop(now+dur);
+}
+
+function playGlass(ctx,freq,env,now) {
+  // Glass harmonica: pure tone, very slow attack, long ring, slight chorus
+  const freqs=[freq, freq*1.003, freq/1.003];
+  const master=ctx.createGain();
+  master.gain.setValueAtTime(0,now);
+  master.gain.linearRampToValueAtTime(env.volume*0.45,now+0.35);
+  master.gain.setTargetAtTime(0,now+0.35+0.1,env.release/1.5+0.8);
+  master.connect(ctx.destination);
+  freqs.forEach(f=>{
+    const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=f;
+    const g=ctx.createGain(); g.gain.value=1/freqs.length;
+    osc.connect(g); g.connect(master);
+    osc.start(now); osc.stop(now+env.release*3+1.5);
+  });
+}
+
+function playPad(ctx,freq,env,now) {
+  // Lush pad/strings: detuned sawtooth chorus
+  const detunes=[-8,-3,0,3,8];
+  const master=ctx.createGain();
+  master.gain.setValueAtTime(0,now);
+  master.gain.linearRampToValueAtTime(env.volume*0.35,now+env.attack+0.3);
+  master.gain.setTargetAtTime(0,now+env.attack+0.3,env.release/2);
+  master.connect(ctx.destination);
+  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=freq*4; lp.Q.value=0.7;
+  lp.connect(master);
+  detunes.forEach(d=>{
+    const osc=ctx.createOscillator(); osc.type='sawtooth';
+    osc.frequency.value=freq*Math.pow(2,d/1200);
+    const g=ctx.createGain(); g.gain.value=0.18;
+    osc.connect(g); g.connect(lp);
+    osc.start(now); osc.stop(now+env.attack+env.release*2+0.5);
+  });
+}
+
+function playChoir(ctx,freq,env,now) {
+  // Choir/vowel: formant synthesis with band-pass filters
+  const formants=[800,1150,2900], bws=[80,90,120];
+  const master=ctx.createGain();
+  master.gain.setValueAtTime(0,now);
+  master.gain.linearRampToValueAtTime(env.volume*0.5,now+env.attack+0.12);
+  master.gain.setTargetAtTime(0,now+env.attack+0.12,env.release/2);
+  master.connect(ctx.destination);
+  // Source: sawtooth (voice-like)
+  const src=ctx.createOscillator(); src.type='sawtooth'; src.frequency.value=freq;
+  formants.forEach((f,i)=>{
+    const bp=ctx.createBiquadFilter(); bp.type='bandpass';
+    bp.frequency.value=f; bp.Q.value=f/(bws[i]||100);
+    const g=ctx.createGain(); g.gain.value=0.6/(i+1);
+    src.connect(bp); bp.connect(g); g.connect(master);
+  });
+  src.start(now); src.stop(now+env.attack+env.release*2+0.3);
+}
+
+function playClavinet(ctx,freq,env,now) {
+  // Clavinet: sharp attack, honky-tonk, bandpass filtered
+  const osc=ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
+  const osc2=ctx.createOscillator(); osc2.type='square'; osc2.frequency.value=freq*1.007;
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq*2.5; bp.Q.value=2;
+  const gain=ctx.createGain();
+  gain.gain.setValueAtTime(env.volume*0.7,now);
+  gain.gain.exponentialRampToValueAtTime(0.001,now+Math.max(0.05,env.release*0.8));
+  osc.connect(bp); osc2.connect(bp); bp.connect(gain); gain.connect(ctx.destination);
+  osc.start(now); osc2.start(now);
+  osc.stop(now+env.release+0.1); osc2.stop(now+env.release+0.1);
+}
+
+function playGamelan(ctx,freq,env,now) {
+  // Gamelan: inharmonic partials (bronze bar)
+  const ratios=[1, 2.756, 5.404, 8.933, 13.34];
+  const amps=[1, 0.5, 0.25, 0.12, 0.06];
+  const decays=[2.5, 1.8, 1.2, 0.8, 0.5];
+  const master=ctx.createGain();
+  master.gain.setValueAtTime(env.volume*0.5,now);
+  master.connect(ctx.destination);
+  ratios.forEach((r,i)=>{
+    const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=freq*r;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(amps[i],now);
+    g.gain.exponentialRampToValueAtTime(0.001,now+decays[i]);
+    osc.connect(g); g.connect(master);
+    osc.start(now); osc.stop(now+decays[i]+0.1);
+  });
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  TOOLTIP
+// ═════════════════════════════════════════════════════════════════════════════
+
+const tooltip=document.getElementById('tooltip');
+function showTooltip(cx,cy,key) {
+  document.getElementById('tt-ratio').textContent = key.label;
+  document.getElementById('tt-cents').textContent = `${key.cents.toFixed(1)} ¢`;
+  document.getElementById('tt-freq').textContent = `${key.freq.toFixed(2)} Hz`;
+  document.getElementById('tt-harmony').textContent = key.harmonyName || '';
+  const w=tooltip.offsetWidth||200, h=tooltip.offsetHeight||70;
+  let tx=cx+14, ty=cy-10;
+  if(tx+w>window.innerWidth) tx=cx-w-10;
+  if(ty+h>window.innerHeight) ty=cy-h-10;
+  tooltip.style.left=tx+'px'; tooltip.style.top=ty+'px';
+  tooltip.classList.add('visible');
+}
+function hideTooltip() { tooltip.classList.remove('visible'); }
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  HARMONY EDITOR UI
+// ═════════════════════════════════════════════════════════════════════════════
+
+function renderHarmonyList() {
+  const list = document.getElementById('harmony-list');
+  list.innerHTML = '';
+  for (const h of harmonies) {
+    const dirty = harmonyIsDirty(h);
+    const item = document.createElement('div');
+    item.className = 'harmony-item' + (h.id===selectedHarmonyId?' selected':'') + (dirty?' dirty':'');
+    item.draggable = true;
+    item.dataset.id = h.id;
+
+    // Drag handle
+    const dragH = document.createElement('span');
+    dragH.className = 'harmony-drag-handle';
+    dragH.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="18" x2="16" y2="18"/></svg>`;
+    item.appendChild(dragH);
+
+    // Color dot
+    const dot = document.createElement('div');
+    dot.className = 'harmony-vis-dot';
+    dot.style.background = getHarmonyRepColor(h);
+    item.appendChild(dot);
+
+    // Name
+    const name = document.createElement('span');
+    name.className = 'harmony-name';
+    name.textContent = h.name;
+    item.appendChild(name);
+
+    // Unsaved badge
+    if (dirty) {
+      const badge = document.createElement('span');
+      badge.className = 'unsaved-badge';
+      badge.textContent = '★';
+      badge.title = 'Unsaved changes';
+      item.appendChild(badge);
+    }
+
+    // Visibility toggle
+    const visBtn = document.createElement('button');
+    visBtn.className = 'harmony-vis-toggle' + (h.visible ? '' : ' hidden');
+    visBtn.title = h.visible ? 'Hide' : 'Show';
+    visBtn.innerHTML = h.visible
+      ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
+      : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+    visBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      h.visible = !h.visible;
+      renderHarmonyList();
+      applyAndDraw();
+    });
+    item.appendChild(visBtn);
+
+    // Click to select
+    item.addEventListener('click', e => {
+      if (e.target === visBtn || visBtn.contains(e.target)) return;
+      selectedHarmonyId = h.id;
+      renderHarmonyList();
+      renderHarmonyEditor();
+    });
+
+    // Drag & drop for reordering
+    item.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', h.id);
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      item.classList.add('drag-over');
+    });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      const fromId = e.dataTransfer.getData('text/plain');
+      const fromIdx = harmonies.findIndex(x=>x.id===fromId);
+      const toIdx = harmonies.findIndex(x=>x.id===h.id);
+      if (fromIdx !== -1 && toIdx !== -1 && fromIdx !== toIdx) {
+        const [moved] = harmonies.splice(fromIdx, 1);
+        harmonies.splice(toIdx, 0, moved);
+        renderHarmonyList();
+        applyAndDraw();
+      }
+    });
+
+    list.appendChild(item);
+  }
+}
+
+function getHarmonyRepColor(h) {
+  if (h.colorMode === 'uniform') return h.uniformColor;
+  // Return first limit color as representative
+  return limitColor(3);
+}
+
+function renderHarmonyEditor() {
+  const editor = document.getElementById('harmony-editor');
+  const h = harmonies.find(x=>x.id===selectedHarmonyId);
+  if (!h) { editor.style.display = 'none'; return; }
+  editor.style.display = 'flex';
+  const dirty = harmonyIsDirty(h);
+
+  editor.innerHTML = '';
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.className = 'harmony-editor-header';
+  hdr.innerHTML = `
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    <span style="flex:1;">${escHtml(h.name)}</span>
+    ${dirty ? '<span class="unsaved-badge">★ Unsaved</span>' : ''}
+  `;
+  editor.appendChild(hdr);
+
+  // Action buttons (at top)
+  const actDiv = document.createElement('div');
+  actDiv.className = 'harmony-editor-actions';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.id = 'he-save-btn';
+  saveBtn.className = 'btn-sm' + (dirty ? ' active' : '');
+  saveBtn.disabled = !dirty;
+  saveBtn.title = dirty ? 'Save changes' : 'No unsaved changes';
+  saveBtn.textContent = 'Save';
+  saveBtn.addEventListener('click', ()=>{ saveHarmony(h); renderHarmonyList(); renderHarmonyEditor(); });
+  actDiv.appendChild(saveBtn);
+
+  const revertBtn = document.createElement('button');
+  revertBtn.id = 'he-revert-btn';
+  revertBtn.className = 'btn-sm';
+  revertBtn.disabled = !dirty;
+  revertBtn.title = dirty ? 'Revert to saved' : 'No changes to revert';
+  revertBtn.textContent = 'Revert';
+  revertBtn.addEventListener('click', ()=>{
+    const isDirty = harmonyIsDirty(h);
+    if (!isDirty) return;
+    revertHarmony(h);
+    renderHarmonyList();
+    renderHarmonyEditor();
+    applyAndDraw();
+  });
+  actDiv.appendChild(revertBtn);
+
+  const cloneBtn = document.createElement('button');
+  cloneBtn.className = 'btn-sm';
+  cloneBtn.title = 'Clone this harmony';
+  cloneBtn.textContent = 'Clone';
+  cloneBtn.addEventListener('click', ()=>{
+    const cloned = makeHarmony(snapshotHarmony(h));
+    cloned.name = h.name + ' (Clone)';
+    cloned.savedState = snapshotHarmony(cloned);
+    harmonies.push(cloned);
+    selectedHarmonyId = cloned.id;
+    renderHarmonyList();
+    renderHarmonyEditor();
+    applyAndDraw();
+  });
+  actDiv.appendChild(cloneBtn);
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'btn-danger';
+  delBtn.style.marginLeft='auto';
+  delBtn.title = 'Delete this harmony';
+  delBtn.textContent = 'Delete';
+  delBtn.addEventListener('click', ()=>{
+    if (!confirm(`Delete "${h.name}"?`)) return;
+    harmonies = harmonies.filter(x=>x.id!==h.id);
+    selectedHarmonyId = harmonies.length ? harmonies[harmonies.length-1].id : null;
+    renderHarmonyList();
+    renderHarmonyEditor();
+    applyAndDraw();
+  });
+  actDiv.appendChild(delBtn);
+
+  editor.appendChild(actDiv);
+
+  // Name field
+  addEditorField(editor, 'Name', `<input class="field-input" id="he-name" value="${escHtml(h.name)}" style="margin-top:2px;">`);
+  editor.querySelector('#he-name').addEventListener('input', e => {
+    h.name = e.target.value;
+    renderHarmonyList();
+    refreshEditorDirtyState();
+  });
+
+  // Tones definition with mode switcher
+  const toneMode = h.toneMode || 'ratios';
+  const tonesSection = document.createElement('div');
+  tonesSection.className = 'field-row';
+
+  const modeHints = {
+    ratios: 'e.g. 1, 9/8, 5/4, 3/2 — or formulas like (3/2)^2',
+    primepowers: 'e.g. 1, 3^2*2^(-3), 5*2^(-2) — prime factorizations',
+    vectors: 'e.g. (0), (-3,2), (-2,0,1) — exponents of primes 2,3,5,7,11,13'
+  };
+  tonesSection.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.3rem;">
+      <label class="field-label" style="margin:0;">Tones</label>
+      <select class="field-select" id="he-tone-mode" style="font-size:var(--text-xs);padding:0.15rem 0.3rem;width:auto;">
+        <option value="ratios" ${toneMode==='ratios'?'selected':''}>Frequency Ratios</option>
+        <option value="primepowers" ${toneMode==='primepowers'?'selected':''}>Prime Powers</option>
+        <option value="vectors" ${toneMode==='vectors'?'selected':''}>Vectors</option>
+      </select>
+    </div>
+    <textarea class="field-input" id="he-ratios" rows="3" placeholder="${modeHints[toneMode]}">${escHtml(h.ratios)}</textarea>
+    <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.25rem;">
+      <span id="he-tone-hint" style="font-size:var(--text-xs);color:var(--color-text-faint);flex:1;">${modeHints[toneMode]}</span>
+      <button id="he-simplify-btn" style="font-size:var(--text-xs);padding:0.15rem 0.5rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;">Simplify</button>
+    </div>
+  `;
+  editor.appendChild(tonesSection);
+
+  let _originalRatios = null;
+  const simplifyBtn = tonesSection.querySelector('#he-simplify-btn');
+  const ratiosTA = tonesSection.querySelector('#he-ratios');
+  const modeSelect = tonesSection.querySelector('#he-tone-mode');
+
+  function doSimplify() {
+    if (simplifyBtn.textContent === 'Simplify') {
+      _originalRatios = ratiosTA.value;
+      const simplified = simplifyRatioList(ratiosTA.value, h.toneMode || 'ratios');
+      ratiosTA.value = simplified;
+      h.ratios = simplified;
+      simplifyBtn.textContent = 'Original';
+      simplifyBtn.title = 'Revert to original (before simplification)';
+    } else {
+      if (_originalRatios !== null) {
+        ratiosTA.value = _originalRatios;
+        h.ratios = _originalRatios;
+      }
+      simplifyBtn.textContent = 'Simplify';
+      simplifyBtn.title = 'Simplify tone expressions to canonical form';
+      _originalRatios = null;
+    }
+    refreshEditorDirtyState();
+    applyAndDraw();
+  }
+  simplifyBtn.addEventListener('click', doSimplify);
+
+  ratiosTA.addEventListener('input', e => {
+    h.ratios = e.target.value;
+    if (_originalRatios !== null) { _originalRatios = null; simplifyBtn.textContent = 'Simplify'; }
+    refreshEditorDirtyState();
+    applyAndDraw();
+  });
+
+  modeSelect.addEventListener('change', e => {
+    const newMode = e.target.value;
+    const oldMode = h.toneMode || 'ratios';
+    if (newMode === oldMode) return;
+
+    const {text, warnings} = convertToneMode(h.ratios, oldMode, newMode);
+    if (warnings.length) {
+      const msg = warnings.slice(0,3).join('\n');
+      if (!confirm(`Some tones could not be converted:\n\n${msg}\n\nProceed?`)) {
+        modeSelect.value = oldMode; return;
+      }
+    }
+    h.toneMode = newMode;
+    h.ratios = text;
+    ratiosTA.value = text;
+    tonesSection.querySelector('#he-tone-hint').textContent = modeHints[newMode];
+    ratiosTA.placeholder = modeHints[newMode];
+    _originalRatios = null; simplifyBtn.textContent = 'Simplify';
+    refreshEditorDirtyState();
+    applyAndDraw();
+  });
+
+  // Octave equivalence
+  const octRow = makeCheckRow('Octave Equivalence', 'he-oct', h.octaveEquiv,
+    'Reduce ratios to [1,2) and multiply across all octaves (20–4000 Hz)');
+  editor.appendChild(octRow);
+  octRow.querySelector('#he-oct').addEventListener('change', e => {
+    h.octaveEquiv = e.target.checked;
+    refreshEditorDirtyState();
+    applyAndDraw();
+  });
+
+  editor.appendChild(document.createElement('hr')).className='section-sep';
+
+  // Label settings
+  const lblRow = makeCheckRow('Show Labels', 'he-labels', h.showLabels);
+  editor.appendChild(lblRow);
+  lblRow.querySelector('#he-labels').addEventListener('change', e => {
+    h.showLabels = e.target.checked;
+    refreshEditorDirtyState();
+    renderSVG();
+  });
+
+  // Font size
+  const fontRow = document.createElement('div');
+  fontRow.className = 'field-row';
+  fontRow.style.marginTop = '0.25rem';
+  fontRow.innerHTML = `<label class="field-label">Font Size</label>
+    <div style="display:flex;align-items:center;gap:0.4rem;">
+      <input type="range" class="range-sm" id="he-font" min="6" max="48" step="1" value="${h.labelFontSize}" style="flex:1;">
+      <span id="he-font-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:1.5rem;text-align:right;">${h.labelFontSize}</span>
+    </div>`;
+  editor.appendChild(fontRow);
+  fontRow.querySelector('#he-font').addEventListener('input', e=>{
+    h.labelFontSize=parseInt(e.target.value)||11;
+    fontRow.querySelector('#he-font-val').textContent=h.labelFontSize;
+    refreshEditorDirtyState();renderSVG();
+  });
+
+  // Font Color (moved here, right after Font Size)
+  const lblColorRow = document.createElement('div');
+  lblColorRow.className = 'color-picker-row';
+  lblColorRow.style.marginTop='0.25rem';
+  const currentLblColor = h.labelColor || '#ffffff';
+  lblColorRow.innerHTML = `
+    <label class="field-label" style="text-transform:none;font-size:var(--text-xs);color:var(--color-text-muted);">Font Color:</label>
+    <label class="color-swatch">
+      <input type="color" id="he-lbl-color" value="${currentLblColor}">
+    </label>
+    <span id="he-lbl-color-hex" style="font-size:var(--text-xs);color:var(--color-text-muted);">${h.labelColor||'auto'}</span>
+    <button id="he-lbl-color-clear" style="font-size:var(--text-xs);padding:0.1rem 0.3rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;">Auto</button>
+  `;
+  editor.appendChild(lblColorRow);
+  lblColorRow.querySelector('#he-lbl-color').addEventListener('input', e=>{
+    h.labelColor=e.target.value;
+    lblColorRow.querySelector('#he-lbl-color-hex').textContent=e.target.value;
+    refreshEditorDirtyState();renderSVG();
+  });
+  lblColorRow.querySelector('#he-lbl-color-clear').addEventListener('click', ()=>{
+    h.labelColor='';
+    lblColorRow.querySelector('#he-lbl-color-hex').textContent='auto';
+    refreshEditorDirtyState();renderSVG();
+  });
+
+  // Offset X slider
+  const offXRow = document.createElement('div');
+  offXRow.className = 'field-row';
+  offXRow.style.marginTop = '0.2rem';
+  offXRow.innerHTML = `<label class="field-label">Offset X</label>
+    <div style="display:flex;align-items:center;gap:0.4rem;">
+      <input type="range" class="range-sm" id="he-offx" min="-50" max="50" step="1" value="${h.labelOffsetX}" style="flex:1;">
+      <span id="he-offx-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2rem;text-align:right;">${h.labelOffsetX}</span>
+    </div>`;
+  editor.appendChild(offXRow);
+  offXRow.querySelector('#he-offx').addEventListener('input', e=>{
+    h.labelOffsetX=parseInt(e.target.value)||0;
+    offXRow.querySelector('#he-offx-val').textContent=h.labelOffsetX;
+    refreshEditorDirtyState();renderSVG();
+  });
+
+  // Offset Y slider
+  const offYRow = document.createElement('div');
+  offYRow.className = 'field-row';
+  offYRow.style.marginTop = '0.2rem';
+  offYRow.innerHTML = `<label class="field-label">Offset Y</label>
+    <div style="display:flex;align-items:center;gap:0.4rem;">
+      <input type="range" class="range-sm" id="he-offy" min="-50" max="50" step="1" value="${h.labelOffsetY}" style="flex:1;">
+      <span id="he-offy-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2rem;text-align:right;">${h.labelOffsetY}</span>
+    </div>`;
+  editor.appendChild(offYRow);
+  offYRow.querySelector('#he-offy').addEventListener('input', e=>{
+    h.labelOffsetY=parseInt(e.target.value)||0;
+    offYRow.querySelector('#he-offy-val').textContent=h.labelOffsetY;
+    refreshEditorDirtyState();renderSVG();
+  });
+
+  // Label Type (ratio vs HEJI tone name)
+  const lblTypeDiv = document.createElement('div');
+  lblTypeDiv.className = 'field-row';
+  lblTypeDiv.style.marginTop='0.35rem';
+  lblTypeDiv.innerHTML = `
+    <label class="field-label">Label Type</label>
+    <select class="field-select" id="he-label-type">
+      <option value="ratio" ${(h.labelType||'ratio')==='ratio'?'selected':''}>Ratio (e.g. 5/4)</option>
+      <option value="heji" ${h.labelType==='heji'?'selected':''}>Tone name (HEJI)</option>
+    </select>
+  `;
+  editor.appendChild(lblTypeDiv);
+  lblTypeDiv.querySelector('#he-label-type').addEventListener('change', e=>{
+    h.labelType=e.target.value;
+    refreshEditorDirtyState();
+    renderSVG();
+  });
+
+  // Key Size (per harmony)
+  const keySizeDiv = document.createElement('div');
+  keySizeDiv.className = 'field-row';
+  keySizeDiv.style.marginTop='0.35rem';
+  const keySizeVal = h.keySize !== undefined ? h.keySize : 42;
+  keySizeDiv.innerHTML = `
+    <label class="field-label" for="he-key-size">Key Size</label>
+    <div style="display:flex;align-items:center;gap:0.5rem;">
+      <input type="range" id="he-key-size" class="range-sm" min="8" max="120" value="${keySizeVal}" style="flex:1;">
+      <span id="he-key-size-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2rem;text-align:right;">${keySizeVal}</span>
+    </div>
+  `;
+  editor.appendChild(keySizeDiv);
+  keySizeDiv.querySelector('#he-key-size').addEventListener('input', e=>{
+    h.keySize=parseInt(e.target.value)||42;
+    keySizeDiv.querySelector('#he-key-size-val').textContent=h.keySize;
+    refreshEditorDirtyState();
+    renderSVG();
+  });
+
+  editor.appendChild(document.createElement('hr')).className='section-sep';
+
+  // Key Shape
+  const shapeDiv = document.createElement('div');
+  shapeDiv.className = 'field-row';
+  shapeDiv.innerHTML = `
+    <label class="field-label">Key Shape</label>
+    <select class="field-select" id="he-shape">
+      <option value="round" ${h.keyShape==='round'?'selected':''}>Round</option>
+      <option value="hex" ${h.keyShape==='hex'?'selected':''}>Hexagon</option>
+      <option value="diamond" ${h.keyShape==='diamond'?'selected':''}>Diamond</option>
+      <option value="rect" ${h.keyShape==='rect'?'selected':''}>Rectangle</option>
+      <option value="triangle" ${h.keyShape==='triangle'?'selected':''}>Triangle</option>
+    </select>
+  `;
+  editor.appendChild(shapeDiv);
+  shapeDiv.querySelector('#he-shape').addEventListener('change', e=>{h.keyShape=e.target.value;refreshEditorDirtyState();renderSVG();});
+
+  // Shape transforms — as sliders
+  function makeSliderField(label, id, min, max, step, value, fmt) {
+    const div = document.createElement('div');
+    div.className = 'field-row';
+    div.style.marginTop = '0.2rem';
+    const disp = fmt ? fmt(value) : value;
+    div.innerHTML = `<label class="field-label">${label}</label>
+      <div style="display:flex;align-items:center;gap:0.4rem;">
+        <input type="range" class="range-sm" id="${id}" min="${min}" max="${max}" step="${step}" value="${value}" style="flex:1;">
+        <span id="${id}-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2.5rem;text-align:right;">${disp}</span>
+      </div>`;
+    return div;
+  }
+
+  const rotDiv = makeSliderField('Rotation (\u00b0)', 'he-rot', -180, 180, 1, h.keyRotation, v=>v+'\u00b0');
+  editor.appendChild(rotDiv);
+  rotDiv.querySelector('#he-rot').addEventListener('input', e=>{
+    h.keyRotation=parseFloat(e.target.value)||0;
+    rotDiv.querySelector('#he-rot-val').textContent=h.keyRotation+'\u00b0';
+    refreshEditorDirtyState();renderSVG();
+  });
+
+  const sxDiv = makeSliderField('Stretch X', 'he-sx', 0.1, 5, 0.05, h.keyStretchX, v=>parseFloat(v).toFixed(2));
+  editor.appendChild(sxDiv);
+  sxDiv.querySelector('#he-sx').addEventListener('input', e=>{
+    h.keyStretchX=parseFloat(e.target.value)||1;
+    sxDiv.querySelector('#he-sx-val').textContent=h.keyStretchX.toFixed(2);
+    refreshEditorDirtyState();renderSVG();
+  });
+
+  const syDiv = makeSliderField('Stretch Y', 'he-sy', 0.1, 5, 0.05, h.keyStretchY, v=>parseFloat(v).toFixed(2));
+  editor.appendChild(syDiv);
+  syDiv.querySelector('#he-sy').addEventListener('input', e=>{
+    h.keyStretchY=parseFloat(e.target.value)||1;
+    syDiv.querySelector('#he-sy-val').textContent=h.keyStretchY.toFixed(2);
+    refreshEditorDirtyState();renderSVG();
+  });
+
+  editor.appendChild(document.createElement('hr')).className='section-sep';
+
+  // Color mode
+  const colorDiv = document.createElement('div');
+  colorDiv.className = 'field-row';
+  colorDiv.innerHTML = `
+    <label class="field-label">Color Mode</label>
+    <select class="field-select" id="he-colormode">
+      <option value="limit" ${h.colorMode==='limit'?'selected':''}>JI Limit</option>
+      <option value="pitch" ${h.colorMode==='pitch'?'selected':''}>Pitch height</option>
+      <option value="width" ${h.colorMode==='width'?'selected':''}>Pitch width</option>
+      <option value="uniform" ${h.colorMode==='uniform'?'selected':''}>Uniform color</option>
+    </select>
+  `;
+  editor.appendChild(colorDiv);
+
+  // Uniform color picker
+  const uniformRow = document.createElement('div');
+  uniformRow.className = 'color-picker-row';
+  uniformRow.id = 'he-uniform-row';
+  uniformRow.style.display = h.colorMode==='uniform' ? 'flex' : 'none';
+  uniformRow.innerHTML = `
+    <label class="field-label" style="text-transform:none;font-size:var(--text-xs);color:var(--color-text-muted);">Color:</label>
+    <label class="color-swatch">
+      <input type="color" id="he-color" value="${h.uniformColor}">
+    </label>
+    <span id="he-color-hex" style="font-size:var(--text-xs);color:var(--color-text-muted);">${h.uniformColor}</span>
+  `;
+  editor.appendChild(uniformRow);
+
+  colorDiv.querySelector('#he-colormode').addEventListener('change', e=>{
+    h.colorMode=e.target.value;
+    uniformRow.style.display=h.colorMode==='uniform'?'flex':'none';
+    refreshEditorDirtyState();
+    renderSVG();
+  });
+  uniformRow.querySelector('#he-color').addEventListener('input', e=>{
+    h.uniformColor=e.target.value;
+    uniformRow.querySelector('#he-color-hex').textContent=e.target.value;
+    refreshEditorDirtyState();
+    renderSVG();
+  });
+
+  // (Actions are added at top — see below)
+
+  // Tone preview table — when octave equiv is on, show only base octave (oct===0)
+  try {
+    let keys = computeKeysForHarmony(h, getBaseFreq());
+    if (h.octaveEquiv) keys = keys.filter(k => k.oct === 0);
+    if (keys.length) {
+      const sep = document.createElement('hr');
+      sep.className='section-sep';
+      editor.appendChild(sep);
+      const lbl = document.createElement('div');
+      lbl.className='field-label';
+      lbl.style.marginBottom='0.3rem';
+      lbl.textContent=`Computed tones (${keys.length}${h.octaveEquiv?' — base octave only':''})` ;
+      editor.appendChild(lbl);
+      const tbl = document.createElement('table');
+      tbl.className='tone-table';
+      tbl.innerHTML='<thead><tr><th>Ratio</th><th>Cents</th><th>Freq (Hz)</th></tr></thead>';
+      const tbody=document.createElement('tbody');
+      for (const k of keys.slice(0,30)) {
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td><span class="tone-dot" style="background:${limitColor(k.limit)}"></span>${escHtml(k.label)}</td><td>${k.cents.toFixed(1)}</td><td>${k.freq.toFixed(2)}</td>`;
+        tbody.appendChild(tr);
+      }
+      if (keys.length>30) {
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td colspan="3" style="color:var(--color-text-faint);font-size:0.7rem;">…and ${keys.length-30} more</td>`;
+        tbody.appendChild(tr);
+      }
+      tbl.appendChild(tbody);
+      editor.appendChild(tbl);
+    }
+  } catch(e) {}
+}
+
+function refreshEditorDirtyState() {
+  const h = harmonies.find(x=>x.id===selectedHarmonyId);
+  if (!h) return;
+  const dirty = harmonyIsDirty(h);
+  // Update list item
+  const item = document.querySelector(`.harmony-item[data-id="${h.id}"]`);
+  if (item) {
+    item.classList.toggle('dirty', dirty);
+    const badge = item.querySelector('.unsaved-badge');
+    if (dirty && !badge) {
+      const b=document.createElement('span'); b.className='unsaved-badge'; b.textContent='★'; b.title='Unsaved changes';
+      const visBtn = item.querySelector('.harmony-vis-toggle');
+      item.insertBefore(b, visBtn);
+    } else if (!dirty && badge) {
+      badge.remove();
+    }
+    const nm = item.querySelector('.harmony-name');
+    if (nm) nm.textContent = h.name;
+  }
+  // Update Save/Revert button states in the editor
+  const saveBtn = document.getElementById('he-save-btn');
+  if (saveBtn) {
+    saveBtn.disabled = !dirty;
+    saveBtn.title = dirty ? 'Save changes' : 'No unsaved changes';
+    saveBtn.classList.toggle('active', dirty);
+  }
+  const revertBtn = document.getElementById('he-revert-btn');
+  if (revertBtn) {
+    revertBtn.disabled = !dirty;
+    revertBtn.title = dirty ? 'Revert to saved' : 'No changes to revert';
+  }
+}
+
+function addEditorField(parent, label, inputHTML) {
+  const div = document.createElement('div');
+  div.className = 'field-row';
+  div.innerHTML = `<label class="field-label">${label}</label>${inputHTML}`;
+  parent.appendChild(div);
+  return div;
+}
+
+function makeCheckRow(label, id, checked, hint) {
+  const div = document.createElement('div');
+  div.style.cssText='display:flex;align-items:center;gap:0.5rem;';
+  div.innerHTML = `
+    <input type="checkbox" id="${id}" ${checked?'checked':''} style="accent-color:var(--color-primary);width:14px;height:14px;">
+    <label for="${id}" style="font-size:var(--text-sm);cursor:pointer;flex:1;">${label}</label>
+    ${hint?`<span style="font-size:var(--text-xs);color:var(--color-text-faint);" title="${escHtml(hint)}">ⓘ</span>`:''}
+  `;
+  return div;
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  TONE DEFINITION MODE HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Rational number arithmetic helpers
+function _gcd(a, b) { a=Math.abs(a); b=Math.abs(b); while(b){let t=b;b=a%b;a=t;} return a||1; }
+function _ratReduce(n, d) {
+  if (!d) return null;
+  const g = _gcd(Math.abs(n), Math.abs(d));
+  if (d < 0) { n=-n; d=-d; }
+  return {n:n/g, d:d/g};
+}
+function _ratMul(a, b) { return _ratReduce(a.n*b.n, a.d*b.d); }
+function _ratDiv(a, b) { return _ratReduce(a.n*b.d, a.d*b.n); }
+function _ratPow(a, exp) {
+  const en = exp.n, ed = exp.d;
+  if (ed === 1) {
+    if (en >= 0) return _ratReduce(Math.pow(a.n,en), Math.pow(a.d,en));
+    else return _ratReduce(Math.pow(a.d,-en), Math.pow(a.n,-en));
+  }
+  const val = Math.pow(a.n/a.d, en/ed);
+  return {n: val, d: 1, isFloat: true};
+}
+
+// Parse a rational expression string (supports +,-,*,/,^,(,))
+function evalRationalExpr(s) {
+  s = s.replace(/\s+/g,'');
+  let pos = 0;
+
+  function consumeIf(c) { if(s[pos]===c){pos++;return true;}return false; }
+
+  function parseExpr() {
+    let left = parseTerm();
+    while (pos < s.length) {
+      if (s[pos] === '*') { pos++; left = _ratMul(left, parseTerm()); }
+      else if (s[pos] === '/' && s[pos+1] !== ')') { pos++; left = _ratDiv(left, parseTerm()); }
+      else break;
+    }
+    return left;
+  }
+
+  function parseTerm() {
+    let base = parseAtom();
+    if (s[pos] === '^') {
+      pos++;
+      const exp = parseExponent();
+      base = _ratPow(base, exp);
+    }
+    return base;
+  }
+
+  function parseAtom() {
+    if (s[pos] === '(') {
+      pos++;
+      const val = parseExpr();
+      if (s[pos] !== ')') throw new Error('Expected )');
+      pos++;
+      return val;
+    }
+    return parseNumber();
+  }
+
+  function parseExponent() {
+    if (s[pos] === '(') {
+      pos++;
+      const neg = consumeIf('-');
+      const n = parseIntOrFloat();
+      let d = 1;
+      if (s[pos] === '/') { pos++; d = parseIntOrFloat(); }
+      if (s[pos] !== ')') throw new Error('Expected )');
+      pos++;
+      return {n: neg ? -n : n, d};
+    }
+    const neg = consumeIf('-');
+    const n = parseIntOrFloat();
+    let d = 1;
+    if (s[pos] === '/') { pos++; d = parseIntOrFloat(); }
+    return {n: neg ? -n : n, d};
+  }
+
+  function parseNumber() {
+    const neg = consumeIf('-');
+    const n = parseIntOrFloat();
+    let d = 1;
+    if (s[pos] === '/') {
+      pos++;
+      d = parseIntOrFloat();
+    }
+    const r = _ratReduce(neg ? -n : n, d);
+    return r;
+  }
+
+  function parseIntOrFloat() {
+    let start = pos;
+    while (pos < s.length && (s[pos] >= '0' && s[pos] <= '9' || s[pos] === '.')) pos++;
+    const numStr = s.slice(start, pos);
+    if (!numStr) throw new Error('Expected number at pos '+pos);
+    return parseFloat(numStr);
+  }
+
+  const result = parseExpr();
+  if (pos < s.length) throw new Error('Unexpected: ' + s[pos]);
+  return result;
+}
+
+// Format a rational {n,d} as "n/d" or "n" if d=1
+function _formatRat(r) {
+  if (!r) return '?';
+  if (r.isFloat) return r.n.toFixed(6).replace(/\.?0+$/,'');
+  if (r.d === 1) return String(r.n);
+  return r.n + '/' + r.d;
+}
+
+// Factorize a ratio n/d into prime exponents [e2,e3,e5,e7,e11,e13]
+const PRIMES_LIST = [2,3,5,7,11,13];
+function factorizeRatio(n, d) {
+  const exps = [0,0,0,0,0,0];
+  let nn = Math.round(n), dd = Math.round(d);
+  for (let i=0; i<PRIMES_LIST.length; i++) {
+    const p = PRIMES_LIST[i];
+    while (nn % p === 0) { nn /= p; exps[i]++; }
+    while (dd % p === 0) { dd /= p; exps[i]--; }
+  }
+  if (nn !== 1 || dd !== 1) return null; // has non-13-limit factors
+  return exps;
+}
+
+// Convert ratio string to exps via evalRationalExpr
+function ratioToExpsFromStr(str) {
+  try {
+    const r = evalRationalExpr(str.trim().replace(/\s+/g,''));
+    if (!r || r.isFloat) return null;
+    if (r.n <= 0) return null;
+    return factorizeRatio(r.n, r.d);
+  } catch(e) { return null; }
+}
+
+// Simplify a comma-separated list of ratio expressions to canonical form
+function simplifyRatioList(text, mode) {
+  // Vectors are already in canonical form — no simplification needed; use paren-aware split
+  if (mode === 'vectors') {
+    const parts = splitToneList(text);
+    return parts.join(', ');
+  }
+  const parts = text.split(',');
+  return parts.map(p => {
+    p = p.trim();
+    if (!p) return p;
+    try {
+      const r = evalRationalExpr(p.replace(/\s+/g,''));
+      if (r && !r.isFloat && r.d > 0) return _formatRat(r);
+      if (r && r.isFloat) return _formatRat(r);
+      return p;
+    } catch(e) { return p; }
+  }).join(', ');
+}
+
+// Convert prime exponent vector to string representation
+function expsToString(exps, mode) {
+  if (mode === 'vectors') {
+    let last = exps.length-1;
+    while (last > 1 && exps[last] === 0) last--;
+    return '(' + exps.slice(0, last+1).join(', ') + ')';
+  }
+  // 'primepowers' mode
+  const parts = [];
+  for (let i=0; i<PRIMES_LIST.length; i++) {
+    if (exps[i] === 0) continue;
+    const e = exps[i];
+    if (e === 1) parts.push(PRIMES_LIST[i]+'');
+    else if (e >= 0) parts.push(`${PRIMES_LIST[i]}^${e}`);
+    else parts.push(`${PRIMES_LIST[i]}^(${e})`);
+  }
+  return parts.length ? parts.join(' * ') : '1';
+}
+
+// Parse a single exponent token — supports integers, decimals, and fractions like 1/4 or -3/2
+function _parseExpToken(s) {
+  s = s.trim();
+  const slash = s.indexOf('/');
+  if (slash !== -1) {
+    const num = parseFloat(s.slice(0, slash).trim());
+    const den = parseFloat(s.slice(slash+1).trim());
+    if (isNaN(num) || isNaN(den) || den === 0) return NaN;
+    return num / den;
+  }
+  return parseFloat(s);
+}
+
+// Parse a vector string "(e2, e3, e5, ...)" → exps array
+function parseVectorStr(str) {
+  str = str.trim();
+  if (str.startsWith('(') && str.endsWith(')')) str = str.slice(1,-1);
+  const parts = str.split(',').map(s=>_parseExpToken(s));
+  if (parts.some(isNaN)) return null;
+  const exps = [0,0,0,0,0,0];
+  for (let i=0; i<Math.min(parts.length,6); i++) exps[i] = parts[i];
+  return exps;
+}
+
+// Parse a prime-powers expression to exps vector
+function parsePrimePowersToExps(str) {
+  try {
+    const r = evalRationalExpr(str.trim().replace(/\s+/g,''));
+    if (r && !r.isFloat && r.n > 0) {
+      return factorizeRatio(r.n, r.d);
+    }
+    return null;
+  } catch(e) { return null; }
+}
+
+// Convert a harmony's tone string from one mode to another
+function convertToneMode(text, fromMode, toMode) {
+  if (fromMode === toMode) return {text, warnings:[]};
+  // Vectors use parens — split outside parens to avoid splitting inside (e2, e3) vectors
+  const parts = (fromMode === 'vectors') ? splitToneList(text) : text.split(',').map(s=>s.trim()).filter(Boolean);
+  const warnings = [];
+  const out = [];
+
+  for (const part of parts) {
+    if (fromMode === 'ratios') {
+      const exps = ratioToExpsFromStr(part);
+      if (!exps) {
+        warnings.push(`Cannot convert "${part}" to prime factorization`);
+        out.push(part);
+        continue;
+      }
+      if (toMode === 'primepowers') out.push(expsToString(exps, 'primepowers'));
+      else out.push(expsToString(exps, 'vectors'));
+    } else if (fromMode === 'primepowers') {
+      if (toMode === 'vectors') {
+        const exps = parsePrimePowersToExps(part);
+        if (!exps) { warnings.push(`Cannot convert "${part}"`); out.push(part); continue; }
+        out.push(expsToString(exps, 'vectors'));
+      } else { // to ratios
+        const exps = parsePrimePowersToExps(part);
+        if (!exps) { warnings.push(`Cannot convert "${part}" — non-integer exponents`); out.push(part); continue; }
+        if (exps.some(e=>e!==Math.round(e))) { warnings.push(`"${part}" has non-integer exponents — cannot convert to ratio`); out.push(part); continue; }
+        let n=1, d=1;
+        for(let i=0;i<6;i++) {
+          const e=Math.round(exps[i]);
+          if (e>0) n*=Math.pow(PRIMES_LIST[i],e);
+          else if (e<0) d*=Math.pow(PRIMES_LIST[i],-e);
+        }
+        out.push(_formatRat(_ratReduce(n,d)));
+      }
+    } else { // vectors
+      const exps = parseVectorStr(part);
+      if (!exps) { warnings.push(`Cannot parse vector "${part}"`); out.push(part); continue; }
+      if (toMode === 'primepowers') out.push(expsToString(exps, 'primepowers'));
+      else { // to ratios
+        if (exps.some(e=>e!==Math.round(e))) { warnings.push(`"${part}" has non-integer exponents — cannot convert to ratio`); out.push(part); continue; }
+        let n=1, d=1;
+        for(let i=0;i<6;i++) {
+          const e=Math.round(exps[i]);
+          if (e>0) n*=Math.pow(PRIMES_LIST[i],e);
+          else if (e<0) d*=Math.pow(PRIMES_LIST[i],-e);
+        }
+        out.push(_formatRat(_ratReduce(n,d)));
+      }
+    }
+  }
+  return {text: out.join(', '), warnings};
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PROJECT NAME
+// ─────────────────────────────────────────────────────────────────────────────
+let projectName = 'My Project';
+
+function initProjectName() {
+  const display = document.getElementById('project-name-display');
+  const editBtn = document.getElementById('project-name-edit-btn');
+  const input = document.getElementById('project-name-input');
+  if (!display || !editBtn || !input) return;
+
+  function startEdit() {
+    display.style.display = 'none';
+    editBtn.style.display = 'none';
+    input.style.display = '';
+    input.value = projectName;
+    input.focus();
+    input.select();
+  }
+  function finishEdit() {
+    projectName = input.value.trim() || 'My Project';
+    display.textContent = projectName;
+    display.style.display = '';
+    editBtn.style.display = '';
+    input.style.display = 'none';
+  }
+  editBtn.addEventListener('click', startEdit);
+  display.addEventListener('dblclick', startEdit);
+  input.addEventListener('blur', finishEdit);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); finishEdit(); }
+    if (e.key === 'Escape') { input.value = projectName; finishEdit(); }
+  });
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  WIDTH CONTROLS
+// ═════════════════════════════════════════════════════════════════════════════
+
+function buildWidthControls() {
+  const coordSys = layout.coordSystem === 'other' ? 'reduced' : layout.coordSystem;
+  const csData = COORD_SYSTEMS[coordSys];
+  const labels = layout.coordSystem === 'other'
+    ? (layout.customBasis ? layout.customBasis.map((_,i)=>`b${i+1}`) : csData.labels)
+    : csData.labels;
+
+  // Scope: half-range for each row slider (e.g. scope=5 ⇒ [-5,+5])
+  if (!layout.widthScopes) layout.widthScopes = new Array(6).fill(5);
+
+  const container = document.getElementById('width-controls');
+  container.innerHTML = '';
+
+  for (let i=0; i<6; i++) {
+    const val = layout.widths[i] !== undefined ? layout.widths[i] : 0;
+    const scope = layout.widthScopes[i] !== undefined ? layout.widthScopes[i] : 5;
+    const clampedVal = Math.max(-scope, Math.min(scope, val));
+    if (clampedVal !== val) layout.widths[i] = clampedVal;
+    const lbl = labels[i] || `b${i+1}`;
+
+    const row = document.createElement('div');
+    row.className = 'width-row';
+
+    // Label
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'width-label';
+    labelSpan.title = lbl;
+    labelSpan.style.cssText = 'min-width:3.2rem;max-width:3.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--text-xs);';
+    labelSpan.textContent = lbl;
+    row.appendChild(labelSpan);
+
+    // Slider
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.className = 'width-slider';
+    slider.min = -scope; slider.max = scope; slider.step = 0.01;
+    slider.value = clampedVal;
+    slider.dataset.idx = i;
+    slider.style.flex = '1';
+    row.appendChild(slider);
+
+    // Number input
+    const numInp = document.createElement('input');
+    numInp.type = 'number';
+    numInp.className = 'width-num-input';
+    numInp.id = `wv-${i}`;
+    numInp.value = clampedVal.toFixed(2);
+    numInp.step = 0.01;
+    numInp.min = -scope; numInp.max = scope;
+    row.appendChild(numInp);
+
+    // Scope button (±N)
+    const scopeBtn = document.createElement('button');
+    scopeBtn.className = 'width-scope-btn';
+    scopeBtn.title = `Slider range: ±${scope}. Click to change.`;
+    scopeBtn.textContent = `±${scope}`;
+    row.appendChild(scopeBtn);
+
+    // Wire up interactions
+    function setWidthValue(v) {
+      const s = layout.widthScopes[i] !== undefined ? layout.widthScopes[i] : 5;
+      const clamped = Math.max(-s, Math.min(s, v));
+      layout.widths[i] = clamped;
+      slider.value = clamped;
+      numInp.value = clamped.toFixed(2);
+      updateWidthsDirtyIndicator();
+      applyAndDraw();
+    }
+
+    slider.addEventListener('input', () => setWidthValue(parseFloat(slider.value)));
+    numInp.addEventListener('input', () => {
+      const v = parseFloat(numInp.value);
+      if (!isNaN(v)) setWidthValue(v);
+    });
+    numInp.addEventListener('change', () => {
+      const v = parseFloat(numInp.value);
+      if (!isNaN(v)) setWidthValue(v);
+    });
+
+    // Scope button: click to prompt for new scope
+    scopeBtn.addEventListener('click', () => {
+      const cur = layout.widthScopes[i] || 5;
+      const raw = prompt(`Slider range for "${lbl}":\nEnter the maximum absolute value (scope).\nCurrent: ±${cur}`, cur);
+      if (raw === null) return;
+      const newScope = parseFloat(raw);
+      if (isNaN(newScope) || newScope <= 0) { alert('Please enter a positive number.'); return; }
+      layout.widthScopes[i] = newScope;
+      slider.min = -newScope; slider.max = newScope;
+      numInp.min = -newScope; numInp.max = newScope;
+      scopeBtn.textContent = `±${newScope}`;
+      scopeBtn.title = `Slider range: ±${newScope}. Click to change.`;
+      // Clamp current value to new scope
+      const cur2 = layout.widths[i];
+      if (Math.abs(cur2) > newScope) setWidthValue(Math.sign(cur2) * newScope);
+    });
+
+    container.appendChild(row);
+  }
+  updateWidthsDirtyIndicator();
+}
+
+function updateWidthsDirtyIndicator() {
+  const dirty = JSON.stringify(layout.widths) !== JSON.stringify(layout.savedWidths);
+  document.getElementById('widths-dirty-indicator').style.display = dirty ? '' : 'none';
+}
+
+document.addEventListener('click', e => {
+  if (e.target.id === 'btn-save-widths') {
+    layout.savedWidths = [...layout.widths];
+    updateWidthsDirtyIndicator();
+  }
+  if (e.target.id === 'btn-revert-widths') {
+    layout.widths = [...layout.savedWidths];
+    buildWidthControls();
+    applyAndDraw();
+  }
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  APPLY & DRAW
+// ═════════════════════════════════════════════════════════════════════════════
+
+function applyAndDraw() {
+  allKeysCache = getAllKeys();
+  renderSVG();
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  EXPORT / IMPORT
+// ═════════════════════════════════════════════════════════════════════════════
+
+function exportProject() {
+  const project = {
+    version: 1,
+    appName: 'Faithful Keyboard',
+    projectName: projectName,
+    harmonies: harmonies.map(h => ({
+      id: h.id, name: h.name, visible: h.visible,
+      ratios: h.ratios, octaveEquiv: h.octaveEquiv,
+      showLabels: h.showLabels, labelFontSize: h.labelFontSize,
+      labelOffsetX: h.labelOffsetX, labelOffsetY: h.labelOffsetY,
+      labelColor: h.labelColor || '',
+      labelType: h.labelType || 'ratio',
+      toneMode: h.toneMode || 'ratios',
+      keySize: h.keySize !== undefined ? h.keySize : 42,
+      keyShape: h.keyShape, keyRotation: h.keyRotation,
+      keyStretchX: h.keyStretchX, keyStretchY: h.keyStretchY,
+      colorMode: h.colorMode, uniformColor: h.uniformColor
+    })),
+    layout: {
+      coordSystem: layout.coordSystem,
+      customBasis: layout.customBasis,
+      widths: layout.widths,
+      savedWidths: layout.savedWidths,
+      widthScopes: layout.widthScopes,
+      keySize: layout.keySize,
+      showOctaveLines: layout.showOctaveLines,
+      showSemitoneLines: layout.showSemitoneLines,
+      keyboardRotation: layout.keyboardRotation
+    },
+    baseFreq: getBaseFreq(),
+    sound: {
+      waveform: document.getElementById('waveform').value,
+      attack: parseFloat(document.getElementById('env-attack').value),
+      release: parseFloat(document.getElementById('env-release').value),
+      sustain: parseFloat(document.getElementById('env-sustain').value),
+      volume: parseFloat(document.getElementById('master-vol').value)
+    }
+  };
+  const blob = new Blob([JSON.stringify(project, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = (projectName||'faithful-keyboard').replace(/[^a-zA-Z0-9_\-. ]/g,'_').trim() || 'project';
+  a.href=url; a.download=safeName+'.json';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function importProject(jsonStr) {
+  try {
+    const project = JSON.parse(jsonStr);
+    if (!project.version || project.appName !== 'Faithful Keyboard') {
+      alert('Invalid project file.');
+      return;
+    }
+    // Load harmonies
+    harmonies = (project.harmonies || []).map(h => {
+      const newH = makeHarmony(h);
+      newH.id = h.id; // preserve IDs
+      newH.visible = h.visible !== false;
+      newH.savedState = snapshotHarmony(newH);
+      return newH;
+    });
+    // Update nextHarmonyId to avoid collisions
+    const maxNum = harmonies.map(h=>parseInt(h.id.replace('h',''))||0).reduce((a,b)=>Math.max(a,b),0);
+    nextHarmonyId = maxNum + 1;
+    selectedHarmonyId = harmonies.length ? harmonies[0].id : null;
+    if (project.projectName) { projectName = project.projectName; const d=document.getElementById('project-name-display'); if(d) d.textContent=projectName; const inp=document.getElementById('project-name-input'); if(inp) inp.value=projectName; }
+
+    // Load layout
+    if (project.layout) {
+      layout.coordSystem = project.layout.coordSystem || 'reduced';
+      layout.customBasis = project.layout.customBasis || null;
+      layout.widths = project.layout.widths || [0,0.9,4.5,4.0,3.5,1.6];
+      layout.savedWidths = project.layout.savedWidths || [...layout.widths];
+      layout.widthScopes = project.layout.widthScopes || new Array(6).fill(5);
+      layout.keySize = project.layout.keySize || 42;
+      layout.showOctaveLines = project.layout.showOctaveLines !== false;
+      layout.showSemitoneLines = !!project.layout.showSemitoneLines;
+      layout.keyboardRotation = project.layout.keyboardRotation || 0;
+    }
+    if (project.baseFreq) document.getElementById('base-freq').value = project.baseFreq;
+    if (project.sound) {
+      if (project.sound.waveform) document.getElementById('waveform').value = project.sound.waveform;
+      if (project.sound.attack !== undefined) document.getElementById('env-attack').value = project.sound.attack;
+      if (project.sound.release !== undefined) document.getElementById('env-release').value = project.sound.release;
+      if (project.sound.sustain !== undefined) document.getElementById('env-sustain').value = project.sound.sustain;
+      if (project.sound.volume !== undefined) document.getElementById('master-vol').value = project.sound.volume;
+    }
+
+    // Update UI
+    document.getElementById('coord-select').value = layout.coordSystem;
+    document.getElementById('custom-basis-wrap').style.display = layout.coordSystem==='other'?'':'none';
+    document.getElementById('show-octave-lines').checked = layout.showOctaveLines;
+    document.getElementById('show-semitone-lines').checked = layout.showSemitoneLines;
+    document.getElementById('keyboard-rotation').value = layout.keyboardRotation;
+    document.getElementById('keyboard-rotation-num').value = layout.keyboardRotation;
+    buildWidthControls();
+    renderHarmonyList();
+    renderHarmonyEditor();
+    allKeysCache = getAllKeys();
+    resetView();
+  } catch(e) {
+    alert('Error loading project: ' + e.message);
+  }
+}
+
+document.getElementById('btn-export').addEventListener('click', exportProject);
+document.getElementById('btn-import').addEventListener('click', ()=>document.getElementById('import-file').click());
+document.getElementById('import-file').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => importProject(ev.target.result);
+  reader.readAsText(file);
+  e.target.value=''; // reset so same file can be re-imported
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  TABS & PANEL
+// ═════════════════════════════════════════════════════════════════════════════
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===target));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${target}`));
+  });
+});
+
+function setPanelOpen(open) {
+  const panel = document.getElementById('side-panel');
+  const fab = document.getElementById('panel-gear-fab');
+  if (open) {
+    panel.classList.add('open');
+    fab.classList.add('hidden');
+  } else {
+    panel.classList.remove('open');
+    fab.classList.remove('hidden');
+  }
+  // Panel is now overlay — no layout shift, but SVG might need re-centering
+  setTimeout(()=>renderSVG(), 300);
+}
+
+document.getElementById('panel-toggle').addEventListener('click', () => {
+  setPanelOpen(false);
+});
+
+document.getElementById('panel-gear-fab').addEventListener('click', () => {
+  setPanelOpen(true);
+});
+
+// Coordinate system change — recalculate widths to preserve tone positions
+document.getElementById('coord-select').addEventListener('change', e => {
+  const oldSys = layout.coordSystem;
+  const newSys = e.target.value;
+  const isOther = newSys === 'other';
+  document.getElementById('custom-basis-wrap').style.display = isOther ? '' : 'none';
+
+  // Preserve w^T * B^{-1} * e across basis changes.
+  // Old formula: width = w_old^T * B_old^{-1} * e
+  // New formula: width = w_new^T * B_new^{-1} * e
+  // Equating: w_new = B_new^T * (B_old^T)^{-1} * w_old
+  const oldBasis = (oldSys === 'other' && layout.customBasis) ? layout.customBasis : COORD_SYSTEMS[oldSys === 'other' ? 'reduced' : oldSys].basis;
+  const wOld = layout.widths.slice(0,6);
+
+  const newBasisKey = isOther ? 'reduced' : newSys;
+  const newBasis = COORD_SYSTEMS[newBasisKey].basis;
+
+  // Preserve w^T * (B^T)^{-1} * e across basis changes.
+  // This means: w_old^T*(B_old^T)^{-1} = w_new^T*(B_new^T)^{-1}
+  // Equivalently: B_old^{-1}*w_old = B_new^{-1}*w_new
+  // So: w_new = B_new * B_old^{-1} * w_old
+  const invBold = invertMatrix6(oldBasis);
+  let newWidths;
+  if (invBold) {
+    const wInter = invBold.map(row => dot(row, wOld));
+    // Step 2: w_new = B_new * wInter
+    newWidths = newBasis.map(row => dot(row, wInter));
+    newWidths = newWidths.map(w => Math.max(-99, Math.min(99, w)));
+  } else {
+    newWidths = [...COORD_SYSTEMS[newBasisKey].defaults];
+  }
+
+  layout.coordSystem = newSys;
+  layout.widths = newWidths;
+  layout.savedWidths = [...newWidths];
+  // Ensure scope is wide enough to show new values
+  if (!layout.widthScopes) layout.widthScopes = new Array(6).fill(5);
+  layout.widthScopes = newWidths.map((w,i) => Math.max(layout.widthScopes[i]||5, Math.ceil(Math.abs(w))+1));
+  buildWidthControls();
+  applyAndDraw();
+});
+
+// Custom basis input
+document.getElementById('custom-basis-input').addEventListener('change', () => {
+  const lines = document.getElementById('custom-basis-input').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const newBasis = [];
+  for (const line of lines) {
+    const r = parseRatio(line);
+    if (r && r.expsOverride) { newBasis.push(r.expsOverride); continue; }
+    if (r) { newBasis.push(ratioExponents(r)); continue; }
+  }
+  // Pad to 6
+  while (newBasis.length < 6) newBasis.push([0,0,0,0,0,0]);
+  layout.customBasis = newBasis.slice(0,6);
+  applyAndDraw();
+});
+
+// Display option toggles
+document.getElementById('show-octave-lines').addEventListener('change', e => {
+  layout.showOctaveLines = e.target.checked;
+  renderSVG();
+});
+document.getElementById('show-semitone-lines').addEventListener('change', e => {
+  layout.showSemitoneLines = e.target.checked;
+  renderSVG();
+});
+
+// Keyboard rotation
+(function(){
+  const slider = document.getElementById('keyboard-rotation');
+  const numInput = document.getElementById('keyboard-rotation-num');
+  function setRot(v) {
+    v = Math.max(-180, Math.min(180, parseFloat(v)||0));
+    layout.keyboardRotation = v;
+    slider.value = v;
+    numInput.value = v;
+    renderSVG();
+  }
+  slider.addEventListener('input', () => setRot(slider.value));
+  numInput.addEventListener('change', () => setRot(numInput.value));
+})();
+
+// View zoom/pan inputs
+(function(){
+  const zoomEl = document.getElementById('view-zoom');
+  const zoomSlider = document.getElementById('view-zoom-slider');
+  const panxEl = document.getElementById('view-panx');
+  const panyEl = document.getElementById('view-pany');
+
+  function applyZoom(newZoom) {
+    const z = Math.max(0.01, newZoom);
+    const wrap = svgEl.parentElement;
+    const cx = wrap.clientWidth / 2, cy = wrap.clientHeight / 2;
+    const oldZoom = (viewState.scaleX + viewState.scaleY) / 2;
+    const factor = z / oldZoom;
+    viewState.panX = cx + (viewState.panX - cx) * factor;
+    viewState.panY = cy + (viewState.panY - cy) * factor;
+    viewState.scaleX = z;
+    viewState.scaleY = z;
+    // Sync both controls without triggering events
+    if (zoomEl) zoomEl.value = z.toFixed(4);
+    if (zoomSlider) zoomSlider.value = Math.log10(z).toFixed(4);
+    renderSVG();
+  }
+
+  // Zoom slider: log scale, slider position = log10(zoom)
+  if (zoomSlider) {
+    zoomSlider.addEventListener('input', () => {
+      const z = Math.pow(10, parseFloat(zoomSlider.value));
+      applyZoom(z);
+    });
+  }
+
+  // Zoom number input: type the exact zoom value
+  if (zoomEl) {
+    zoomEl.addEventListener('input', () => {
+      const v = parseFloat(zoomEl.value);
+      if (v > 0) applyZoom(v);
+    });
+    zoomEl.addEventListener('change', () => {
+      const v = parseFloat(zoomEl.value);
+      if (v > 0) applyZoom(v);
+    });
+  }
+
+  panxEl.addEventListener('change', () => {
+    viewState.panX = parseFloat(panxEl.value)||0;
+    renderSVG();
+  });
+  panyEl.addEventListener('change', () => {
+    viewState.panY = parseFloat(panyEl.value)||0;
+    renderSVG();
+  });
+})();
+
+document.getElementById('base-freq').addEventListener('input', ()=>{
+  allKeysCache = getAllKeys();
+  renderSVG();
+  // Update all harmony editors
+  if (selectedHarmonyId) renderHarmonyEditor();
+});
+
+// Add harmony button
+document.getElementById('btn-add-harmony').addEventListener('click', () => {
+  const h = makeHarmony({ name: `Harmony ${harmonies.length+1}`, ratios: '' });
+  harmonies.push(h);
+  selectedHarmonyId = h.id;
+  renderHarmonyList();
+  renderHarmonyEditor();
+  applyAndDraw();
+});
+
+// Reset view
+document.getElementById('btn-reset-view').addEventListener('click', ()=>{allKeysCache=getAllKeys();resetView();});
+
+// Test sound
+document.getElementById('btn-test-sound').addEventListener('click', ()=>{
+  playKey({ freq: getBaseFreq(), label:'1', harmonyId:'test' });
+});
+
+// Theme toggle
+(function(){
+  const t=document.querySelector('[data-theme-toggle]');
+  const r=document.documentElement;
+  let d=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  r.setAttribute('data-theme',d);
+  function updateIcon() {
+    if(d==='light'){t.innerHTML=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;}
+    else{t.innerHTML=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;}
+  }
+  if(t){
+    updateIcon();
+    t.addEventListener('click',()=>{
+      d=d==='dark'?'light':'dark';
+      r.setAttribute('data-theme',d);
+      updateIcon();
+      renderSVG();
+    });
+  }
+})();
+
+// Resize observer
+new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-wrap'));
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  INIT — Default project: Natural Scale harmony
+// ═════════════════════════════════════════════════════════════════════════════
+
+(function init() {
+  const natural = makeHarmony({
+    name: 'Natural Scale 8–15',
+    ratios: '1, 9/8, 5/4, 11/8, 3/2, 13/8, 7/4, 15/8',
+    octaveEquiv: true,
+    keyShape: 'round',
+    colorMode: 'limit',
+    showLabels: true
+  });
+  harmonies.push(natural);
+  selectedHarmonyId = natural.id;
+
+  layout.coordSystem = 'reduced';
+  layout.widths = [0, 0.9, 4.5, 4.0, 3.5, 1.6];
+  layout.savedWidths = [...layout.widths];
+
+  buildWidthControls();
+  renderHarmonyList();
+  renderHarmonyEditor();
+
+  allKeysCache = getAllKeys();
+  // Wait for layout to stabilize before computing view
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      resetView();
+    });
+  });
+
+  // Mobile: start with panel closed
+  if (window.innerWidth < 960) {
+    setPanelOpen(false);
+  }
+
+  initProjectName();
+})();
+</script>
+</body>
+</html>
