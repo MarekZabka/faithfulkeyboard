@@ -349,7 +349,7 @@
       font-size: 0.7em;
     }
     .harmony-vis-dot {
-      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+      width: 18px; height: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
     }
     .harmony-name { font-size: var(--text-sm); font-weight: 500; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .harmony-vis-toggle {
@@ -414,7 +414,7 @@
     }
 
     /* Tone table */
-    .tone-table { width: 100%; border-collapse: collapse; font-size: var(--text-xs); }
+    .tone-table { width: 100%; border-collapse: collapse; font-size: 0.65rem; }
     .tone-table th { text-align: left; padding: 0.3rem 0.5rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--color-divider); }
     .tone-table td { padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--color-divider); }
     .tone-table tr:last-child td { border-bottom: none; }
@@ -447,6 +447,14 @@
       width: 200%; height: 200%; transform: translate(-25%, -25%);
       border: none; padding: 0; cursor: pointer;
     }
+
+    /* Panel resize handle */
+    .panel-resize-handle {
+      width: 4px; cursor: col-resize; background: transparent;
+      flex-shrink: 0; position: absolute; top: 0; left: 0; bottom: 0;
+      z-index: 20; transition: background 0.15s;
+    }
+    .panel-resize-handle:hover { background: var(--color-primary); }
 
     /* Responsive */
     @media (min-width: 960px) {
@@ -545,21 +553,14 @@
       <button class="btn-icon" id="btn-lock-view" title="Unlock view (enable pan/zoom/rotate)" aria-label="Lock view">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
       </button>
-      <!-- Reset View -->
-      <button class="btn-icon" id="btn-reset-view" title="Reset to saved view" aria-label="Reset view">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-      </button>
-      <!-- Save View -->
-      <button class="btn-icon" id="btn-save-view" title="Save current view" aria-label="Save view">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-      </button>
+
       <!-- Theme toggle -->
       <button class="btn-icon" data-theme-toggle aria-label="Toggle theme" title="Toggle light/dark mode">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
       <!-- Show/Hide Configuration -->
       <button class="btn-icon" id="btn-toggle-config" title="Show/hide configuration panel" aria-label="Toggle configuration">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </button>
     </div>
   </header>
@@ -595,10 +596,12 @@
 
     <!-- Side panel -->
     <aside class="panel open" id="side-panel">
+      <div class="panel-resize-handle" id="panel-resize-handle"></div>
       <div class="panel-header" id="panel-header">
         <span class="panel-title">Configuration</span>
         <div style="display:flex;align-items:center;gap:0.25rem;">
           <button class="btn-sm" id="btn-config-save" title="Save project">Save</button>
+          <button class="btn-sm" id="btn-config-revert" title="Revert to last saved">Revert</button>
           <button class="panel-close-btn" id="panel-toggle" title="Collapse panel" aria-label="Close Configuration">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -701,12 +704,19 @@
           <div class="field-row" style="margin-bottom:0.5rem;">
             <div style="display:flex;align-items:center;gap:0.5rem;">
               <input type="checkbox" id="global-octave-equiv" checked style="accent-color:var(--color-primary);width:14px;height:14px;">
-              <label for="global-octave-equiv" style="font-size:var(--text-sm);cursor:pointer;flex:1;">Octave Equivalence (all harmonies)</label>
+              <label for="global-octave-equiv" style="font-size:var(--text-sm);cursor:pointer;flex:1;">Octave Equivalence</label>
             </div>
           </div>
 
-          <div class="field-row">
-            <label class="field-label" for="coord-select">Coordinate System (basis for widths)</label>
+          <!-- Base Frequency (moved up) -->
+          <div class="field-row" style="margin-top:0.75rem;">
+            <label class="field-label" for="base-freq">Base Frequency (Hz)</label>
+            <input class="field-input" type="number" id="base-freq" value="261.63" step="0.01" min="20" max="2000">
+            <span class="field-hint">Frequency for 1/1. Default: C4 = 261.63 Hz</span>
+          </div>
+
+          <div class="field-row" style="margin-top:0.75rem;">
+            <label class="field-label" for="coord-select">Coordinate System</label>
             <select class="field-select" id="coord-select">
               <option value="primes">Primes: 2, 3, 5, 7, 11, 13</option>
               <option value="reduced" selected>Reduced Primes: 2, 3/2, 5/4, 7/4, 11/8, 13/8</option>
@@ -718,9 +728,9 @@
           <!-- Custom basis input (shown only for "other") -->
           <div id="custom-basis-wrap" style="display:none;">
             <div class="field-row">
-              <label class="field-label">Custom Basis Vectors (as ratios, one per line)</label>
+              <label class="field-label">Custom Basis</label>
               <textarea class="field-input" id="custom-basis-input" rows="6" placeholder="2&#10;3/2&#10;5/4&#10;7/4&#10;11/8&#10;13/8"></textarea>
-              <span class="field-hint">Enter 6 ratios (or exponent tuples like [1,0,0,0,0,0]) defining the basis generators.</span>
+              <span class="field-hint">Enter 6 ratios or vectors (one per line), e.g. 2, 3/2, 5/4 …</span>
             </div>
           </div>
 
@@ -728,28 +738,73 @@
             <div class="field-label" style="margin-bottom:0.375rem;">Width Assignments</div>
             <span class="field-hint" style="margin-bottom:0.5rem;">Assign width to each basis generator. Click ± to set the slider range per row.</span>
             <div id="width-controls"></div>
-<!-- widths-dirty-indicator removed: now handled by layout tab dirty bar at top -->
           </div>
 
           <!-- Display Options -->
-          <div class="field-row">
+          <div class="field-row" style="margin-top:0.75rem;">
             <div class="field-label" style="margin-bottom:0.375rem;">Display Options</div>
+
+            <!-- Background Color -->
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+              <label style="font-size:var(--text-sm);flex:1;">Background Color</label>
+              <input type="color" id="bg-color" value="#13120f" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
+              <button id="btn-bg-color-reset" style="font-size:var(--text-xs);padding:0.1rem 0.4rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;">Reset</button>
+            </div>
+
             <div class="options-grid">
               <div class="option-row">
                 <input type="checkbox" id="show-octave-lines" checked style="accent-color:var(--color-primary);width:14px;height:14px;">
-                <label for="show-octave-lines" style="font-size:var(--text-sm);cursor:pointer;flex:1;">Show octave lines</label>
+                <label for="show-octave-lines" style="font-size:var(--text-sm);cursor:pointer;flex:1;">Show Octave Lines</label>
               </div>
-              <div class="option-row">
+              <div id="octave-line-opts" style="margin-left:1.5rem;margin-top:0.3rem;display:flex;gap:0.5rem;align-items:center;">
+                <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Color</label>
+                <input type="color" id="octave-line-color" value="#8888bb" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
+                <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Width</label>
+                <input type="number" id="octave-line-width" value="2" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
+              </div>
+              <div class="option-row" style="margin-top:0.3rem;">
                 <input type="checkbox" id="show-semitone-lines" style="accent-color:var(--color-primary);width:14px;height:14px;">
-                <label for="show-semitone-lines" style="font-size:var(--text-sm);cursor:pointer;flex:1;">Show semitone lines</label>
+                <label for="show-semitone-lines" style="font-size:var(--text-sm);cursor:pointer;flex:1;">Show Semitone Lines</label>
+              </div>
+              <div id="semitone-line-opts" style="margin-left:1.5rem;margin-top:0.3rem;display:none;gap:0.5rem;align-items:center;">
+                <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Color</label>
+                <input type="color" id="semitone-line-color" value="#666688" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
+                <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Width</label>
+                <input type="number" id="semitone-line-width" value="1" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
+              </div>
+              <div class="option-row" style="margin-top:0.4rem;">
+                <input type="checkbox" id="show-major-width-lines" checked style="accent-color:var(--color-primary);width:14px;height:14px;">
+                <label for="show-major-width-lines" style="font-size:var(--text-sm);cursor:pointer;flex:1;">Show Major Width Lines</label>
+              </div>
+              <div id="major-width-line-opts" style="margin-left:1.5rem;margin-top:0.3rem;display:flex;flex-direction:column;gap:0.3rem;">
+                <div style="display:flex;gap:0.5rem;align-items:center;">
+                  <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Interval</label>
+                  <input type="number" id="major-width-interval" value="10" min="1" max="100" step="1" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
+                </div>
+                <div style="display:flex;gap:0.5rem;align-items:center;">
+                  <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Color</label>
+                  <input type="color" id="major-width-color" value="#555577" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
+                  <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Width</label>
+                  <input type="number" id="major-width-stroke" value="1.5" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
+                </div>
+              </div>
+              <div class="option-row" style="margin-top:0.4rem;">
+                <input type="checkbox" id="show-minor-width-lines" style="accent-color:var(--color-primary);width:14px;height:14px;">
+                <label for="show-minor-width-lines" style="font-size:var(--text-sm);cursor:pointer;flex:1;">Show Minor Width Lines</label>
+              </div>
+              <div id="minor-width-line-opts" style="margin-left:1.5rem;margin-top:0.3rem;display:none;flex-direction:column;gap:0.3rem;">
+                <div style="display:flex;gap:0.5rem;align-items:center;">
+                  <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Interval</label>
+                  <input type="number" id="minor-width-interval" value="1" min="0.1" max="10" step="0.1" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
+                </div>
+                <div style="display:flex;gap:0.5rem;align-items:center;">
+                  <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Color</label>
+                  <input type="color" id="minor-width-color" value="#444466" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
+                  <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Width</label>
+                  <input type="number" id="minor-width-stroke" value="1" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="field-row">
-            <label class="field-label" for="base-freq">Base Frequency (Hz)</label>
-            <input class="field-input" type="number" id="base-freq" value="261.63" step="0.01" min="20" max="2000">
-            <span class="field-hint">Frequency for 1/1. Default: C4 = 261.63 Hz</span>
           </div>
         </div>
 
@@ -805,31 +860,11 @@
             </div>
           </div>
 
-          <!-- View action buttons -->
-          <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
-            <button class="btn-secondary" id="btn-reset-view-tab" style="flex:1;justify-content:center;">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-              Reset View
-            </button>
-            <button class="btn-secondary" id="btn-save-view-btn" style="flex:1;justify-content:center;">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-              Save View
-            </button>
-          </div>
         </div>
 
         <!-- Tab: Sound -->
         <div class="tab-panel" id="tab-sound">
-          <!-- Sound dirty bar -->
-          <div id="sound-dirty-indicator" style="display:none;">
-            <div class="tab-dirty-bar">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              Unsaved changes
-              <button class="btn-sm" id="btn-save-sound" style="margin-left:auto;">Save</button>
-              <button class="btn-sm" id="btn-revert-sound">Revert</button>
-            </div>
-          </div>
-          <div class="field-row">
+            <div class="field-row">
             <label class="field-label" for="waveform">Waveform</label>
             <select class="field-select" id="waveform">
               <option value="sine">Sine (pure tone)</option>
@@ -922,6 +957,7 @@
   <div class="tooltip-cents" id="tt-cents">0.0 ¢</div>
   <div class="tooltip-freq" id="tt-freq">261.6 Hz</div>
   <div class="tooltip-harmony" id="tt-harmony"></div>
+  <div id="tt-width" style="font-size:0.7rem;color:var(--color-text-faint);margin-top:1px;"></div>
 </div>
 
 <script>
@@ -1050,7 +1086,7 @@ const COORD_SYSTEMS = {
       [0,0,0,0,1,0],
       [0,0,0,0,0,1]
     ],
-    defaults: [0, 0.9, 4.5, 4.0, 3.5, 1.6]
+    defaults: [0, 2.0, 4.5, 4.0, 3.5, 1.6]
   },
   reduced: {
     name: 'Reduced Primes',
@@ -1063,7 +1099,7 @@ const COORD_SYSTEMS = {
       [-3, 0, 0, 0, 1, 0],  // 11/8
       [-3, 0, 0, 0, 0, 1]   // 13/8
     ],
-    defaults: [0, 0.9, 4.5, 4.0, 3.5, 1.6]
+    defaults: [0, 2.0, 4.5, 4.0, 3.5, 1.6]
   },
   pythagorean: {
     name: 'Pythagorean + Commas',
@@ -1089,7 +1125,7 @@ const COORD_SYSTEMS = {
       [-3, 0, 0, 0, 1, 0],
       [-3, 0, 0, 0, 0, 1]
     ],
-    defaults: [0, 0.9, 4.5, 4.0, 3.5, 1.6]
+    defaults: [0, 2.0, 4.5, 4.0, 3.5, 1.6]
   }
 };
 
@@ -1138,10 +1174,10 @@ let currentFileHandle = null;
 const layout = {
   coordSystem: 'reduced',
   customBasis: null, // for 'other' mode
-  widths: [0, 0.9, 4.5, 4.0, 3.5, 1.6],
-  savedWidths: [0, 0.9, 4.5, 4.0, 3.5, 1.6],
+  widths: [0, 2.0, 4.5, 4.0, 3.5, 1.6],
+  savedWidths: [0, 2.0, 4.5, 4.0, 3.5, 1.6],
   widthScopes: [5, 5, 5, 5, 5, 5], // slider range: ±scope per row
-  keySize: 42,
+  keySize: 80,
   showOctaveLines: true,
   showSemitoneLines: false,
   keyboardRotation: 0,
@@ -1150,7 +1186,19 @@ const layout = {
   octaveEquiv: true,
   savedView: null,
   savedLayoutState: null,
-  savedSoundState: null
+  octaveLineColor: '#8888bb',
+  octaveLineWidth: 2,
+  semitoneLineColor: '#666688',
+  semitoneLineWidth: 1,
+  showMajorWidthLines: true,
+  majorWidthInterval: 10,
+  majorWidthColor: '#555577',
+  majorWidthStroke: 1.5,
+  showMinorWidthLines: false,
+  minorWidthInterval: 1,
+  minorWidthColor: '#444466',
+  minorWidthStroke: 1,
+  bgColor: null
 };
 
 function makeHarmony(overrides = {}) {
@@ -1168,12 +1216,14 @@ function makeHarmony(overrides = {}) {
     labelColor: overrides.labelColor || '',
     labelType: overrides.labelType || 'ratio', // 'ratio' or 'heji'
     toneMode: overrides.toneMode || 'ratios', // 'ratios' | 'primepowers' | 'vectors'
-    keySize: overrides.keySize !== undefined ? overrides.keySize : 42,
+    keySize: overrides.keySize !== undefined ? overrides.keySize : 80,
     keyShape: overrides.keyShape || 'round',
     keyRotation: overrides.keyRotation || 0,
     keyStretchX: overrides.keyStretchX !== undefined ? overrides.keyStretchX : 1.0,
     keyStretchY: overrides.keyStretchY !== undefined ? overrides.keyStretchY : 1.0,
-    colorMode: overrides.colorMode || 'limit',
+    keyRounding: overrides.keyRounding !== undefined ? overrides.keyRounding : 0,
+    keyEdge: overrides.keyEdge || 'straight',
+    colorMode: 'uniform', // always uniform; colorMode field kept for backward compat
     uniformColor: overrides.uniformColor || '#6490c4',
     opacity: overrides.opacity !== undefined ? overrides.opacity : 1.0,
     keyOffsetX: overrides.keyOffsetX !== undefined ? overrides.keyOffsetX : 0,
@@ -1195,8 +1245,9 @@ function snapshotHarmony(h) {
     labelColor: h.labelColor || '',
     labelType: h.labelType || 'ratio',
     toneMode: h.toneMode || 'ratios',
-    keySize: h.keySize !== undefined ? h.keySize : 42,
+    keySize: h.keySize !== undefined ? h.keySize : 80,
     keyShape: h.keyShape, keyRotation: h.keyRotation,
+    keyRounding: h.keyRounding || 0, keyEdge: h.keyEdge || 'straight',
     keyStretchX: h.keyStretchX, keyStretchY: h.keyStretchY,
     colorMode: h.colorMode, uniformColor: h.uniformColor,
     opacity: h.opacity !== undefined ? h.opacity : 1.0,
@@ -1385,19 +1436,8 @@ function widthGradColor(w, minW, maxW) {
 }
 
 function getKeyColor(key, harmony, allKeys) {
-  const cs = getComputedStyle(document.documentElement);
-  const mode = harmony.colorMode;
-  if (mode === 'limit') return limitColor(key.limit);
-  if (mode === 'pitch') {
-    const cents = allKeys.map(k=>k.cents);
-    return pitchGradColor(key.cents, Math.min(...cents), Math.max(...cents));
-  }
-  if (mode === 'width') {
-    const ws = allKeys.map(k=>k.width);
-    return widthGradColor(key.width, Math.min(...ws), Math.max(...ws));
-  }
-  if (mode === 'uniform') return harmony.uniformColor;
-  return cs.getPropertyValue('--color-primary').trim();
+  // Always use uniform color (other modes kept for backward compat but ignored)
+  return harmony.uniformColor || '#6490c4';
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -1626,10 +1666,11 @@ function resetView(useAutoCompute) {
   const cw=wrap.clientWidth, ch=wrap.clientHeight;
   const padX=80, padY=70;
   const rangeX=(maxX-minX)||1200;
-  const rangeY=(maxY-minY)||1;
-  // Compute base scales from content bounds (zoom-independent)
+  // X scale: fit the cents range across the stage width
   baseScaleX = Math.max(0.1, Math.min(8, (cw-2*padX)/rangeX));
-  baseScaleY = Math.max(0.1, Math.min(300, (ch-2*padY)/(rangeY||1)));
+  // Y scale: 1 width unit = 100 cents visually (same pixel density as 100¢ on X).
+  // This makes ViewStretch 1.0/1.0 the natural default — no manual stretch needed.
+  baseScaleY = baseScaleX * 100;
   zoomFactor = 1;
   baseZoomScale = baseScaleX; // record default-fit scale for key size flooring
   layout.viewStretchX = layout.viewStretchX || 1;
@@ -1687,6 +1728,20 @@ function buildKeyPath(cx, cy, ks, harmony, isActive) {
     const h_t = r*1.1*sy;
     points = [[0,-h_t],[r*0.9*sx,h_t*0.6],[-r*0.9*sx,h_t*0.6]];
     if (rotation) rotatePoints(points, rotation);
+  } else if (shape === 'square') {
+    const hw = r*sx, hh = r*sy;
+    points = [[-hw,-hh],[hw,-hh],[hw,hh],[-hw,hh]];
+    if (rotation) rotatePoints(points, rotation);
+  } else if (shape === 'pentagon') {
+    for (let i=0; i<5; i++) {
+      const ang = -Math.PI/2 + i*2*Math.PI/5 + (rotation||0)*Math.PI/180;
+      points.push([r*Math.cos(ang)*sx, r*Math.sin(ang)*sy]);
+    }
+  } else if (shape === 'octagon') {
+    for (let i=0; i<8; i++) {
+      const ang = Math.PI/8 + i*Math.PI/4 + (rotation||0)*Math.PI/180;
+      points.push([r*Math.cos(ang)*sx, r*Math.sin(ang)*sy]);
+    }
   } else {
     useCircle = true;
   }
@@ -1706,8 +1761,63 @@ function buildKeyPath(cx, cy, ks, harmony, isActive) {
 
   // Polygon path
   const absPoints = points.map(([px,py])=>[cx+px, cy+py]);
-  pathData = absPoints.map(([px,py],i)=>`${i===0?'M':'L'}${px.toFixed(2)},${py.toFixed(2)}`).join(' ')+'Z';
+  const rounding = harmony.keyRounding || 0;
+  const edgeStyle = harmony.keyEdge || 'straight';
+  if (rounding > 0 || edgeStyle !== 'straight') {
+    pathData = buildRoundedPolygonPath(absPoints, rounding * r * 0.5, edgeStyle);
+  } else {
+    pathData = absPoints.map(([px,py],i)=>`${i===0?'M':'L'}${px.toFixed(2)},${py.toFixed(2)}`).join(' ')+'Z';
+  }
   return { type: 'path', d: pathData };
+}
+
+// Helper: build rounded polygon SVG path with optional convex/concave edges
+function buildRoundedPolygonPath(pts, cornerR, edgeStyle) {
+  const n = pts.length;
+  if (n < 3) return '';
+  // Clamp corner radius so it fits
+  const segments = [];
+  for (let i = 0; i < n; i++) {
+    const prev = pts[(i-1+n)%n];
+    const curr = pts[i];
+    const next = pts[(i+1)%n];
+    // Vectors from curr
+    const dx1 = prev[0]-curr[0], dy1 = prev[1]-curr[1];
+    const dx2 = next[0]-curr[0], dy2 = next[1]-curr[1];
+    const len1 = Math.sqrt(dx1*dx1+dy1*dy1);
+    const len2 = Math.sqrt(dx2*dx2+dy2*dy2);
+    const maxR = Math.min(len1, len2) * 0.45;
+    const cr = Math.min(cornerR, maxR);
+    const t1x = curr[0] + (dx1/len1)*cr;
+    const t1y = curr[1] + (dy1/len1)*cr;
+    const t2x = curr[0] + (dx2/len2)*cr;
+    const t2y = curr[1] + (dy2/len2)*cr;
+    segments.push({ t1x, t1y, t2x, t2y, cx: curr[0], cy: curr[1] });
+  }
+  let d = '';
+  for (let i = 0; i < n; i++) {
+    const seg = segments[i];
+    const nextSeg = segments[(i+1)%n];
+    if (i === 0) d += `M${seg.t2x.toFixed(2)},${seg.t2y.toFixed(2)}`;
+    // Edge to next corner's t1
+    const ex = nextSeg.t1x, ey = nextSeg.t1y;
+    if (edgeStyle === 'convex' || edgeStyle === 'concave') {
+      const mx = (seg.t2x+ex)/2, my = (seg.t2y+ey)/2;
+      const edx = ex-seg.t2x, edy = ey-seg.t2y;
+      const edLen = Math.sqrt(edx*edx+edy*edy);
+      const bulge = edLen * 0.25 * (edgeStyle==='convex' ? 1 : -1);
+      // Normal perpendicular to edge, pointing outward (approximate)
+      const nx2 = -edy/edLen*bulge, ny2 = edx/edLen*bulge;
+      const cpx = mx+nx2, cpy = my+ny2;
+      d += ` Q${cpx.toFixed(2)},${cpy.toFixed(2)} ${ex.toFixed(2)},${ey.toFixed(2)}`;
+    } else {
+      d += ` L${ex.toFixed(2)},${ey.toFixed(2)}`;
+    }
+    // Corner arc
+    d += ` Q${seg.cx.toFixed(2)},${seg.cy.toFixed(2)} ${seg.t2x.toFixed(2)},${seg.t2y.toFixed(2)}`;
+  }
+  d += 'Z';
+  return d;
 }
 
 function rotatePoints(points, degrees) {
@@ -1785,7 +1895,7 @@ function renderSVG() {
   }
 
   // Background
-  const bg = svgEl2('rect', { x:0, y:0, width:cw, height:ch, fill:bgColor });
+  const bg = svgEl2('rect', { x:0, y:0, width:cw, height:ch, fill:layout.bgColor || bgColor });
   axesGroup.appendChild(bg);
 
   // Octave and semitone lines (horizontal, across full width)
@@ -1810,18 +1920,50 @@ function renderSVG() {
       if (px < -200 || px > cw+200) continue;
       if (isOct) {
         if (!showOct) continue;
+        const octColor = layout.octaveLineColor || divColor;
+        const octW = layout.octaveLineWidth || 2;
         const line = svgEl2('line', {
           x1: px.toFixed(1), y1: 0, x2: px.toFixed(1), y2: ch,
-          stroke: divColor, 'stroke-width': '2', opacity: '0.55'
+          stroke: octColor, 'stroke-width': octW, opacity: '0.55'
         });
         axesGroup.appendChild(line);
       } else {
         if (!showSemi) continue;
+        const semiColor = layout.semitoneLineColor || divColor;
+        const semiW = layout.semitoneLineWidth || 1;
         const line = svgEl2('line', {
           x1: px.toFixed(1), y1: 0, x2: px.toFixed(1), y2: ch,
-          stroke: divColor, 'stroke-width': '1', opacity: '0.35'
+          stroke: semiColor, 'stroke-width': semiW, opacity: '0.35'
         });
         axesGroup.appendChild(line);
+      }
+    }
+  }
+
+  // Major/Minor width lines (horizontal lines at constant y positions)
+  if (layout.showMajorWidthLines || layout.showMinorWidthLines) {
+    const allW = keys.map(k=>k.y_logical);
+    if (allW.length) {
+      const minWL = Math.min(...allW), maxWL = Math.max(...allW);
+      const drawWidthLines = (interval, color, strokeW, opacity) => {
+        if (!interval || interval <= 0) return;
+        const startW2 = Math.floor(minWL/interval)*interval - interval;
+        const endW2 = Math.ceil(maxWL/interval)*interval + interval;
+        for (let w=startW2; w<=endW2; w+=interval) {
+          const {py: wy} = logicalToPixel(0, w);
+          if (wy < -50 || wy > ch+50) continue;
+          const line = svgEl2('line', {
+            x1: 0, y1: wy.toFixed(1), x2: cw, y2: wy.toFixed(1),
+            stroke: color, 'stroke-width': strokeW, opacity: opacity
+          });
+          axesGroup.appendChild(line);
+        }
+      };
+      if (layout.showMajorWidthLines) {
+        drawWidthLines(layout.majorWidthInterval||10, layout.majorWidthColor||'#555577', layout.majorWidthStroke||1.5, '0.45');
+      }
+      if (layout.showMinorWidthLines) {
+        drawWidthLines(layout.minorWidthInterval||1, layout.minorWidthColor||'#444466', layout.minorWidthStroke||1, '0.25');
       }
     }
   }
@@ -2594,6 +2736,8 @@ function showTooltip(cx,cy,key) {
   document.getElementById('tt-cents').textContent = `${key.cents.toFixed(1)} ¢`;
   document.getElementById('tt-freq').textContent = `${key.freq.toFixed(2)} Hz`;
   document.getElementById('tt-harmony').textContent = key.harmonyName || '';
+  const ttWidth = document.getElementById('tt-width');
+  if (ttWidth) ttWidth.textContent = key.width !== undefined ? `w: ${key.width.toFixed(3)}` : '';
   const w=tooltip.offsetWidth||200, h=tooltip.offsetHeight||70;
   let tx=cx+14, ty=cy-10;
   if(tx+w>window.innerWidth) tx=cx-w-10;
@@ -2606,6 +2750,41 @@ function hideTooltip() { tooltip.classList.remove('visible'); }
 // ═════════════════════════════════════════════════════════════════════════════
 //  HARMONY EDITOR UI
 // ═════════════════════════════════════════════════════════════════════════════
+
+function getMiniKeyShapeSVG(h) {
+  const color = h.uniformColor || '#6490c4';
+  const opacity = h.opacity !== undefined ? h.opacity : 1;
+  const shape = h.keyShape || 'round';
+  const s = 18, r = 7;
+  const cx = s/2, cy = s/2;
+  let shapeHTML = '';
+  if (shape === 'round') {
+    shapeHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
+  } else if (shape === 'hex') {
+    const pts = [];
+    for (let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3;pts.push(`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`);}
+    shapeHTML = `<polygon points="${pts.join(' ')}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
+  } else if (shape === 'diamond') {
+    shapeHTML = `<polygon points="${cx},${cy-r} ${cx+r*0.75},${cy} ${cx},${cy+r} ${cx-r*0.75},${cy}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
+  } else if (shape === 'rect') {
+    shapeHTML = `<rect x="${cx-r*0.8}" y="${cy-r*0.5}" width="${r*1.6}" height="${r}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
+  } else if (shape === 'triangle') {
+    shapeHTML = `<polygon points="${cx},${cy-r} ${cx+r*0.87},${cy+r*0.5} ${cx-r*0.87},${cy+r*0.5}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
+  } else if (shape === 'square') {
+    shapeHTML = `<rect x="${cx-r}" y="${cy-r}" width="${r*2}" height="${r*2}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
+  } else if (shape === 'pentagon') {
+    const pts = [];
+    for (let i=0;i<5;i++){const a=-Math.PI/2+i*2*Math.PI/5;pts.push(`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`);}
+    shapeHTML = `<polygon points="${pts.join(' ')}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
+  } else if (shape === 'octagon') {
+    const pts = [];
+    for (let i=0;i<8;i++){const a=Math.PI/8+i*Math.PI/4;pts.push(`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`);}
+    shapeHTML = `<polygon points="${pts.join(' ')}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
+  } else {
+    shapeHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
+  }
+  return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" style="display:block;">${shapeHTML}</svg>`;
+}
 
 function renderHarmonyList() {
   const list = document.getElementById('harmony-list');
@@ -2622,10 +2801,10 @@ function renderHarmonyList() {
     dragH.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="18" x2="16" y2="18"/></svg>`;
     item.appendChild(dragH);
 
-    // Color dot
+    // Mini key shape SVG
     const dot = document.createElement('div');
     dot.className = 'harmony-vis-dot';
-    dot.style.background = getHarmonyRepColor(h);
+    dot.innerHTML = getMiniKeyShapeSVG(h);
     item.appendChild(dot);
 
     // Name
@@ -2722,9 +2901,7 @@ function renderHarmonyList() {
 }
 
 function getHarmonyRepColor(h) {
-  if (h.colorMode === 'uniform') return h.uniformColor;
-  // Return first limit color as representative
-  return limitColor(3);
+  return h.uniformColor || '#6490c4';
 }
 
 function renderHarmonyEditor() {
@@ -2759,7 +2936,6 @@ function renderHarmonyEditor() {
 
   const modeHints = {
     ratios: 'e.g. 1, 9/8, 5/4, 3/2 — or formulas like (3/2)^2',
-    primepowers: 'e.g. 1, 3^2*2^(-3), 5*2^(-2) — prime factorizations',
     vectors: 'e.g. (0), (-3,2), (-2,0,1) — exponents of primes 2,3,5,7,11,13'
   };
   tonesSection.innerHTML = `
@@ -2767,7 +2943,6 @@ function renderHarmonyEditor() {
       <label class="field-label" style="margin:0;">Tones</label>
       <select class="field-select" id="he-tone-mode" style="font-size:var(--text-xs);padding:0.15rem 0.3rem;width:auto;">
         <option value="ratios" ${toneMode==='ratios'?'selected':''}>Frequency Ratios</option>
-        <option value="primepowers" ${toneMode==='primepowers'?'selected':''}>Prime Powers</option>
         <option value="vectors" ${toneMode==='vectors'?'selected':''}>Vectors</option>
       </select>
     </div>
@@ -2859,26 +3034,10 @@ function renderHarmonyEditor() {
 
   editor.appendChild(document.createElement('hr')).className='section-sep';
 
-  // ─── COLOR MODE (first after tones+sep, per spec) ───
-  // Color mode
-  const colorDiv = document.createElement('div');
-  colorDiv.className = 'field-row';
-  colorDiv.innerHTML = `
-    <label class="field-label">Color Mode</label>
-    <select class="field-select" id="he-colormode">
-      <option value="uniform" ${h.colorMode==='uniform'?'selected':''}>Uniform Color</option>
-      <option value="limit" ${h.colorMode==='limit'?'selected':''}>JI Limit</option>
-      <option value="pitch" ${h.colorMode==='pitch'?'selected':''}>Pitch height</option>
-      <option value="width" ${h.colorMode==='width'?'selected':''}>Pitch width</option>
-    </select>
-  `;
-  editor.appendChild(colorDiv);
-
-  // Uniform color picker
+  // ─── COLOR PICKER (always uniform) ───
   const uniformRow = document.createElement('div');
   uniformRow.className = 'color-picker-row';
   uniformRow.id = 'he-uniform-row';
-  uniformRow.style.display = h.colorMode==='uniform' ? 'flex' : 'none';
   uniformRow.innerHTML = `
     <label class="field-label" style="text-transform:none;font-size:var(--text-xs);color:var(--color-text-muted);">Color:</label>
     <label class="color-swatch">
@@ -2887,16 +3046,9 @@ function renderHarmonyEditor() {
     <span id="he-color-hex" style="font-size:var(--text-xs);color:var(--color-text-muted);">${h.uniformColor}</span>
   `;
   editor.appendChild(uniformRow);
-
-  colorDiv.querySelector('#he-colormode').addEventListener('change', e=>{
-    h.colorMode=e.target.value;
-    uniformRow.style.display=h.colorMode==='uniform'?'flex':'none';
-    refreshEditorDirtyState();
-    renderSVG();
-    markProjectDirty();
-  });
   uniformRow.querySelector('#he-color').addEventListener('input', e=>{
     h.uniformColor=e.target.value;
+    h.colorMode='uniform';
     uniformRow.querySelector('#he-color-hex').textContent=e.target.value;
     refreshEditorDirtyState();
     renderSVG();
@@ -2933,22 +3085,51 @@ function renderHarmonyEditor() {
   shapeDiv.innerHTML = `
     <label class="field-label">Key Shape</label>
     <select class="field-select" id="he-shape">
-      <option value="round" ${h.keyShape==='round'?'selected':''}>Round</option>
+      <option value="round" ${h.keyShape==='round'?'selected':''}>Circle</option>
       <option value="hex" ${h.keyShape==='hex'?'selected':''}>Hexagon</option>
       <option value="diamond" ${h.keyShape==='diamond'?'selected':''}>Diamond</option>
       <option value="rect" ${h.keyShape==='rect'?'selected':''}>Rectangle</option>
       <option value="triangle" ${h.keyShape==='triangle'?'selected':''}>Triangle</option>
+      <option value="square" ${h.keyShape==='square'?'selected':''}>Square</option>
+      <option value="pentagon" ${h.keyShape==='pentagon'?'selected':''}>Pentagon</option>
+      <option value="octagon" ${h.keyShape==='octagon'?'selected':''}>Octagon</option>
     </select>
   `;
   editor.appendChild(shapeDiv);
   shapeDiv.querySelector('#he-shape').addEventListener('change', e=>{h.keyShape=e.target.value;refreshEditorDirtyState();renderSVG();markProjectDirty();});
 
+  // ─── KEY ROUNDING ───
+  const roundingVal = h.keyRounding !== undefined ? h.keyRounding : 0;
+  const roundingDiv = makeSliderField('Key Rounding', 'he-rounding', 0, 1, 0.05, roundingVal, v=>parseFloat(v).toFixed(2));
+  editor.appendChild(roundingDiv);
+  roundingDiv.querySelector('#he-rounding').addEventListener('input', e=>{
+    h.keyRounding=parseFloat(e.target.value)||0;
+    roundingDiv.querySelector('#he-rounding-val').textContent=h.keyRounding.toFixed(2);
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  // ─── EDGE STYLE ───
+  const edgeDiv = document.createElement('div');
+  edgeDiv.className = 'field-row';
+  edgeDiv.style.marginTop = '0.2rem';
+  const edgeVal = h.keyEdge || 'straight';
+  edgeDiv.innerHTML = `
+    <label class="field-label">Edge Style</label>
+    <select class="field-select" id="he-edge">
+      <option value="straight" ${edgeVal==='straight'?'selected':''}>Straight</option>
+      <option value="convex" ${edgeVal==='convex'?'selected':''}>Convex</option>
+      <option value="concave" ${edgeVal==='concave'?'selected':''}>Concave</option>
+    </select>
+  `;
+  editor.appendChild(edgeDiv);
+  edgeDiv.querySelector('#he-edge').addEventListener('change', e=>{h.keyEdge=e.target.value;refreshEditorDirtyState();renderSVG();markProjectDirty();});
+
   // ─── KEY SIZE ───
-  const keySizeVal = h.keySize !== undefined ? h.keySize : 42;
+  const keySizeVal = h.keySize !== undefined ? h.keySize : 80;
   const keySizeDiv = makeSliderField('Key Size', 'he-key-size', 8, 120, 1, keySizeVal, v=>v);
   editor.appendChild(keySizeDiv);
   keySizeDiv.querySelector('#he-key-size').addEventListener('input', e=>{
-    h.keySize=parseInt(e.target.value)||42;
+    h.keySize=parseInt(e.target.value)||80;
     keySizeDiv.querySelector('#he-key-size-val').textContent=h.keySize;
     refreshEditorDirtyState();renderSVG();markProjectDirty();
   });
@@ -3119,16 +3300,16 @@ function renderHarmonyEditor() {
       editor.appendChild(lbl);
       const tbl = document.createElement('table');
       tbl.className='tone-table';
-      tbl.innerHTML='<thead><tr><th>Ratio</th><th>Cents</th><th>Freq (Hz)</th></tr></thead>';
+      tbl.innerHTML='<thead><tr><th>Tone</th><th>¢</th><th>Hz</th><th>W</th></tr></thead>';
       const tbody=document.createElement('tbody');
       for (const k of keys.slice(0,30)) {
         const tr=document.createElement('tr');
-        tr.innerHTML=`<td><span class="tone-dot" style="background:${limitColor(k.limit)}"></span>${escHtml(k.label)}</td><td>${k.cents.toFixed(1)}</td><td>${k.freq.toFixed(2)}</td>`;
+        tr.innerHTML=`<td><span class="tone-dot" style="background:${limitColor(k.limit)}"></span>${escHtml(k.label)}</td><td>${k.cents.toFixed(1)}</td><td>${k.freq.toFixed(2)}</td><td>${k.width !== undefined ? k.width.toFixed(2) : '–'}</td>`;
         tbody.appendChild(tr);
       }
       if (keys.length>30) {
         const tr=document.createElement('tr');
-        tr.innerHTML=`<td colspan="3" style="color:var(--color-text-faint);font-size:0.7rem;">…and ${keys.length-30} more</td>`;
+        tr.innerHTML=`<td colspan="4" style="color:var(--color-text-faint);font-size:0.7rem;">…and ${keys.length-30} more</td>`;
         tbody.appendChild(tr);
       }
       tbl.appendChild(tbody);
@@ -3175,9 +3356,17 @@ function escHtml(s) {
 //  DIRTY STATE TRACKING
 // ─────────────────────────────────────────────────────────────────────────────
 
+let lastSavedJSON = null;
+let _lsAutoSaveTimer = null;
+
 function markProjectDirty() {
   projectIsDirty = true;
   updateDirtyUI();
+  // Auto-save in-memory (debounced 2s)
+  if (_lsAutoSaveTimer) clearTimeout(_lsAutoSaveTimer);
+  _lsAutoSaveTimer = setTimeout(() => {
+    try { lastSavedJSON = buildProjectJSON(); } catch(e) {}
+  }, 2000);
 }
 
 function updateDirtyUI() {
@@ -3196,9 +3385,18 @@ function updateDirtyUI() {
   document.title = projectName + ' — Faithful Keyboard';
 }
 
+function revertProject() {
+  if (!lastSavedJSON) {
+    alert('No saved version to revert to.');
+    return;
+  }
+  importProject(lastSavedJSON);
+}
+
 function markProjectSaved() {
   projectIsDirty = false;
   updateDirtyUI();
+  try { lastSavedJSON = buildProjectJSON(); } catch(e) {}
 }
 
 function getCurrentViewSnapshot() {
@@ -3276,8 +3474,7 @@ function isSoundDirty() {
 }
 
 function updateSoundDirtyIndicator() {
-  const el = document.getElementById('sound-dirty-indicator');
-  if (el) el.style.display = isSoundDirty() ? '' : 'none';
+  // Sound dirty indicator removed
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3649,8 +3846,11 @@ function initProjectDescription() {
 function buildWidthControls() {
   const coordSys = layout.coordSystem === 'other' ? 'reduced' : layout.coordSystem;
   const csData = COORD_SYSTEMS[coordSys];
-  const labels = layout.coordSystem === 'other'
-    ? (layout.customBasis ? layout.customBasis.map((_,i)=>`b${i+1}`) : csData.labels)
+  const labels = layout.coordSystem === 'other' && layout.customBasis
+    ? layout.customBasis.map((vec, i) => {
+        const s = '[' + vec.join(',') + ']';
+        return s.length > 14 ? s.substring(0, 12) + '…' : s;
+      })
     : csData.labels;
 
   // Scope: half-range for each row slider (e.g. scope=5 ⇒ [-5,+5])
@@ -3795,8 +3995,9 @@ function buildProjectJSON() {
       labelColor: h.labelColor || '',
       labelType: h.labelType || 'ratio',
       toneMode: h.toneMode || 'ratios',
-      keySize: h.keySize !== undefined ? h.keySize : 42,
+      keySize: h.keySize !== undefined ? h.keySize : 80,
       keyShape: h.keyShape, keyRotation: h.keyRotation,
+      keyRounding: h.keyRounding || 0, keyEdge: h.keyEdge || 'straight',
       keyStretchX: h.keyStretchX, keyStretchY: h.keyStretchY,
       colorMode: h.colorMode, uniformColor: h.uniformColor,
       opacity: h.opacity !== undefined ? h.opacity : 1.0,
@@ -3815,8 +4016,21 @@ function buildProjectJSON() {
       keyboardRotation: layout.keyboardRotation,
       viewStretchX: layout.viewStretchX || 1,
       viewStretchY: layout.viewStretchY || 1,
-      savedView: layout.savedView,
-      octaveEquiv: layout.octaveEquiv !== undefined ? layout.octaveEquiv : true
+      savedView: { baseScaleX, baseScaleY, zoomFactor, panX: Math.round(viewState.panX), panY: Math.round(viewState.panY), rotation: layout.keyboardRotation||0, stretchX: layout.viewStretchX||1, stretchY: layout.viewStretchY||1 },
+      octaveEquiv: layout.octaveEquiv !== undefined ? layout.octaveEquiv : true,
+      octaveLineColor: layout.octaveLineColor || '#8888bb',
+      octaveLineWidth: layout.octaveLineWidth || 2,
+      semitoneLineColor: layout.semitoneLineColor || '#666688',
+      semitoneLineWidth: layout.semitoneLineWidth || 1,
+      showMajorWidthLines: layout.showMajorWidthLines !== false,
+      majorWidthInterval: layout.majorWidthInterval || 10,
+      majorWidthColor: layout.majorWidthColor || '#555577',
+      majorWidthStroke: layout.majorWidthStroke || 1.5,
+      showMinorWidthLines: !!layout.showMinorWidthLines,
+      minorWidthInterval: layout.minorWidthInterval || 1,
+      minorWidthColor: layout.minorWidthColor || '#444466',
+      minorWidthStroke: layout.minorWidthStroke || 1,
+      bgColor: layout.bgColor || null
     },
     baseFreq: getBaseFreq(),
     sound: {
@@ -3855,10 +4069,10 @@ function newProject() {
   projectDescription = '';
   currentFileHandle = null;
   layout.coordSystem = 'reduced';
-  layout.widths = [0, 0.9, 4.5, 4.0, 3.5, 1.6];
+  layout.widths = [0, 2.0, 4.5, 4.0, 3.5, 1.6];
   layout.savedWidths = [...layout.widths];
   layout.keyboardRotation = 0;
-  layout.viewStretchX = 1; layout.viewStretchY = 1;
+  layout.viewStretchX = 1.0; layout.viewStretchY = 1.0;
   layout.savedView = null;
   layout.octaveEquiv = true;
   document.getElementById('project-name-display').textContent = projectName;
@@ -3892,6 +4106,7 @@ async function openProject() {
 }
 
 async function saveProject() {
+  saveCurrentView(); // persist current view into layout.savedView before saving
   const json = buildProjectJSON();
   if (window.showSaveFilePicker && !currentFileHandle) {
     try {
@@ -4012,7 +4227,7 @@ function importProject(jsonStr) {
       layout.widths = project.layout.widths || [0,0.9,4.5,4.0,3.5,1.6];
       layout.savedWidths = project.layout.savedWidths || [...layout.widths];
       layout.widthScopes = project.layout.widthScopes || new Array(6).fill(5);
-      layout.keySize = project.layout.keySize || 42;
+      layout.keySize = project.layout.keySize || 80;
       layout.showOctaveLines = project.layout.showOctaveLines !== false;
       layout.showSemitoneLines = !!project.layout.showSemitoneLines;
       layout.keyboardRotation = project.layout.keyboardRotation || 0;
@@ -4020,6 +4235,19 @@ function importProject(jsonStr) {
       layout.viewStretchY = project.layout.viewStretchY !== undefined ? project.layout.viewStretchY : 1;
       layout.savedView = project.layout.savedView || null;
       layout.octaveEquiv = project.layout.octaveEquiv !== undefined ? project.layout.octaveEquiv : true;
+      layout.octaveLineColor = project.layout.octaveLineColor || '#8888bb';
+      layout.octaveLineWidth = project.layout.octaveLineWidth || 2;
+      layout.semitoneLineColor = project.layout.semitoneLineColor || '#666688';
+      layout.semitoneLineWidth = project.layout.semitoneLineWidth || 1;
+      layout.showMajorWidthLines = project.layout.showMajorWidthLines !== false;
+      layout.majorWidthInterval = project.layout.majorWidthInterval || 10;
+      layout.majorWidthColor = project.layout.majorWidthColor || '#555577';
+      layout.majorWidthStroke = project.layout.majorWidthStroke || 1.5;
+      layout.showMinorWidthLines = !!project.layout.showMinorWidthLines;
+      layout.minorWidthInterval = project.layout.minorWidthInterval || 1;
+      layout.minorWidthColor = project.layout.minorWidthColor || '#444466';
+      layout.minorWidthStroke = project.layout.minorWidthStroke || 1;
+      layout.bgColor = project.layout.bgColor || null;
     }
     if (project.baseFreq) document.getElementById('base-freq').value = project.baseFreq;
     if (project.sound) {
@@ -4035,6 +4263,22 @@ function importProject(jsonStr) {
     document.getElementById('custom-basis-wrap').style.display = layout.coordSystem==='other'?'':'none';
     document.getElementById('show-octave-lines').checked = layout.showOctaveLines;
     document.getElementById('show-semitone-lines').checked = layout.showSemitoneLines;
+    // Sync new layout line controls
+    ['octave-line-color','semitone-line-color','major-width-color','minor-width-color'].forEach(id => {
+      const el = document.getElementById(id);
+      const propMap = {'octave-line-color':'octaveLineColor','semitone-line-color':'semitoneLineColor','major-width-color':'majorWidthColor','minor-width-color':'minorWidthColor'};
+      if (el && layout[propMap[id]]) el.value = layout[propMap[id]];
+    });
+    ['octave-line-width','semitone-line-width','major-width-interval','major-width-stroke','minor-width-interval','minor-width-stroke'].forEach(id => {
+      const el = document.getElementById(id);
+      const propMap = {'octave-line-width':'octaveLineWidth','semitone-line-width':'semitoneLineWidth','major-width-interval':'majorWidthInterval','major-width-stroke':'majorWidthStroke','minor-width-interval':'minorWidthInterval','minor-width-stroke':'minorWidthStroke'};
+      if (el && layout[propMap[id]] !== undefined) el.value = layout[propMap[id]];
+    });
+    const mwlCb = document.getElementById('show-major-width-lines');
+    if (mwlCb) { mwlCb.checked = layout.showMajorWidthLines !== false; const d = document.getElementById('major-width-line-opts'); if(d) d.style.display = mwlCb.checked ? 'flex' : 'none'; }
+    const mnwlCb = document.getElementById('show-minor-width-lines');
+    if (mnwlCb) { mnwlCb.checked = !!layout.showMinorWidthLines; const d = document.getElementById('minor-width-line-opts'); if(d) d.style.display = mnwlCb.checked ? 'flex' : 'none'; }
+    if (layout.bgColor) { const bgEl = document.getElementById('bg-color'); if(bgEl) bgEl.value = layout.bgColor; }
     document.getElementById('keyboard-rotation').value = layout.keyboardRotation;
     document.getElementById('keyboard-rotation-num').value = layout.keyboardRotation;
     const globalOctEl = document.getElementById('global-octave-equiv');
@@ -4057,6 +4301,7 @@ document.addEventListener('click', e => {
   if (e.target.id === 'btn-save-project' || e.target.closest('#btn-save-project')) saveProject();
   if (e.target.id === 'btn-save-copy-project' || e.target.closest('#btn-save-copy-project')) saveProjectCopy();
   if (e.target.id === 'btn-config-save' || e.target.closest('#btn-config-save')) saveProject();
+  if (e.target.id === 'btn-config-revert' || e.target.closest('#btn-config-revert')) revertProject();
   if (e.target.id === 'btn-import-harmonies-open' || e.target.closest('#btn-import-harmonies-open')) {
     document.getElementById('import-harmonies-file').click();
   }
@@ -4298,6 +4543,74 @@ function applyZoom(newZoomFactor) {
   });
 })();
 
+// New layout line controls
+(function() {
+  function wireLayoutColor(id, propName) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = layout[propName] || el.value;
+    el.addEventListener('input', () => { layout[propName] = el.value; renderSVG(); markProjectDirty(); });
+  }
+  function wireLayoutNum(id, propName) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = layout[propName] !== undefined ? layout[propName] : el.value;
+    el.addEventListener('input', () => { layout[propName] = parseFloat(el.value)||0; renderSVG(); markProjectDirty(); });
+    el.addEventListener('change', () => { layout[propName] = parseFloat(el.value)||0; renderSVG(); markProjectDirty(); });
+  }
+  function wireLayoutCheck(id, propName, optsDivId) {
+    const el = document.getElementById(id);
+    const optsDiv = optsDivId ? document.getElementById(optsDivId) : null;
+    if (!el) return;
+    el.checked = layout[propName] !== undefined ? layout[propName] : el.checked;
+    if (optsDiv) optsDiv.style.display = el.checked ? 'flex' : 'none';
+    el.addEventListener('change', () => {
+      layout[propName] = el.checked;
+      if (optsDiv) optsDiv.style.display = el.checked ? 'flex' : 'none';
+      renderSVG(); markProjectDirty();
+    });
+  }
+
+  wireLayoutColor('octave-line-color', 'octaveLineColor');
+  wireLayoutNum('octave-line-width', 'octaveLineWidth');
+  wireLayoutColor('semitone-line-color', 'semitoneLineColor');
+  wireLayoutNum('semitone-line-width', 'semitoneLineWidth');
+  wireLayoutCheck('show-major-width-lines', 'showMajorWidthLines', 'major-width-line-opts');
+  wireLayoutColor('major-width-color', 'majorWidthColor');
+  wireLayoutNum('major-width-interval', 'majorWidthInterval');
+  wireLayoutNum('major-width-stroke', 'majorWidthStroke');
+  wireLayoutCheck('show-minor-width-lines', 'showMinorWidthLines', 'minor-width-line-opts');
+  wireLayoutColor('minor-width-color', 'minorWidthColor');
+  wireLayoutNum('minor-width-interval', 'minorWidthInterval');
+  wireLayoutNum('minor-width-stroke', 'minorWidthStroke');
+
+  // octave-line-opts visibility
+  const octCb = document.getElementById('show-octave-lines');
+  const octOpts = document.getElementById('octave-line-opts');
+  if (octCb && octOpts) {
+    octOpts.style.display = octCb.checked ? 'flex' : 'none';
+    octCb.addEventListener('change', () => { octOpts.style.display = octCb.checked ? 'flex' : 'none'; });
+  }
+  // semitone-line-opts visibility
+  const semiCb = document.getElementById('show-semitone-lines');
+  const semiOpts = document.getElementById('semitone-line-opts');
+  if (semiCb && semiOpts) {
+    semiOpts.style.display = semiCb.checked ? 'flex' : 'none';
+    semiCb.addEventListener('change', () => { semiOpts.style.display = semiCb.checked ? 'flex' : 'none'; });
+  }
+
+  // Background color
+  const bgColorEl = document.getElementById('bg-color');
+  const bgResetBtn = document.getElementById('btn-bg-color-reset');
+  if (bgColorEl) {
+    if (layout.bgColor) bgColorEl.value = layout.bgColor;
+    bgColorEl.addEventListener('input', () => { layout.bgColor = bgColorEl.value; renderSVG(); markProjectDirty(); });
+  }
+  if (bgResetBtn) {
+    bgResetBtn.addEventListener('click', () => { layout.bgColor = null; if (bgColorEl) bgColorEl.value = '#13120f'; renderSVG(); markProjectDirty(); });
+  }
+})();
+
 document.getElementById('base-freq').addEventListener('input', ()=>{
   allKeysCache = getAllKeys();
   renderSVG();
@@ -4309,15 +4622,7 @@ document.getElementById('base-freq').addEventListener('input', ()=>{
 
 // View tab buttons
 document.addEventListener('click', e => {
-  if (e.target.id === 'btn-reset-view-tab' || e.target.closest('#btn-reset-view-tab')) {
-    allKeysCache = getAllKeys();
-    resetView();
-  }
-  if (e.target.id === 'btn-save-view-btn' || e.target.closest('#btn-save-view-btn')) {
-    saveCurrentView();
-    updateViewDirtyIndicator();
-    syncViewControls();
-  }
+
   if (e.target.id === 'btn-save-view-tab' || e.target.closest('#btn-save-view-tab')) {
     saveCurrentView();
     updateViewDirtyIndicator();
@@ -4427,18 +4732,7 @@ document.getElementById('btn-add-harmony').addEventListener('click', () => {
   applyAndDraw();
 });
 
-// Reset view (header button)
-document.getElementById('btn-reset-view').addEventListener('click', ()=>{
-  allKeysCache=getAllKeys();
-  resetView();
-});
-
-// Save View (header button)
-document.getElementById('btn-save-view').addEventListener('click', ()=>{
-  saveCurrentView();
-  updateViewDirtyIndicator();
-  syncViewControls();
-});
+// Reset/Save View header buttons removed
 
 // Lock/Unlock view
 // Locked = closed padlock, Unlocked = open padlock
@@ -4490,6 +4784,35 @@ document.getElementById('btn-test-sound').addEventListener('click', ()=>{
 
 // Resize observer
 new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-wrap'));
+
+// Panel resize handle
+(function(){
+  const handle = document.getElementById('panel-resize-handle');
+  const panel = document.getElementById('side-panel');
+  if (!handle || !panel) return;
+  let resizing = false, startX = 0, startW = 0;
+  handle.addEventListener('mousedown', e => {
+    resizing = true;
+    startX = e.clientX;
+    startW = panel.offsetWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!resizing) return;
+    const dx = startX - e.clientX; // panel is on right, so moving left increases width
+    const newW = Math.max(260, Math.min(600, startW + dx));
+    panel.style.width = newW + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    if (!resizing) return;
+    resizing = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    renderSVG();
+  });
+})();
 
 // ── Floating overlay buttons: zoom + rotation ──
 (function() {
@@ -4570,7 +4893,7 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
   selectedHarmonyId = natural.id;
 
   layout.coordSystem = 'reduced';
-  layout.widths = [0, 0.9, 4.5, 4.0, 3.5, 1.6];
+  layout.widths = [0, 2.0, 4.5, 4.0, 3.5, 1.6];
   layout.savedWidths = [...layout.widths];
 
   buildWidthControls();
@@ -4581,8 +4904,8 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
   // Wait for layout to stabilize before computing view
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=>{
+      // Load default project
       resetView(true); // force auto-compute on initial load
-      // Save this as the initial savedView
       saveCurrentView();
       // Save initial layout + sound state
       layout.savedLayoutState = getCurrentLayoutSnapshot();
