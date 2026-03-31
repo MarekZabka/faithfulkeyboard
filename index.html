@@ -1,25 +1,10 @@
-<!--
-   ______                            __
-  / ____/___  ____ ___  ____  __  __/ /____  _____
- / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
-/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
-\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
-                    /_/
-        Created with Perplexity Computer
-        https://www.perplexity.ai/computer
--->
-
-<!-- Perplexity Computer Attribution — SEO Meta Tags -->
-<meta name="generator" content="Perplexity Computer">
-<meta name="author" content="Perplexity Computer">
-<meta property="og:see_also" content="https://www.perplexity.ai/computer">
-<link rel="author" href="https://www.perplexity.ai/computer">
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Faithful Keyboard — JI Tone System Explorer</title>
+  <title>My Project — Faithful Keyboard</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Ccircle cx='28' cy='29' r='5.5' fill='%231e1c17'/%3E%3Ccircle cx='17' cy='22' r='4.5' fill='%231e1c17'/%3E%3Ccircle cx='7' cy='16' r='3.5' fill='%231e1c17'/%3E%3Ccircle cx='12' cy='6' r='2.5' fill='%231e1c17'/%3E%3C/svg%3E">
   <meta name="description" content="Interactive demonstration of pitch-faithful keyboard layouts for just-intonation tone systems, based on planar projections of JI spaces.">
 
   <!-- Fonts: Cabinet Grotesk (display) + Satoshi (body) -->
@@ -198,17 +183,40 @@
       min-height: 300px;
     }
     .stage-wrap.panning { cursor: grabbing; }
+
+    /* Floating view overlay controls (zoom + rotation buttons) */
+    .view-overlay-controls {
+      position: absolute; bottom: 0.75rem; right: 0.75rem;
+      display: flex; flex-direction: column; gap: 0.2rem;
+      z-index: 10;
+      transition: opacity 0.15s, visibility 0.15s;
+    }
+    .view-overlay-controls.hidden {
+      opacity: 0; visibility: hidden; pointer-events: none;
+    }
+    .overlay-ctrl-row {
+      display: flex; align-items: center; gap: 0.2rem;
+    }
+    .overlay-btn {
+      width: 1.6rem; height: 1.6rem;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text-muted);
+      font-size: 0.85rem; line-height: 1;
+      cursor: pointer; user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+      box-shadow: var(--shadow-sm);
+      opacity: 0.85;
+    }
+    .overlay-btn svg { width: 12px; height: 12px; display: block; }
+    .overlay-btn:active { background: var(--color-divider); opacity: 1; }
     #keyboard-svg {
       display: block; width: 100%; height: 100%;
       touch-action: none;
     }
-    .stage-hint {
-      position: absolute; bottom: 1rem; right: 1rem;
-      font-size: var(--text-xs); color: var(--color-text-faint);
-      pointer-events: none;
-      background: var(--color-surface); padding: 0.25rem 0.5rem;
-      border-radius: var(--radius-sm); border: 1px solid var(--color-border);
-    }
+
 
     /* Axes labels overlay */
     .axis-label {
@@ -256,35 +264,43 @@
     }
     .panel-close-btn:hover { background: var(--color-divider); color: var(--color-text); }
     .panel-body { flex: 1; overflow-y: auto; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
-    /* Gear FAB — shown when panel is closed */
-    .panel-gear-fab {
-      position: absolute;
-      top: 0.75rem; right: 0.75rem;
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      color: var(--color-text-muted);
-      z-index: 20;
-      transition: background var(--transition), color var(--transition), box-shadow var(--transition);
-    }
-    .panel-gear-fab:hover { background: var(--color-primary); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-    .panel-gear-fab.hidden { display: none; }
+
 
     /* Tabs */
-    .tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--color-divider); margin-bottom: 0.75rem; }
+    .tabs { display: flex; gap: 0.15rem; border-bottom: 1px solid var(--color-divider); margin-bottom: 0.75rem; flex-wrap: nowrap; }
     .tab {
-      padding: 0.4rem 0.75rem; font-size: var(--text-sm); font-weight: 500; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      padding: 0.4rem 0.5rem; font-size: var(--text-sm); font-weight: 500; border-radius: var(--radius-sm) var(--radius-sm) 0 0;
       color: var(--color-text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
       transition: color var(--transition), border-color var(--transition);
+      display: flex; align-items: center; gap: 0.3rem; flex-shrink: 0;
     }
     .tab:hover { color: var(--color-text); }
     .tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+    .tab .tab-label { display: none; font-size: var(--text-xs); }
+    .tab.active .tab-label { display: inline; }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
+
+    /* Header center — project name */
+    .header-center {
+      flex: 1; text-align: center;
+      font-family: var(--font-display); font-weight: 600; font-size: var(--text-sm);
+      color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* Tab dirty bar (for Layout, View, Sound tabs) */
+    .tab-dirty-bar {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.4rem 0.625rem;
+      background: var(--color-primary-highlight);
+      border-radius: var(--radius-md);
+      font-size: var(--text-xs); color: var(--color-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    /* Lock icon active state */
+    .btn-icon.locked { color: var(--color-accent); }
+    .btn-sm.active-save { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
 
     /* Form rows */
     .field-row { display: flex; flex-direction: column; gap: 0.25rem; }
@@ -448,10 +464,7 @@
     ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--color-text-faint); }
 
-    /* Footer */
-    .footer { padding: 0.4rem 1.25rem; font-size: var(--text-xs); color: var(--color-text-faint); border-top: 1px solid var(--color-divider); background: var(--color-surface); display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; flex-shrink: 0; }
-    .footer a { color: var(--color-text-faint); text-decoration: none; }
-    .footer a:hover { color: var(--color-primary); }
+
 
     /* SVG key flash animation */
     .key-active { filter: brightness(1.4); }
@@ -516,34 +529,37 @@
   <!-- Header -->
   <header class="header">
     <div class="logo">
-      <svg class="logo-svg" aria-label="Faithful Keyboard logo" viewBox="0 0 32 32" width="32" height="32" fill="none">
-        <polygon points="16,3 25,9 22,20 10,20 7,9" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>
-        <polygon points="16,12 22,16 20,24 12,24 10,16" fill="currentColor" opacity="0.25"/>
-        <line x1="4" y1="28" x2="28" y2="28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="28" y1="28" x2="24" y2="24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="28" y1="28" x2="24" y2="28" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <svg width="28" height="28" viewBox="0 0 36 36" fill="none" aria-label="Faithful Keyboard logo" style="flex-shrink:0;color:var(--color-text);">
+        <circle cx="28" cy="29" r="5.5" fill="currentColor"/>
+        <circle cx="17" cy="22" r="4.5" fill="currentColor"/>
+        <circle cx="7"  cy="16" r="3.5" fill="currentColor"/>
+        <circle cx="12" cy="6"  r="2.5" fill="currentColor"/>
       </svg>
-      <div>
-        <div class="logo-text">Faithful Keyboard</div>
-        <div class="logo-sub">JI Tone System Explorer</div>
-      </div>
+      <span class="logo-text">Faithful Keyboard</span>
+    </div>
+    <div class="header-center">
+      <span id="header-project-name">My Project</span>
     </div>
     <div class="header-actions">
-      <button class="btn-secondary" id="btn-export" title="Export project as JSON">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Export
+      <!-- Lock/Unlock view -->
+      <button class="btn-icon" id="btn-lock-view" title="Unlock view (enable pan/zoom/rotate)" aria-label="Lock view">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
       </button>
-      <button class="btn-secondary" id="btn-import" title="Import project from JSON">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Import
+      <!-- Reset View -->
+      <button class="btn-icon" id="btn-reset-view" title="Reset to saved view" aria-label="Reset view">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
       </button>
-      <input type="file" id="import-file" accept=".json" style="display:none">
+      <!-- Save View -->
+      <button class="btn-icon" id="btn-save-view" title="Save current view" aria-label="Save view">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      </button>
+      <!-- Theme toggle -->
       <button class="btn-icon" data-theme-toggle aria-label="Toggle theme" title="Toggle light/dark mode">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
-      <button class="btn-secondary" id="btn-reset-view" title="Reset pan/zoom">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        Reset View
+      <!-- Show/Hide Configuration -->
+      <button class="btn-icon" id="btn-toggle-config" title="Show/hide configuration panel" aria-label="Toggle configuration">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
       </button>
     </div>
   </header>
@@ -559,43 +575,108 @@
         <g id="svg-keys"></g>
       </svg>
 
-      <div class="stage-hint">Scroll to zoom · Drag to pan · Click/touch key to play · Two fingers: pinch-zoom &amp; rotate</div>
+      <!-- Floating view controls (zoom + rotation) — visible only in unlocked mode -->
+      <div class="view-overlay-controls" id="view-overlay-controls">
+        <div class="overlay-ctrl-row">
+          <button class="overlay-btn" id="btn-rot-left"  title="Rotate left"  aria-label="Rotate left">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8a5 5 0 1 0 1.5-3.5"/><polyline points="1 3 4.5 4.5 3 8"/></svg>
+          </button>
+          <button class="overlay-btn" id="btn-rot-right" title="Rotate right" aria-label="Rotate right">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 8a5 5 0 1 1-1.5-3.5"/><polyline points="15 3 11.5 4.5 13 8"/></svg>
+          </button>
+        </div>
+        <div class="overlay-ctrl-row">
+          <button class="overlay-btn" id="btn-zoom-out" title="Zoom out" aria-label="Zoom out">−</button>
+          <button class="overlay-btn" id="btn-zoom-in"  title="Zoom in"  aria-label="Zoom in">+</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Gear FAB — shown when panel is collapsed -->
-    <button class="panel-gear-fab hidden" id="panel-gear-fab" title="Open Configuration" aria-label="Open Configuration">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    </button>
 
     <!-- Side panel -->
     <aside class="panel open" id="side-panel">
       <div class="panel-header" id="panel-header">
         <span class="panel-title">Configuration</span>
-        <button class="panel-close-btn" id="panel-toggle" title="Collapse panel" aria-label="Close Configuration">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
+        <div style="display:flex;align-items:center;gap:0.25rem;">
+          <button class="btn-sm" id="btn-config-save" title="Save project">Save</button>
+          <button class="panel-close-btn" id="panel-toggle" title="Collapse panel" aria-label="Close Configuration">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
       </div>
       <div class="panel-body" id="panel-body">
 
-        <!-- Project Name -->
-        <div class="project-name-row" id="project-name-row">
-          <span class="project-name-display" id="project-name-display">My Project</span>
-          <button class="project-name-edit-btn" id="project-name-edit-btn" title="Edit project name">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          </button>
-          <input class="project-name-input field-input" id="project-name-input" type="text" value="My Project" style="display:none;flex:1;padding:0.2rem 0.4rem;font-size:var(--text-sm);">
-        </div>
-
         <!-- Tabs -->
         <div class="tabs">
-          <button class="tab active" data-tab="harmony">Harmonies</button>
-          <button class="tab" data-tab="layout">Layout</button>
-          <button class="tab" data-tab="sound">Sound</button>
-          <button class="tab" data-tab="info">Info</button>
+          <button class="tab active" data-tab="project">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <span class="tab-label">Project</span>
+          </button>
+          <button class="tab" data-tab="harmony">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            <span class="tab-label">Harmonies</span>
+          </button>
+          <button class="tab" data-tab="layout">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span class="tab-label">Layout</span>
+          </button>
+          <button class="tab" data-tab="view">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span class="tab-label">View</span>
+          </button>
+          <button class="tab" data-tab="sound">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            <span class="tab-label">Sound</span>
+          </button>
+          <button class="tab" data-tab="info">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span class="tab-label">Info</span>
+          </button>
+        </div>
+
+        <!-- Import Harmonies Modal (overlay inside panel-body) -->
+        <div id="import-harmonies-modal" style="display:none; position:absolute; top:0;left:0;right:0;bottom:0; background:var(--color-surface); z-index:50; padding:1rem; overflow-y:auto; flex-direction:column; gap:0.75rem;">
+          <div style="font-weight:700; font-family:var(--font-display); margin-bottom:0.5rem;">Import Harmonies</div>
+          <div id="import-harmonies-list" style="display:flex;flex-direction:column;gap:0.4rem;"><!-- checkboxes --></div>
+          <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+            <button id="btn-import-harmonies-confirm" class="btn-primary">Import Selected</button>
+            <button id="btn-import-harmonies-cancel" class="btn-secondary">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Tab: Project -->
+        <div class="tab-panel active" id="tab-project">
+          <!-- Project Name -->
+          <div class="field-row">
+            <label class="field-label">Project Name</label>
+            <div style="display:flex;align-items:center;gap:0.4rem;">
+              <span class="project-name-display" id="project-name-display" style="font-family:var(--font-display);font-size:var(--text-sm);font-weight:600;color:var(--color-text);flex:1;cursor:default;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">My Project</span>
+              <button class="project-name-edit-btn" id="project-name-edit-btn" title="Edit project name" style="background:none;border:none;cursor:pointer;padding:0.2rem;color:var(--color-text-muted);border-radius:var(--radius-sm);display:flex;align-items:center;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </button>
+              <input class="project-name-input field-input" id="project-name-input" type="text" value="My Project" style="display:none;flex:1;padding:0.2rem 0.4rem;font-size:var(--text-sm);font-family:var(--font-display);font-weight:600;">
+            </div>
+          </div>
+          <!-- Project Description -->
+          <div class="field-row" style="margin-top:0.75rem;">
+            <label class="field-label" for="project-description">Description</label>
+            <textarea id="project-description" class="field-input" rows="4" placeholder="Add a description of this keyboard project..."></textarea>
+          </div>
+          <!-- Action buttons -->
+          <div style="display:flex;flex-direction:column;gap:0.4rem;margin-top:1rem;">
+            <button class="btn-secondary" id="btn-new-project" style="width:100%;justify-content:center;">New</button>
+            <button class="btn-secondary" id="btn-open-project" style="width:100%;justify-content:center;">Open</button>
+            <button class="btn-primary" id="btn-save-project" style="width:100%;justify-content:center;">Save</button>
+            <button class="btn-secondary" id="btn-save-copy-project" style="width:100%;justify-content:center;">Save a Copy</button>
+            <button class="btn-secondary" id="btn-import-harmonies-open" style="width:100%;justify-content:center;">Import Harmonies</button>
+          </div>
+          <!-- Hidden file inputs -->
+          <input type="file" id="import-file" accept=".json" style="display:none">
+          <input type="file" id="import-harmonies-file" accept=".json" style="display:none">
         </div>
 
         <!-- Tab: Harmony -->
-        <div class="tab-panel active" id="tab-harmony">
+        <div class="tab-panel" id="tab-harmony">
           <!-- Harmony list -->
           <div class="field-row">
             <div class="field-label" style="margin-bottom:0.3rem;">Harmony Layers</div>
@@ -614,6 +695,16 @@
 
         <!-- Tab: Layout -->
         <div class="tab-panel" id="tab-layout">
+<!-- layout dirty indicator removed -->
+
+          <!-- Global Octave Equivalence -->
+          <div class="field-row" style="margin-bottom:0.5rem;">
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <input type="checkbox" id="global-octave-equiv" checked style="accent-color:var(--color-primary);width:14px;height:14px;">
+              <label for="global-octave-equiv" style="font-size:var(--text-sm);cursor:pointer;flex:1;">Octave Equivalence (all harmonies)</label>
+            </div>
+          </div>
+
           <div class="field-row">
             <label class="field-label" for="coord-select">Coordinate System (basis for widths)</label>
             <select class="field-select" id="coord-select">
@@ -637,14 +728,7 @@
             <div class="field-label" style="margin-bottom:0.375rem;">Width Assignments</div>
             <span class="field-hint" style="margin-bottom:0.5rem;">Assign width to each basis generator. Click ± to set the slider range per row.</span>
             <div id="width-controls"></div>
-            <div id="widths-dirty-indicator" style="display:none;">
-              <div class="widths-dirty-bar">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                Unsaved changes
-                <button class="btn-sm" id="btn-save-widths" style="margin-left:auto;">Save</button>
-                <button class="btn-sm" id="btn-revert-widths">Revert</button>
-              </div>
-            </div>
+<!-- widths-dirty-indicator removed: now handled by layout tab dirty bar at top -->
           </div>
 
           <!-- Display Options -->
@@ -662,6 +746,17 @@
             </div>
           </div>
 
+          <div class="field-row">
+            <label class="field-label" for="base-freq">Base Frequency (Hz)</label>
+            <input class="field-input" type="number" id="base-freq" value="261.63" step="0.01" min="20" max="2000">
+            <span class="field-hint">Frequency for 1/1. Default: C4 = 261.63 Hz</span>
+          </div>
+        </div>
+
+        <!-- Tab: View -->
+        <div class="tab-panel" id="tab-view">
+<!-- view dirty indicator removed -->
+
           <!-- Keyboard Rotation -->
           <div class="field-row">
             <label class="field-label" for="keyboard-rotation">Keyboard Rotation (°)</label>
@@ -671,13 +766,7 @@
             </div>
           </div>
 
-          <div class="field-row">
-            <label class="field-label" for="base-freq">Base Frequency (Hz)</label>
-            <input class="field-input" type="number" id="base-freq" value="261.63" step="0.01" min="20" max="2000">
-            <span class="field-hint">Frequency for 1/1. Default: C4 = 261.63 Hz</span>
-          </div>
-
-          <!-- View Controls -->
+          <!-- Zoom -->
           <div class="field-row">
             <label class="field-label">Zoom</label>
             <div style="display:flex;align-items:center;gap:0.5rem;">
@@ -685,6 +774,8 @@
               <input class="field-input" type="number" id="view-zoom" value="1" min="0.01" max="1000" step="0.01" style="width:5rem;padding:0.3rem 0.5rem;">
             </div>
           </div>
+
+          <!-- Pan X/Y -->
           <div class="view-control-grid" style="margin-top:0.25rem;">
             <div class="view-control-row">
               <label class="field-label" style="font-size:0.65rem;">Pan X (px)</label>
@@ -695,10 +786,49 @@
               <input class="field-input" type="number" id="view-pany" value="0" step="1" style="padding:0.3rem 0.5rem;">
             </div>
           </div>
+
+          <!-- View Stretch X -->
+          <div class="field-row" style="margin-top:0.35rem;">
+            <label class="field-label">View Stretch X</label>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <input type="range" id="view-stretch-x-slider" class="range-sm" min="0.1" max="5" step="0.01" value="1" style="flex:1;">
+              <input class="field-input" type="number" id="view-stretch-x-num" value="1" min="0.1" max="5" step="0.01" style="width:4.5rem;padding:0.3rem 0.5rem;">
+            </div>
+          </div>
+
+          <!-- View Stretch Y -->
+          <div class="field-row" style="margin-top:0.25rem;">
+            <label class="field-label">View Stretch Y</label>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <input type="range" id="view-stretch-y-slider" class="range-sm" min="0.1" max="5" step="0.01" value="1" style="flex:1;">
+              <input class="field-input" type="number" id="view-stretch-y-num" value="1" min="0.1" max="5" step="0.01" style="width:4.5rem;padding:0.3rem 0.5rem;">
+            </div>
+          </div>
+
+          <!-- View action buttons -->
+          <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+            <button class="btn-secondary" id="btn-reset-view-tab" style="flex:1;justify-content:center;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              Reset View
+            </button>
+            <button class="btn-secondary" id="btn-save-view-btn" style="flex:1;justify-content:center;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              Save View
+            </button>
+          </div>
         </div>
 
         <!-- Tab: Sound -->
         <div class="tab-panel" id="tab-sound">
+          <!-- Sound dirty bar -->
+          <div id="sound-dirty-indicator" style="display:none;">
+            <div class="tab-dirty-bar">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              Unsaved changes
+              <button class="btn-sm" id="btn-save-sound" style="margin-left:auto;">Save</button>
+              <button class="btn-sm" id="btn-revert-sound">Revert</button>
+            </div>
+          </div>
           <div class="field-row">
             <label class="field-label" for="waveform">Waveform</label>
             <select class="field-select" id="waveform">
@@ -773,16 +903,17 @@
           <p style="font-size: var(--text-sm); line-height:1.6; color: var(--color-text-muted); margin-top:0.5rem;">
             Multiple harmony layers can be shown simultaneously. Click or touch any key to hear it.
           </p>
+          <hr style="border:none; border-top: 1px solid var(--color-divider); margin: 0.75rem 0;">
+          <p style="font-size:var(--text-sm); line-height:1.6; color:var(--color-text-muted);">
+            Send feedback or questions to:
+            <a href="mailto:marek.zabka@uniba.sk" style="color:var(--color-primary);word-break:break-all;">marek.zabka@uniba.sk</a>
+          </p>
         </div>
 
       </div>
     </aside>
   </div>
 
-  <footer class="footer">
-    <span>Faithful Keyboard Explorer &mdash; based on M. Žabka, <em>Planar Projections of Tone Systems and Faithful Keyboards</em>, MCM 2026</span>
-    <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity Computer</a>
-  </footer>
 </div>
 
 <!-- Tooltip -->
@@ -998,6 +1129,12 @@ let harmonies = []; // Array of harmony objects
 let selectedHarmonyId = null;
 let nextHarmonyId = 1;
 
+// New global state
+let isViewLocked = false;
+let projectIsDirty = false;
+let projectDescription = '';
+let currentFileHandle = null;
+
 const layout = {
   coordSystem: 'reduced',
   customBasis: null, // for 'other' mode
@@ -1007,7 +1144,13 @@ const layout = {
   keySize: 42,
   showOctaveLines: true,
   showSemitoneLines: false,
-  keyboardRotation: 0
+  keyboardRotation: 0,
+  viewStretchX: 1.0,
+  viewStretchY: 1.0,
+  octaveEquiv: true,
+  savedView: null,
+  savedLayoutState: null,
+  savedSoundState: null
 };
 
 function makeHarmony(overrides = {}) {
@@ -1032,6 +1175,9 @@ function makeHarmony(overrides = {}) {
     keyStretchY: overrides.keyStretchY !== undefined ? overrides.keyStretchY : 1.0,
     colorMode: overrides.colorMode || 'limit',
     uniformColor: overrides.uniformColor || '#6490c4',
+    opacity: overrides.opacity !== undefined ? overrides.opacity : 1.0,
+    keyOffsetX: overrides.keyOffsetX !== undefined ? overrides.keyOffsetX : 0,
+    keyOffsetY: overrides.keyOffsetY !== undefined ? overrides.keyOffsetY : 0,
     // edit state (null = no unsaved changes)
     editState: null,
     // saved snapshot
@@ -1052,7 +1198,10 @@ function snapshotHarmony(h) {
     keySize: h.keySize !== undefined ? h.keySize : 42,
     keyShape: h.keyShape, keyRotation: h.keyRotation,
     keyStretchX: h.keyStretchX, keyStretchY: h.keyStretchY,
-    colorMode: h.colorMode, uniformColor: h.uniformColor
+    colorMode: h.colorMode, uniformColor: h.uniformColor,
+    opacity: h.opacity !== undefined ? h.opacity : 1.0,
+    keyOffsetX: h.keyOffsetX !== undefined ? h.keyOffsetX : 0,
+    keyOffsetY: h.keyOffsetY !== undefined ? h.keyOffsetY : 0
   };
 }
 
@@ -1115,7 +1264,8 @@ function computeKeysForHarmony(harmony, baseFreq) {
     if (toneMode === 'vectors') {
       const exps = parseVectorStr(p);
       if (exps) {
-        parsedRatios.push({expsOverride: exps});
+        // Keep original string as label (preserves fractions like 1/12)
+        parsedRatios.push({expsOverride: exps, rawLabel: p.trim()});
         continue;
       }
       // fallback: try ratio parser
@@ -1164,7 +1314,7 @@ function computeKeysForHarmony(harmony, baseFreq) {
         const actual_cents = ratio_cents + oct * 1200;
         const exps = ratioExponents(baseRatio).map((e,i)=>i===0?e+oct:e);
         const width = computeWidth(exps, basis, layout.widths);
-        const labelBase = r.expsOverride ? `[${r.expsOverride.join(',')}]` : formatRatio(baseRatio);
+        const labelBase = r.expsOverride ? (r.rawLabel || `[${r.expsOverride.join(',')}]`) : formatRatio(baseRatio);
         const label = oct === 0 ? labelBase : `${labelBase}·2^${oct}`;
         const key = `${labelBase}_${oct}`;
         if (seen.has(key)) continue;
@@ -1182,7 +1332,7 @@ function computeKeysForHarmony(harmony, baseFreq) {
       const cents = r.expsOverride ? expsToHeight(r.expsOverride) : ratioToCents(r);
       const exps = r.expsOverride ? r.expsOverride : ratioExponents(r);
       const width = computeWidth(exps, basis, layout.widths);
-      const label = r.expsOverride ? `[${r.expsOverride.join(',')}]` : formatRatio(r);
+      const label = r.expsOverride ? (r.rawLabel || `[${r.expsOverride.join(',')}]`) : formatRatio(r);
       if (seen.has(label)) continue;
       seen.add(label);
       keys.push({
@@ -1377,20 +1527,22 @@ function superDigit(n) {
 }
 
 function getKeyLabel(key, h) {
-  if ((h.labelType || 'ratio') === 'heji') {
-    // Compute HEJI name from exponents
+  const type = h.labelType || 'ratio';
+  if (type === 'cents') {
+    return key.cents.toFixed(1) + '¢';
+  }
+  if (type === 'heji') {
     if (key.ratio) {
       const exps = ratioExponents(key.ratio);
-      // Add octave transposition from key.oct
       const oct = key.oct || 0;
       const fullExps = exps.map((e,i)=>i===0?e+oct:e);
       return expsToHEJI(fullExps, key.ratio);
     } else if (key._exps) {
       return expsToHEJI(key._exps);
     }
-    return key.label; // fallback
+    return key.label;
   }
-  return key.label; // ratio label
+  return key.label; // ratio / vector label
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -1403,9 +1555,22 @@ const connGroup = document.getElementById('svg-connections');
 const keysGroup = document.getElementById('svg-keys');
 
 let viewState = { panX: 0, panY: 0, scaleX: 1, scaleY: 1 };
+// Base scales are set by resetView auto-compute. zoomFactor multiplies both.
+// scaleX = baseScaleX * zoomFactor,  scaleY = baseScaleY * zoomFactor.
+let baseScaleX = 1, baseScaleY = 1, zoomFactor = 1;
+let baseZoomScale = 1; // baseScaleX * 1 at default fit; key size at zoomFactor=1
 let allKeysCache = [];
 let activeKeyIds = new Set();
 const touchKeyMap = new Map(); // touch.identifier → { key, releaseFunc }
+
+// Release all held keys (called when all fingers lift or on touchcancel)
+function releaseAllTouches() {
+  for (const entry of touchKeyMap.values()) {
+    if (entry.releaseFunc) try { entry.releaseFunc(); } catch(e) {}
+  }
+  touchKeyMap.clear();
+  activeKeyIds.clear();
+}
 
 const NS = 'http://www.w3.org/2000/svg';
 function svgEl2(tag, attrs = {}) {
@@ -1428,7 +1593,29 @@ function pixelToLogical(px, py) {
   };
 }
 
-function resetView() {
+// Apply zoom factor and stretch to the base scales.
+function syncScales() {
+  viewState.scaleX = baseScaleX * zoomFactor * (layout.viewStretchX || 1);
+  viewState.scaleY = baseScaleY * zoomFactor * (layout.viewStretchY || 1);
+}
+
+function resetView(useAutoCompute) {
+  // If we have a saved view and aren't forced to auto-compute, restore it
+  if (layout.savedView && !useAutoCompute) {
+    const sv = layout.savedView;
+    // Restore base scales and zoom factor
+    baseScaleX = sv.baseScaleX || baseScaleX;
+    baseScaleY = sv.baseScaleY || baseScaleY;
+    zoomFactor = sv.zoomFactor !== undefined ? sv.zoomFactor : 1;
+    viewState.panX = sv.panX !== undefined ? sv.panX : viewState.panX;
+    viewState.panY = sv.panY !== undefined ? sv.panY : viewState.panY;
+    layout.keyboardRotation = sv.rotation || 0;
+    layout.viewStretchX = sv.stretchX !== undefined ? sv.stretchX : 1;
+    layout.viewStretchY = sv.stretchY !== undefined ? sv.stretchY : 1;
+    syncScales();
+    renderSVG();
+    return;
+  }
   const keys = allKeysCache;
   if (!keys.length) return;
   const xs = keys.map(k=>k.x_logical);
@@ -1440,12 +1627,32 @@ function resetView() {
   const padX=80, padY=70;
   const rangeX=(maxX-minX)||1200;
   const rangeY=(maxY-minY)||1;
-  viewState.scaleX=Math.max(0.1,Math.min(8,(cw-2*padX)/rangeX));
-  viewState.scaleY=Math.max(0.1,Math.min(300,(ch-2*padY)/(rangeY||1)));
+  // Compute base scales from content bounds (zoom-independent)
+  baseScaleX = Math.max(0.1, Math.min(8, (cw-2*padX)/rangeX));
+  baseScaleY = Math.max(0.1, Math.min(300, (ch-2*padY)/(rangeY||1)));
+  zoomFactor = 1;
+  baseZoomScale = baseScaleX; // record default-fit scale for key size flooring
+  layout.viewStretchX = layout.viewStretchX || 1;
+  layout.viewStretchY = layout.viewStretchY || 1;
+  syncScales();
   const midX=(minX+maxX)/2, midY=(minY+maxY)/2;
   viewState.panX=cw/2-midX*viewState.scaleX;
   viewState.panY=ch/2+midY*viewState.scaleY;
+  if (window._syncOverlaySliders) window._syncOverlaySliders();
   renderSVG();
+}
+
+function saveCurrentView() {
+  layout.savedView = {
+    baseScaleX,
+    baseScaleY,
+    zoomFactor,
+    panX: viewState.panX,
+    panY: viewState.panY,
+    rotation: layout.keyboardRotation || 0,
+    stretchX: layout.viewStretchX || 1,
+    stretchY: layout.viewStretchY || 1
+  };
 }
 
 // Build key shape path for SVG
@@ -1514,20 +1721,38 @@ function rotatePoints(points, degrees) {
 
 function getEffectiveKeySize(h) {
   const base = (h && h.keySize !== undefined) ? h.keySize : layout.keySize;
-  return Math.max(base*0.4, Math.min(base*2, base*Math.min(viewState.scaleX, 2)));
+  // Scale proportionally with zoom, no upper cap so zooming in grows keys.
+  // Floor = base*0.4 keeps keys readable at very small zoom levels.
+  const zoomScale = baseScaleX * zoomFactor;
+  return Math.max(base * 0.4, base * zoomScale);
 }
 
 // Update view controls display (called after any pan/zoom)
 function syncViewControls() {
-  const zoom = (viewState.scaleX + viewState.scaleY) / 2;
   const zoomEl = document.getElementById('view-zoom');
   const zoomSlider = document.getElementById('view-zoom-slider');
   const panxEl = document.getElementById('view-panx');
   const panyEl = document.getElementById('view-pany');
-  if (zoomEl) zoomEl.value = zoom.toFixed(4);
-  if (zoomSlider) zoomSlider.value = Math.log10(Math.max(0.01, zoom)).toFixed(4);
+  // Display the zoom factor (1.0 = default fit), not the raw scale in px/cent
+  if (zoomEl) zoomEl.value = zoomFactor.toFixed(3);
+  if (zoomSlider) zoomSlider.value = Math.log10(Math.max(0.001, zoomFactor)).toFixed(4);
   if (panxEl) panxEl.value = Math.round(viewState.panX);
   if (panyEl) panyEl.value = Math.round(viewState.panY);
+  // Sync stretch sliders
+  const sxSlider = document.getElementById('view-stretch-x-slider');
+  const sxNum = document.getElementById('view-stretch-x-num');
+  const sySlider = document.getElementById('view-stretch-y-slider');
+  const syNum = document.getElementById('view-stretch-y-num');
+  if (sxSlider) sxSlider.value = (layout.viewStretchX || 1).toFixed(2);
+  if (sxNum) sxNum.value = (layout.viewStretchX || 1).toFixed(2);
+  if (sySlider) sySlider.value = (layout.viewStretchY || 1).toFixed(2);
+  if (syNum) syNum.value = (layout.viewStretchY || 1).toFixed(2);
+  // Sync rotation
+  const rotSlider2 = document.getElementById('keyboard-rotation');
+  const rotNum2 = document.getElementById('keyboard-rotation-num');
+  if (rotSlider2) rotSlider2.value = layout.keyboardRotation || 0;
+  if (rotNum2) rotNum2.value = Math.round(layout.keyboardRotation || 0);
+  updateViewDirtyIndicator();
 }
 
 function renderSVG() {
@@ -1630,7 +1855,9 @@ function renderSVG() {
   for (const key of keys) {
     const h = key.harmony;
     const ks = getEffectiveKeySize(h);
-    const {px, py} = logicalToPixel(key.x_logical, key.y_logical);
+    const {px: px0, py: py0} = logicalToPixel(key.x_logical, key.y_logical);
+    const px = px0 + (h.keyOffsetX || 0);
+    const py = py0 + (h.keyOffsetY || 0);
     const isActive = activeKeyIds.has(key.label+'_'+key.harmonyId);
     const color = isActive ? activeColor : getKeyColor(key, h, keys);
     const strokeColor = isActive ? '#fff' : cs.getPropertyValue('--color-key-stroke').trim();
@@ -1642,6 +1869,9 @@ function renderSVG() {
       'data-hid': h.id,
       style: isActive ? 'filter:drop-shadow(0 0 8px gold)' : ''
     });
+    if (h.opacity !== undefined && h.opacity < 1) {
+      g.setAttribute('opacity', h.opacity);
+    }
 
     const shape = buildKeyPath(px, py, ks, h, isActive);
     let shapeEl;
@@ -1669,9 +1899,10 @@ function renderSVG() {
       const fontSize = Math.max(8, Math.min(h.labelFontSize || 11, ks * 0.5));
       const defaultLblColor = isActive ? '#1a1a1a' : 'rgba(255,255,255,0.92)';
       const lblColor = isActive ? '#1a1a1a' : (h.labelColor && h.labelColor !== '' ? h.labelColor : defaultLblColor);
+      const lx = (px + (h.labelOffsetX||0)).toFixed(2);
+      const ly = (py + (h.labelOffsetY||0)).toFixed(2);
       const lbl = svgEl2('text', {
-        x: (px + (h.labelOffsetX||0)).toFixed(2),
-        y: (py + (h.labelOffsetY||0)).toFixed(2),
+        x: lx, y: ly,
         'text-anchor': 'middle', 'dominant-baseline': 'middle',
         fill: lblColor,
         'font-size': fontSize,
@@ -1679,50 +1910,39 @@ function renderSVG() {
         'font-weight': '600',
         'pointer-events': 'none'
       });
+      // Counter-rotate label so it always reads upright
+      if (kbRot !== 0) {
+        lbl.setAttribute('transform', `rotate(${-kbRot},${lx},${ly})`);
+      }
       lbl.textContent = getKeyLabel(key, h);
       g.appendChild(lbl);
     }
 
-    // Invisible hit area
-    const hit = svgEl2('circle', {
-      cx: px.toFixed(2), cy: py.toFixed(2),
-      r: Math.max(ks*0.7, 8).toFixed(2),
-      fill: 'transparent', stroke: 'none',
-      style: 'cursor:pointer'
-    });
-    hit.addEventListener('click', () => handleKeyClick(key));
-    // Touch: sustained — sound on, release on touchend
-    hit.addEventListener('touchstart', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      for (const t of e.changedTouches) {
-        const releaseFunc = playKeySustained(key);
-        touchKeyMap.set(t.identifier, { key, releaseFunc });
-        const id = key.label+'_'+key.harmonyId;
-        activeKeyIds.add(id);
-      }
-      renderSVG();
-    }, {passive:false});
-    hit.addEventListener('touchend', e => {
-      e.preventDefault();
-      for (const t of e.changedTouches) {
-        const entry = touchKeyMap.get(t.identifier);
-        if (entry) {
-          entry.releaseFunc();
-          touchKeyMap.delete(t.identifier);
-          // Only remove active highlight if no other touch holds same key
-          const stillActive = [...touchKeyMap.values()].some(v => v.key.label === entry.key.label && v.key.harmonyId === entry.key.harmonyId);
-          if (!stillActive) activeKeyIds.delete(entry.key.label+'_'+entry.key.harmonyId);
-        }
-      }
-      renderSVG();
-    }, {passive:false});
-    hit.addEventListener('touchcancel', e => {
-      for (const t of e.changedTouches) {
-        const entry = touchKeyMap.get(t.identifier);
-        if (entry) { entry.releaseFunc(); touchKeyMap.delete(t.identifier); }
-      }
-    }, {passive:false});
+    // Invisible hit area — ellipse to match key stretch
+    const hitR = Math.max(ks * 0.7, 8);
+    const hitSx = h.keyStretchX || 1;
+    const hitSy = h.keyStretchY || 1;
+    const hitRot = h.keyRotation || 0;
+    let hit;
+    if (Math.abs(hitSx - 1) > 0.01 || Math.abs(hitSy - 1) > 0.01 || hitRot !== 0) {
+      hit = svgEl2('ellipse', {
+        cx: px.toFixed(2), cy: py.toFixed(2),
+        rx: (hitR * hitSx).toFixed(2), ry: (hitR * hitSy).toFixed(2),
+        fill: 'transparent', stroke: 'none',
+        style: 'cursor:pointer'
+      });
+      if (hitRot !== 0) hit.setAttribute('transform', `rotate(${hitRot},${px.toFixed(2)},${py.toFixed(2)})`);
+    } else {
+      hit = svgEl2('circle', {
+        cx: px.toFixed(2), cy: py.toFixed(2),
+        r: hitR.toFixed(2),
+        fill: 'transparent', stroke: 'none',
+        style: 'cursor:pointer'
+      });
+    }
+    // Mouse play handled at stage level (mousedown/mouseup)
+    // Store key reference on element — stage touch handlers use elementFromPoint to find this
+    hit._fkKey = key;
     hit.addEventListener('mouseover', e => showTooltip(e.clientX, e.clientY, key));
     hit.addEventListener('mousemove', e => showTooltip(e.clientX, e.clientY, key));
     hit.addEventListener('mouseout', hideTooltip);
@@ -1740,108 +1960,346 @@ function renderSVG() {
 
 (function initPanZoom() {
   const stage = document.getElementById('stage-wrap');
-  let isPanning = false, lastX = 0, lastY = 0;
-  let lastTouchDist = 0, lastTouchAngle = 0, lastTouchMid = null;
 
-  stage.addEventListener('pointerdown', e => {
-    if (e.target.tagName === 'circle' && e.target.getAttribute('fill') === 'transparent') return;
-    isPanning = true;
-    lastX = e.clientX; lastY = e.clientY;
-    stage.classList.add('panning');
-    stage.setPointerCapture(e.pointerId);
-  });
+  // Prevent browser scroll/zoom from claiming touch gestures on the stage
+  stage.style.touchAction = 'none';
+  stage.style.webkitUserSelect = 'none';
+  stage.style.userSelect = 'none';
 
-  stage.addEventListener('pointermove', e => {
-    if (!isPanning) return;
-    const dx = e.clientX-lastX, dy = e.clientY-lastY;
-    lastX=e.clientX; lastY=e.clientY;
-    viewState.panX += dx; viewState.panY += dy;
-    renderSVG();
-  });
+  // ── Coordinate → key lookup ──
+  function getKeyAtPixel(clientX, clientY) {
+    const rect = stage.getBoundingClientRect();
+    const spx = clientX - rect.left;
+    const spy = clientY - rect.top;
+    const kbRot = layout.keyboardRotation || 0;
+    let rpx = spx, rpy = spy;
+    if (kbRot !== 0) {
+      const cx = rect.width / 2, cy = rect.height / 2;
+      const rad = -kbRot * Math.PI / 180;
+      const cos = Math.cos(rad), sin = Math.sin(rad);
+      const dx = spx - cx, dy = spy - cy;
+      rpx = cx + dx * cos - dy * sin;
+      rpy = cy + dx * sin + dy * cos;
+    }
+    let bestKey = null, bestDist = Infinity;
+    for (const key of allKeysCache) {
+      if (!key.harmony || !key.harmony.visible) continue;
+      const { px, py } = logicalToPixel(key.x_logical, key.y_logical);
+      const kpx = px + (key.harmony.keyOffsetX || 0);
+      const kpy = py + (key.harmony.keyOffsetY || 0);
+      const ks = getEffectiveKeySize(key.harmony);
+      const hitR = Math.max(ks * 0.7, 8);
+      const sx = key.harmony.keyStretchX || 1;
+      const sy = key.harmony.keyStretchY || 1;
+      const dx = rpx - kpx, dy = rpy - kpy;
+      const rx = hitR * sx, ry = hitR * sy;
+      const d2 = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
+      if (d2 <= 1 && d2 < bestDist) { bestDist = d2; bestKey = key; }
+    }
+    return bestKey;
+  }
 
-  stage.addEventListener('pointerup', () => {
-    isPanning = false;
-    stage.classList.remove('panning');
-  });
+  // ── In-place key highlight (NO DOM rebuild — safe during active touches) ──
+  // Finds the existing SVG group for a key and toggles active styling directly.
+  function getKeyGroup(key) {
+    return keysGroup.querySelector(
+      `g[data-label="${CSS.escape(key.label)}"][data-hid="${CSS.escape(String(key.harmonyId))}"]`
+    );
+  }
 
-  stage.addEventListener('pointerleave', () => {
-    isPanning = false;
-    stage.classList.remove('panning');
-    hideTooltip();
-  });
+  function highlightKeyEl(key) {
+    const g = getKeyGroup(key);
+    if (!g) return;
+    const cs = getComputedStyle(document.documentElement);
+    const activeColor = cs.getPropertyValue('--color-key-active').trim();
+    g.classList.add('key-active');
+    g.style.filter = 'drop-shadow(0 0 8px gold)';
+    const shape = g.querySelector('circle, ellipse, path');
+    if (shape) { shape.setAttribute('fill', activeColor); shape.setAttribute('stroke', '#fff'); shape.setAttribute('stroke-width', '2'); }
+    const lbl = g.querySelector('text');
+    if (lbl) lbl.setAttribute('fill', '#1a1a1a');
+  }
 
+  function unhighlightKeyEl(key) {
+    const g = getKeyGroup(key);
+    if (!g) return;
+    g.classList.remove('key-active');
+    g.style.filter = '';
+    // Restore original fill/stroke in-place — no DOM rebuild needed
+    const cs = getComputedStyle(document.documentElement);
+    const strokeColor = cs.getPropertyValue('--color-key-stroke').trim();
+    const originalColor = getKeyColor(key, key.harmony, allKeysCache);
+    const shape = g.querySelector('circle, ellipse, path');
+    if (shape) { shape.setAttribute('fill', originalColor); shape.setAttribute('stroke', strokeColor); shape.setAttribute('stroke-width', '1.5'); }
+    const lbl = g.querySelector('text');
+    if (lbl) {
+      const defaultLblColor = key.harmony && key.harmony.labelColor && key.harmony.labelColor !== ''
+        ? key.harmony.labelColor : 'rgba(255,255,255,0.92)';
+      lbl.setAttribute('fill', defaultLblColor);
+    }
+  }
+
+  // ── Mouse wheel zoom ──
   stage.addEventListener('wheel', e => {
+    if (isViewLocked) { e.preventDefault(); return; }
     e.preventDefault();
+    commitPan(); // fold any pending touch-pan offset into viewState before zooming
     const factor = e.deltaY < 0 ? 1.1 : 0.9;
     const rect = stage.getBoundingClientRect();
-    const mx = e.clientX-rect.left, my = e.clientY-rect.top;
-    viewState.panX = mx + (viewState.panX-mx)*factor;
-    viewState.panY = my + (viewState.panY-my)*factor;
-    viewState.scaleX *= factor; viewState.scaleY *= factor;
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    viewState.panX = mx + (viewState.panX - mx) * factor;
+    viewState.panY = my + (viewState.panY - my) * factor;
+    zoomFactor *= factor;
+    syncScales();
     renderSVG();
-  }, {passive:false});
+  }, { passive: false });
 
-  function getTouchAngle(t0, t1) {
-    return Math.atan2(t1.clientY - t0.clientY, t1.clientX - t0.clientX) * 180 / Math.PI;
+  // ══════════════════════════════════════════════════════════
+  //  MOUSE HANDLING
+  // ══════════════════════════════════════════════════════════
+
+  let mouseMode = 'idle';
+  let mouseKeyRelease = null;
+  let mouseKeyActive = null;
+  let mousePanLastX = 0, mousePanLastY = 0;
+
+  function mouseKeyStop() {
+    if (mouseKeyRelease) { try { mouseKeyRelease(); } catch(_) {} mouseKeyRelease = null; }
+    if (mouseKeyActive) {
+      activeKeyIds.delete(mouseKeyActive.label + '_' + mouseKeyActive.harmonyId);
+      mouseKeyActive = null;
+      renderSVG();
+    }
+    mouseMode = 'idle';
+    stage.classList.remove('panning');
   }
+
+  stage.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    const k = getKeyAtPixel(e.clientX, e.clientY);
+    if (k) {
+      mouseMode = 'key';
+      mouseKeyActive = k;
+      mouseKeyRelease = playKeySustained(k);
+      activeKeyIds.add(k.label + '_' + k.harmonyId);
+      renderSVG();
+    } else if (!isViewLocked) {
+      mouseMode = 'pan';
+      mousePanLastX = e.clientX;
+      mousePanLastY = e.clientY;
+      stage.classList.add('panning');
+    }
+  });
+
+  stage.addEventListener('mousemove', e => {
+    if (mouseMode !== 'pan') return;
+    const dx = e.clientX - mousePanLastX;
+    const dy = e.clientY - mousePanLastY;
+    mousePanLastX = e.clientX;
+    mousePanLastY = e.clientY;
+    if (dx !== 0 || dy !== 0) { viewState.panX += dx; viewState.panY += dy; renderSVG(); }
+  });
+
+  stage.addEventListener('mouseup', e => { if (e.button === 0) mouseKeyStop(); });
+  stage.addEventListener('mouseleave', () => { mouseKeyStop(); hideTooltip(); });
+
+  // ══════════════════════════════════════════════════════════
+  //  PAN: CSS transform during gesture, commit to viewState on end
+  //  Exposed as window._commitPan so applyZoom can call it before rendering
+  // ══════════════════════════════════════════════════════════
+
+  let panTouchId = -1;
+  let panLastX = 0, panLastY = 0;
+  let panOffsetX = 0, panOffsetY = 0;
+
+  function applyPanTransform() {
+    svgEl.style.transform = (panOffsetX === 0 && panOffsetY === 0)
+      ? '' : `translate(${panOffsetX}px, ${panOffsetY}px)`;
+  }
+
+  function commitPan() {
+    if (panOffsetX !== 0 || panOffsetY !== 0) {
+      viewState.panX += panOffsetX;
+      viewState.panY += panOffsetY;
+      panOffsetX = 0;
+      panOffsetY = 0;
+    }
+    svgEl.style.transform = '';
+  }
+  // Expose for applyZoom (defined later in the file) to call before rendering
+  window._commitTouchPan = commitPan;
+
+  // ══════════════════════════════════════════════════════════
+  //  TOUCH KEY HELPERS
+  // ══════════════════════════════════════════════════════════
+
+  function tkPress(id, key) {
+    const cur = touchKeyMap.get(id);
+    if (cur && cur.key.label === key.label && cur.key.harmonyId === key.harmonyId) return false;
+    if (cur) {
+      if (cur.releaseFunc) { try { cur.releaseFunc(); } catch(_) {} }
+      const stillHeld = [...touchKeyMap.values()].some(
+        v => v !== cur && v.key.label === cur.key.label && v.key.harmonyId === cur.key.harmonyId
+      );
+      if (!stillHeld) {
+        activeKeyIds.delete(cur.key.label + '_' + cur.key.harmonyId);
+        // Restore old key's visual state in-place (no DOM rebuild)
+        unhighlightKeyEl(cur.key);
+      }
+    }
+    const rf = playKeySustained(key);
+    touchKeyMap.set(id, { key, releaseFunc: rf });
+    activeKeyIds.add(key.label + '_' + key.harmonyId);
+    highlightKeyEl(key); // in-place highlight (no DOM rebuild)
+    return true;
+  }
+
+  function tkRelease(id) {
+    const cur = touchKeyMap.get(id);
+    if (!cur) return false;
+    touchKeyMap.delete(id);
+    if (cur.releaseFunc) { try { cur.releaseFunc(); } catch(_) {} }
+    const stillHeld = [...touchKeyMap.values()].some(
+      v => v.key.label === cur.key.label && v.key.harmonyId === cur.key.harmonyId
+    );
+    if (!stillHeld) {
+      activeKeyIds.delete(cur.key.label + '_' + cur.key.harmonyId);
+    }
+    return true;
+  }
+
+  function touchCleanup() {
+    // Release all sounds immediately (no renderSVG — will be called after)
+    for (const entry of touchKeyMap.values()) {
+      if (entry.releaseFunc) { try { entry.releaseFunc(); } catch(_) {} }
+    }
+    touchKeyMap.clear();
+    activeKeyIds.clear();
+    panTouchId = -1;
+    commitPan();
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  UNLOCKED TOUCH: single-touch tap-to-play + pan
+  // ══════════════════════════════════════════════════════════
+
+  function unlockedStart(t) {
+    if (panTouchId === t.identifier) panTouchId = -1; // stale id reset
+    if (touchKeyMap.size > 0 || panTouchId !== -1) return;
+
+    const k = getKeyAtPixel(t.clientX, t.clientY);
+    if (k) {
+      tkPress(t.identifier, k); // tkPress calls highlightKeyEl — in-place, no DOM rebuild
+    } else {
+      panTouchId = t.identifier;
+      panLastX = t.clientX;
+      panLastY = t.clientY;
+    }
+  }
+
+  function unlockedMove(changedTouches) {
+    for (const t of changedTouches) {
+      if (t.identifier === panTouchId) {
+        const dx = t.clientX - panLastX, dy = t.clientY - panLastY;
+        panLastX = t.clientX; panLastY = t.clientY;
+        panOffsetX += dx; panOffsetY += dy;
+        applyPanTransform(); // CSS transform only — no DOM rebuild
+      } else {
+        const cur = touchKeyMap.get(t.identifier);
+        if (cur) {
+          const k = getKeyAtPixel(t.clientX, t.clientY);
+          if (!k || k.label !== cur.key.label || k.harmonyId !== cur.key.harmonyId) {
+            tkRelease(t.identifier);
+            unhighlightKeyEl(cur.key); // will call renderSVG
+            panTouchId = t.identifier;
+            panLastX = t.clientX; panLastY = t.clientY;
+          }
+        }
+      }
+    }
+  }
+
+  function unlockedEnd(t) {
+    const wasPan = (panTouchId === t.identifier);
+    if (wasPan) {
+      panTouchId = -1;
+      commitPan();
+      renderSVG();
+      return;
+    }
+    const cur = touchKeyMap.get(t.identifier);
+    if (cur) {
+      tkRelease(t.identifier);
+      unhighlightKeyEl(cur.key); // calls renderSVG
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  //  LOCKED TOUCH: multi-finger play + swipe, no pan
+  // ══════════════════════════════════════════════════════════
+
+  function lockedStart(t) {
+    const k = getKeyAtPixel(t.clientX, t.clientY);
+    if (k) tkPress(t.identifier, k); // in-place highlight, no DOM rebuild
+  }
+
+  function lockedMove(changedTouches) {
+    for (const t of changedTouches) {
+      const prevEntry = touchKeyMap.get(t.identifier);
+      const k = getKeyAtPixel(t.clientX, t.clientY);
+      if (k) {
+        tkPress(t.identifier, k); // handles release of old key + highlight new key in-place
+      } else if (prevEntry) {
+        tkRelease(t.identifier);
+        unhighlightKeyEl(prevEntry.key); // calls renderSVG
+      }
+    }
+  }
+
+  function lockedEnd(t) {
+    const cur = touchKeyMap.get(t.identifier);
+    if (cur) {
+      tkRelease(t.identifier);
+      unhighlightKeyEl(cur.key); // calls renderSVG
+    }
+  }
+
+  // ── Touch event dispatch ──
 
   stage.addEventListener('touchstart', e => {
     e.preventDefault();
-    if (e.touches.length === 2) {
-      const t0=e.touches[0], t1=e.touches[1];
-      lastTouchDist = Math.hypot(t1.clientX-t0.clientX, t1.clientY-t0.clientY);
-      lastTouchAngle = getTouchAngle(t0, t1);
-      lastTouchMid = {x:(t0.clientX+t1.clientX)/2, y:(t0.clientY+t1.clientY)/2};
-    } else if (e.touches.length === 1) {
-      lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+    for (const t of e.changedTouches) {
+      if (isViewLocked) lockedStart(t);
+      else unlockedStart(t);
     }
-  }, {passive:false});
+  }, { passive: false });
 
   stage.addEventListener('touchmove', e => {
     e.preventDefault();
-    if (e.touches.length === 2) {
-      const t0=e.touches[0], t1=e.touches[1];
-      const dist = Math.hypot(t1.clientX-t0.clientX, t1.clientY-t0.clientY);
-      const angle = getTouchAngle(t0, t1);
-      const mid = {x:(t0.clientX+t1.clientX)/2, y:(t0.clientY+t1.clientY)/2};
-      // Zoom
-      const factor = dist / (lastTouchDist || dist);
-      const rect = stage.getBoundingClientRect();
-      const mx = mid.x-rect.left, my = mid.y-rect.top;
-      viewState.panX = mx + (viewState.panX-mx)*factor;
-      viewState.panY = my + (viewState.panY-my)*factor;
-      viewState.scaleX *= factor; viewState.scaleY *= factor;
-      // Pan with midpoint
-      if (lastTouchMid) { viewState.panX+=mid.x-lastTouchMid.x; viewState.panY+=mid.y-lastTouchMid.y; }
-      // Rotate: delta angle mapped to keyboard rotation
-      let dAngle = angle - lastTouchAngle;
-      // Wrap delta to [-180,180]
-      if (dAngle > 180) dAngle -= 360;
-      if (dAngle < -180) dAngle += 360;
-      layout.keyboardRotation = ((layout.keyboardRotation || 0) + dAngle);
-      // Sync UI controls
-      const rotSlider = document.getElementById('keyboard-rotation');
-      const rotNum = document.getElementById('keyboard-rotation-num');
-      if (rotSlider) rotSlider.value = layout.keyboardRotation;
-      if (rotNum) rotNum.value = Math.round(layout.keyboardRotation);
-      lastTouchDist=dist; lastTouchAngle=angle; lastTouchMid=mid;
-      renderSVG();
-    } else if (e.touches.length === 1) {
-      const dx=e.touches[0].clientX-lastX, dy=e.touches[0].clientY-lastY;
-      lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
-      viewState.panX+=dx; viewState.panY+=dy;
-      renderSVG();
-    }
-  }, {passive:false});
+    if (isViewLocked) lockedMove(e.changedTouches);
+    else unlockedMove(e.changedTouches);
+  }, { passive: false });
 
-  stage.addEventListener('touchend', e => {
-    // If dropping back to 1 touch, reinit single-touch state
-    if (e.touches.length === 1) {
-      lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
-      lastTouchMid = null;
+  // touchend on document — fires even if original touch target element was replaced
+  document.addEventListener('touchend', e => {
+    for (const t of e.changedTouches) {
+      if (isViewLocked) lockedEnd(t);
+      else unlockedEnd(t);
     }
-  }, {passive:false});
+  }, { passive: true });
+
+  document.addEventListener('touchcancel', () => {
+    touchCleanup();
+    renderSVG();
+  }, { passive: true });
+
 })();
+
+
+
+
+
+
 
 // ═════════════════════════════════════════════════════════════════════════════
 //  AUDIO ENGINE
@@ -2153,9 +2611,8 @@ function renderHarmonyList() {
   const list = document.getElementById('harmony-list');
   list.innerHTML = '';
   for (const h of harmonies) {
-    const dirty = harmonyIsDirty(h);
     const item = document.createElement('div');
-    item.className = 'harmony-item' + (h.id===selectedHarmonyId?' selected':'') + (dirty?' dirty':'');
+    item.className = 'harmony-item' + (h.id===selectedHarmonyId?' selected':'');
     item.draggable = true;
     item.dataset.id = h.id;
 
@@ -2177,15 +2634,6 @@ function renderHarmonyList() {
     name.textContent = h.name;
     item.appendChild(name);
 
-    // Unsaved badge
-    if (dirty) {
-      const badge = document.createElement('span');
-      badge.className = 'unsaved-badge';
-      badge.textContent = '★';
-      badge.title = 'Unsaved changes';
-      item.appendChild(badge);
-    }
-
     // Visibility toggle
     const visBtn = document.createElement('button');
     visBtn.className = 'harmony-vis-toggle' + (h.visible ? '' : ' hidden');
@@ -2201,9 +2649,46 @@ function renderHarmonyList() {
     });
     item.appendChild(visBtn);
 
+    // Clone icon button
+    const cloneItemBtn = document.createElement('button');
+    cloneItemBtn.className = 'harmony-vis-toggle';
+    cloneItemBtn.title = 'Clone';
+    cloneItemBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+    cloneItemBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const cloned = makeHarmony(snapshotHarmony(h));
+      cloned.name = h.name + ' (Clone)';
+      cloned.savedState = snapshotHarmony(cloned);
+      harmonies.push(cloned);
+      selectedHarmonyId = cloned.id;
+      renderHarmonyList();
+      renderHarmonyEditor();
+      applyAndDraw();
+    });
+    item.appendChild(cloneItemBtn);
+
+    // Delete icon button
+    const delItemBtn = document.createElement('button');
+    delItemBtn.className = 'harmony-vis-toggle';
+    delItemBtn.title = 'Delete';
+    delItemBtn.style.color = 'var(--color-danger)';
+    delItemBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+    delItemBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm(`Delete "${h.name}"?`)) return;
+      harmonies = harmonies.filter(x => x.id !== h.id);
+      selectedHarmonyId = harmonies.length ? harmonies[harmonies.length-1].id : null;
+      renderHarmonyList();
+      renderHarmonyEditor();
+      applyAndDraw();
+    });
+    item.appendChild(delItemBtn);
+
     // Click to select
     item.addEventListener('click', e => {
       if (e.target === visBtn || visBtn.contains(e.target)) return;
+      if (e.target === cloneItemBtn || cloneItemBtn.contains(e.target)) return;
+      if (e.target === delItemBtn || delItemBtn.contains(e.target)) return;
       selectedHarmonyId = h.id;
       renderHarmonyList();
       renderHarmonyEditor();
@@ -2247,81 +2732,17 @@ function renderHarmonyEditor() {
   const h = harmonies.find(x=>x.id===selectedHarmonyId);
   if (!h) { editor.style.display = 'none'; return; }
   editor.style.display = 'flex';
-  const dirty = harmonyIsDirty(h);
 
   editor.innerHTML = '';
 
-  // Header
+  // Header — just the name, no dirty state
   const hdr = document.createElement('div');
   hdr.className = 'harmony-editor-header';
   hdr.innerHTML = `
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
     <span style="flex:1;">${escHtml(h.name)}</span>
-    ${dirty ? '<span class="unsaved-badge">★ Unsaved</span>' : ''}
   `;
   editor.appendChild(hdr);
-
-  // Action buttons (at top)
-  const actDiv = document.createElement('div');
-  actDiv.className = 'harmony-editor-actions';
-
-  const saveBtn = document.createElement('button');
-  saveBtn.id = 'he-save-btn';
-  saveBtn.className = 'btn-sm' + (dirty ? ' active' : '');
-  saveBtn.disabled = !dirty;
-  saveBtn.title = dirty ? 'Save changes' : 'No unsaved changes';
-  saveBtn.textContent = 'Save';
-  saveBtn.addEventListener('click', ()=>{ saveHarmony(h); renderHarmonyList(); renderHarmonyEditor(); });
-  actDiv.appendChild(saveBtn);
-
-  const revertBtn = document.createElement('button');
-  revertBtn.id = 'he-revert-btn';
-  revertBtn.className = 'btn-sm';
-  revertBtn.disabled = !dirty;
-  revertBtn.title = dirty ? 'Revert to saved' : 'No changes to revert';
-  revertBtn.textContent = 'Revert';
-  revertBtn.addEventListener('click', ()=>{
-    const isDirty = harmonyIsDirty(h);
-    if (!isDirty) return;
-    revertHarmony(h);
-    renderHarmonyList();
-    renderHarmonyEditor();
-    applyAndDraw();
-  });
-  actDiv.appendChild(revertBtn);
-
-  const cloneBtn = document.createElement('button');
-  cloneBtn.className = 'btn-sm';
-  cloneBtn.title = 'Clone this harmony';
-  cloneBtn.textContent = 'Clone';
-  cloneBtn.addEventListener('click', ()=>{
-    const cloned = makeHarmony(snapshotHarmony(h));
-    cloned.name = h.name + ' (Clone)';
-    cloned.savedState = snapshotHarmony(cloned);
-    harmonies.push(cloned);
-    selectedHarmonyId = cloned.id;
-    renderHarmonyList();
-    renderHarmonyEditor();
-    applyAndDraw();
-  });
-  actDiv.appendChild(cloneBtn);
-
-  const delBtn = document.createElement('button');
-  delBtn.className = 'btn-danger';
-  delBtn.style.marginLeft='auto';
-  delBtn.title = 'Delete this harmony';
-  delBtn.textContent = 'Delete';
-  delBtn.addEventListener('click', ()=>{
-    if (!confirm(`Delete "${h.name}"?`)) return;
-    harmonies = harmonies.filter(x=>x.id!==h.id);
-    selectedHarmonyId = harmonies.length ? harmonies[harmonies.length-1].id : null;
-    renderHarmonyList();
-    renderHarmonyEditor();
-    applyAndDraw();
-  });
-  actDiv.appendChild(delBtn);
-
-  editor.appendChild(actDiv);
 
   // Name field
   addEditorField(editor, 'Name', `<input class="field-input" id="he-name" value="${escHtml(h.name)}" style="margin-top:2px;">`);
@@ -2354,6 +2775,7 @@ function renderHarmonyEditor() {
     <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.25rem;">
       <span id="he-tone-hint" style="font-size:var(--text-xs);color:var(--color-text-faint);flex:1;">${modeHints[toneMode]}</span>
       <button id="he-simplify-btn" style="font-size:var(--text-xs);padding:0.15rem 0.5rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;">Simplify</button>
+      <button id="he-transpose-btn" style="font-size:var(--text-xs);padding:0.15rem 0.5rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;" title="Transpose all tones by an interval">Transpose</button>
     </div>
   `;
   editor.appendChild(tonesSection);
@@ -2385,6 +2807,24 @@ function renderHarmonyEditor() {
   }
   simplifyBtn.addEventListener('click', doSimplify);
 
+  // Transpose button
+  const transposeBtn = tonesSection.querySelector('#he-transpose-btn');
+  if (transposeBtn) {
+    transposeBtn.addEventListener('click', () => {
+      const toneMode = h.toneMode || 'ratios';
+      let intervalStr;
+      if (toneMode === 'ratios') intervalStr = prompt('Enter transpose interval (ratio, e.g. 3/2 or 2/1):', '2/1');
+      else if (toneMode === 'vectors') intervalStr = prompt('Enter transpose vector (e.g. (1,0) for octave):', '(1,0)');
+      else intervalStr = prompt('Enter transpose interval (prime powers, e.g. 3/2):', '3/2');
+      if (!intervalStr) return;
+      transposeHarmony(h, intervalStr.trim(), toneMode);
+      ratiosTA.value = h.ratios;
+      refreshEditorDirtyState();
+      applyAndDraw();
+      markProjectDirty();
+    });
+  }
+
   ratiosTA.addEventListener('input', e => {
     h.ratios = e.target.value;
     if (_originalRatios !== null) { _originalRatios = null; simplifyBtn.textContent = 'Simplify'; }
@@ -2414,206 +2854,22 @@ function renderHarmonyEditor() {
     applyAndDraw();
   });
 
-  // Octave equivalence
-  const octRow = makeCheckRow('Octave Equivalence', 'he-oct', h.octaveEquiv,
-    'Reduce ratios to [1,2) and multiply across all octaves (20–4000 Hz)');
-  editor.appendChild(octRow);
-  octRow.querySelector('#he-oct').addEventListener('change', e => {
-    h.octaveEquiv = e.target.checked;
-    refreshEditorDirtyState();
-    applyAndDraw();
-  });
+  // Octave equivalence (hidden — controlled globally in Layout tab)
+  // h.octaveEquiv is still used in rendering but not shown in per-harmony editor
 
   editor.appendChild(document.createElement('hr')).className='section-sep';
 
-  // Label settings
-  const lblRow = makeCheckRow('Show Labels', 'he-labels', h.showLabels);
-  editor.appendChild(lblRow);
-  lblRow.querySelector('#he-labels').addEventListener('change', e => {
-    h.showLabels = e.target.checked;
-    refreshEditorDirtyState();
-    renderSVG();
-  });
-
-  // Font size
-  const fontRow = document.createElement('div');
-  fontRow.className = 'field-row';
-  fontRow.style.marginTop = '0.25rem';
-  fontRow.innerHTML = `<label class="field-label">Font Size</label>
-    <div style="display:flex;align-items:center;gap:0.4rem;">
-      <input type="range" class="range-sm" id="he-font" min="6" max="48" step="1" value="${h.labelFontSize}" style="flex:1;">
-      <span id="he-font-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:1.5rem;text-align:right;">${h.labelFontSize}</span>
-    </div>`;
-  editor.appendChild(fontRow);
-  fontRow.querySelector('#he-font').addEventListener('input', e=>{
-    h.labelFontSize=parseInt(e.target.value)||11;
-    fontRow.querySelector('#he-font-val').textContent=h.labelFontSize;
-    refreshEditorDirtyState();renderSVG();
-  });
-
-  // Font Color (moved here, right after Font Size)
-  const lblColorRow = document.createElement('div');
-  lblColorRow.className = 'color-picker-row';
-  lblColorRow.style.marginTop='0.25rem';
-  const currentLblColor = h.labelColor || '#ffffff';
-  lblColorRow.innerHTML = `
-    <label class="field-label" style="text-transform:none;font-size:var(--text-xs);color:var(--color-text-muted);">Font Color:</label>
-    <label class="color-swatch">
-      <input type="color" id="he-lbl-color" value="${currentLblColor}">
-    </label>
-    <span id="he-lbl-color-hex" style="font-size:var(--text-xs);color:var(--color-text-muted);">${h.labelColor||'auto'}</span>
-    <button id="he-lbl-color-clear" style="font-size:var(--text-xs);padding:0.1rem 0.3rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;">Auto</button>
-  `;
-  editor.appendChild(lblColorRow);
-  lblColorRow.querySelector('#he-lbl-color').addEventListener('input', e=>{
-    h.labelColor=e.target.value;
-    lblColorRow.querySelector('#he-lbl-color-hex').textContent=e.target.value;
-    refreshEditorDirtyState();renderSVG();
-  });
-  lblColorRow.querySelector('#he-lbl-color-clear').addEventListener('click', ()=>{
-    h.labelColor='';
-    lblColorRow.querySelector('#he-lbl-color-hex').textContent='auto';
-    refreshEditorDirtyState();renderSVG();
-  });
-
-  // Offset X slider
-  const offXRow = document.createElement('div');
-  offXRow.className = 'field-row';
-  offXRow.style.marginTop = '0.2rem';
-  offXRow.innerHTML = `<label class="field-label">Offset X</label>
-    <div style="display:flex;align-items:center;gap:0.4rem;">
-      <input type="range" class="range-sm" id="he-offx" min="-50" max="50" step="1" value="${h.labelOffsetX}" style="flex:1;">
-      <span id="he-offx-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2rem;text-align:right;">${h.labelOffsetX}</span>
-    </div>`;
-  editor.appendChild(offXRow);
-  offXRow.querySelector('#he-offx').addEventListener('input', e=>{
-    h.labelOffsetX=parseInt(e.target.value)||0;
-    offXRow.querySelector('#he-offx-val').textContent=h.labelOffsetX;
-    refreshEditorDirtyState();renderSVG();
-  });
-
-  // Offset Y slider
-  const offYRow = document.createElement('div');
-  offYRow.className = 'field-row';
-  offYRow.style.marginTop = '0.2rem';
-  offYRow.innerHTML = `<label class="field-label">Offset Y</label>
-    <div style="display:flex;align-items:center;gap:0.4rem;">
-      <input type="range" class="range-sm" id="he-offy" min="-50" max="50" step="1" value="${h.labelOffsetY}" style="flex:1;">
-      <span id="he-offy-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2rem;text-align:right;">${h.labelOffsetY}</span>
-    </div>`;
-  editor.appendChild(offYRow);
-  offYRow.querySelector('#he-offy').addEventListener('input', e=>{
-    h.labelOffsetY=parseInt(e.target.value)||0;
-    offYRow.querySelector('#he-offy-val').textContent=h.labelOffsetY;
-    refreshEditorDirtyState();renderSVG();
-  });
-
-  // Label Type (ratio vs HEJI tone name)
-  const lblTypeDiv = document.createElement('div');
-  lblTypeDiv.className = 'field-row';
-  lblTypeDiv.style.marginTop='0.35rem';
-  lblTypeDiv.innerHTML = `
-    <label class="field-label">Label Type</label>
-    <select class="field-select" id="he-label-type">
-      <option value="ratio" ${(h.labelType||'ratio')==='ratio'?'selected':''}>Ratio (e.g. 5/4)</option>
-      <option value="heji" ${h.labelType==='heji'?'selected':''}>Tone name (HEJI)</option>
-    </select>
-  `;
-  editor.appendChild(lblTypeDiv);
-  lblTypeDiv.querySelector('#he-label-type').addEventListener('change', e=>{
-    h.labelType=e.target.value;
-    refreshEditorDirtyState();
-    renderSVG();
-  });
-
-  // Key Size (per harmony)
-  const keySizeDiv = document.createElement('div');
-  keySizeDiv.className = 'field-row';
-  keySizeDiv.style.marginTop='0.35rem';
-  const keySizeVal = h.keySize !== undefined ? h.keySize : 42;
-  keySizeDiv.innerHTML = `
-    <label class="field-label" for="he-key-size">Key Size</label>
-    <div style="display:flex;align-items:center;gap:0.5rem;">
-      <input type="range" id="he-key-size" class="range-sm" min="8" max="120" value="${keySizeVal}" style="flex:1;">
-      <span id="he-key-size-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2rem;text-align:right;">${keySizeVal}</span>
-    </div>
-  `;
-  editor.appendChild(keySizeDiv);
-  keySizeDiv.querySelector('#he-key-size').addEventListener('input', e=>{
-    h.keySize=parseInt(e.target.value)||42;
-    keySizeDiv.querySelector('#he-key-size-val').textContent=h.keySize;
-    refreshEditorDirtyState();
-    renderSVG();
-  });
-
-  editor.appendChild(document.createElement('hr')).className='section-sep';
-
-  // Key Shape
-  const shapeDiv = document.createElement('div');
-  shapeDiv.className = 'field-row';
-  shapeDiv.innerHTML = `
-    <label class="field-label">Key Shape</label>
-    <select class="field-select" id="he-shape">
-      <option value="round" ${h.keyShape==='round'?'selected':''}>Round</option>
-      <option value="hex" ${h.keyShape==='hex'?'selected':''}>Hexagon</option>
-      <option value="diamond" ${h.keyShape==='diamond'?'selected':''}>Diamond</option>
-      <option value="rect" ${h.keyShape==='rect'?'selected':''}>Rectangle</option>
-      <option value="triangle" ${h.keyShape==='triangle'?'selected':''}>Triangle</option>
-    </select>
-  `;
-  editor.appendChild(shapeDiv);
-  shapeDiv.querySelector('#he-shape').addEventListener('change', e=>{h.keyShape=e.target.value;refreshEditorDirtyState();renderSVG();});
-
-  // Shape transforms — as sliders
-  function makeSliderField(label, id, min, max, step, value, fmt) {
-    const div = document.createElement('div');
-    div.className = 'field-row';
-    div.style.marginTop = '0.2rem';
-    const disp = fmt ? fmt(value) : value;
-    div.innerHTML = `<label class="field-label">${label}</label>
-      <div style="display:flex;align-items:center;gap:0.4rem;">
-        <input type="range" class="range-sm" id="${id}" min="${min}" max="${max}" step="${step}" value="${value}" style="flex:1;">
-        <span id="${id}-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2.5rem;text-align:right;">${disp}</span>
-      </div>`;
-    return div;
-  }
-
-  const rotDiv = makeSliderField('Rotation (\u00b0)', 'he-rot', -180, 180, 1, h.keyRotation, v=>v+'\u00b0');
-  editor.appendChild(rotDiv);
-  rotDiv.querySelector('#he-rot').addEventListener('input', e=>{
-    h.keyRotation=parseFloat(e.target.value)||0;
-    rotDiv.querySelector('#he-rot-val').textContent=h.keyRotation+'\u00b0';
-    refreshEditorDirtyState();renderSVG();
-  });
-
-  const sxDiv = makeSliderField('Stretch X', 'he-sx', 0.1, 5, 0.05, h.keyStretchX, v=>parseFloat(v).toFixed(2));
-  editor.appendChild(sxDiv);
-  sxDiv.querySelector('#he-sx').addEventListener('input', e=>{
-    h.keyStretchX=parseFloat(e.target.value)||1;
-    sxDiv.querySelector('#he-sx-val').textContent=h.keyStretchX.toFixed(2);
-    refreshEditorDirtyState();renderSVG();
-  });
-
-  const syDiv = makeSliderField('Stretch Y', 'he-sy', 0.1, 5, 0.05, h.keyStretchY, v=>parseFloat(v).toFixed(2));
-  editor.appendChild(syDiv);
-  syDiv.querySelector('#he-sy').addEventListener('input', e=>{
-    h.keyStretchY=parseFloat(e.target.value)||1;
-    syDiv.querySelector('#he-sy-val').textContent=h.keyStretchY.toFixed(2);
-    refreshEditorDirtyState();renderSVG();
-  });
-
-  editor.appendChild(document.createElement('hr')).className='section-sep';
-
+  // ─── COLOR MODE (first after tones+sep, per spec) ───
   // Color mode
   const colorDiv = document.createElement('div');
   colorDiv.className = 'field-row';
   colorDiv.innerHTML = `
     <label class="field-label">Color Mode</label>
     <select class="field-select" id="he-colormode">
+      <option value="uniform" ${h.colorMode==='uniform'?'selected':''}>Uniform Color</option>
       <option value="limit" ${h.colorMode==='limit'?'selected':''}>JI Limit</option>
       <option value="pitch" ${h.colorMode==='pitch'?'selected':''}>Pitch height</option>
       <option value="width" ${h.colorMode==='width'?'selected':''}>Pitch width</option>
-      <option value="uniform" ${h.colorMode==='uniform'?'selected':''}>Uniform color</option>
     </select>
   `;
   editor.appendChild(colorDiv);
@@ -2637,15 +2893,216 @@ function renderHarmonyEditor() {
     uniformRow.style.display=h.colorMode==='uniform'?'flex':'none';
     refreshEditorDirtyState();
     renderSVG();
+    markProjectDirty();
   });
   uniformRow.querySelector('#he-color').addEventListener('input', e=>{
     h.uniformColor=e.target.value;
     uniformRow.querySelector('#he-color-hex').textContent=e.target.value;
     refreshEditorDirtyState();
     renderSVG();
+    markProjectDirty();
   });
 
-  // (Actions are added at top — see below)
+  // ─── OPACITY ───
+  function makeSliderField(label, id, min, max, step, value, fmt) {
+    const div = document.createElement('div');
+    div.className = 'field-row';
+    div.style.marginTop = '0.2rem';
+    const disp = fmt ? fmt(value) : value;
+    div.innerHTML = `<label class="field-label">${label}</label>
+      <div style="display:flex;align-items:center;gap:0.4rem;">
+        <input type="range" class="range-sm" id="${id}" min="${min}" max="${max}" step="${step}" value="${value}" style="flex:1;">
+        <span id="${id}-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2.5rem;text-align:right;">${disp}</span>
+      </div>`;
+    return div;
+  }
+
+  const opacityVal = h.opacity !== undefined ? h.opacity : 1.0;
+  const opacityDiv = makeSliderField('Opacity', 'he-opacity', 0, 1, 0.05, opacityVal, v=>parseFloat(v).toFixed(2));
+  editor.appendChild(opacityDiv);
+  opacityDiv.querySelector('#he-opacity').addEventListener('input', e=>{
+    h.opacity=parseFloat(e.target.value);
+    opacityDiv.querySelector('#he-opacity-val').textContent=h.opacity.toFixed(2);
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  // ─── KEY SHAPE ───
+  const shapeDiv = document.createElement('div');
+  shapeDiv.className = 'field-row';
+  shapeDiv.style.marginTop = '0.35rem';
+  shapeDiv.innerHTML = `
+    <label class="field-label">Key Shape</label>
+    <select class="field-select" id="he-shape">
+      <option value="round" ${h.keyShape==='round'?'selected':''}>Round</option>
+      <option value="hex" ${h.keyShape==='hex'?'selected':''}>Hexagon</option>
+      <option value="diamond" ${h.keyShape==='diamond'?'selected':''}>Diamond</option>
+      <option value="rect" ${h.keyShape==='rect'?'selected':''}>Rectangle</option>
+      <option value="triangle" ${h.keyShape==='triangle'?'selected':''}>Triangle</option>
+    </select>
+  `;
+  editor.appendChild(shapeDiv);
+  shapeDiv.querySelector('#he-shape').addEventListener('change', e=>{h.keyShape=e.target.value;refreshEditorDirtyState();renderSVG();markProjectDirty();});
+
+  // ─── KEY SIZE ───
+  const keySizeVal = h.keySize !== undefined ? h.keySize : 42;
+  const keySizeDiv = makeSliderField('Key Size', 'he-key-size', 8, 120, 1, keySizeVal, v=>v);
+  editor.appendChild(keySizeDiv);
+  keySizeDiv.querySelector('#he-key-size').addEventListener('input', e=>{
+    h.keySize=parseInt(e.target.value)||42;
+    keySizeDiv.querySelector('#he-key-size-val').textContent=h.keySize;
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  // ─── KEY ROTATION ───
+  const rotDiv = makeSliderField('Key Rotation (°)', 'he-rot', -180, 180, 1, h.keyRotation, v=>v+'°');
+  editor.appendChild(rotDiv);
+  rotDiv.querySelector('#he-rot').addEventListener('input', e=>{
+    h.keyRotation=parseFloat(e.target.value)||0;
+    rotDiv.querySelector('#he-rot-val').textContent=h.keyRotation+'°';
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  // ─── KEY STRETCH X / Y ───
+  const sxDiv = makeSliderField('Key Stretch X', 'he-sx', 0.1, 5, 0.05, h.keyStretchX, v=>parseFloat(v).toFixed(2));
+  editor.appendChild(sxDiv);
+  sxDiv.querySelector('#he-sx').addEventListener('input', e=>{
+    h.keyStretchX=parseFloat(e.target.value)||1;
+    sxDiv.querySelector('#he-sx-val').textContent=h.keyStretchX.toFixed(2);
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  const syDiv = makeSliderField('Key Stretch Y', 'he-sy', 0.1, 5, 0.05, h.keyStretchY, v=>parseFloat(v).toFixed(2));
+  editor.appendChild(syDiv);
+  syDiv.querySelector('#he-sy').addEventListener('input', e=>{
+    h.keyStretchY=parseFloat(e.target.value)||1;
+    syDiv.querySelector('#he-sy-val').textContent=h.keyStretchY.toFixed(2);
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  // ─── KEY OFFSET X / Y ───
+  const keyOffXVal = h.keyOffsetX !== undefined ? h.keyOffsetX : 0;
+  const keyOffXDiv = makeSliderField('Key Offset X', 'he-koffx', -50, 50, 1, keyOffXVal, v=>v);
+  editor.appendChild(keyOffXDiv);
+  keyOffXDiv.querySelector('#he-koffx').addEventListener('input', e=>{
+    h.keyOffsetX=parseInt(e.target.value)||0;
+    keyOffXDiv.querySelector('#he-koffx-val').textContent=h.keyOffsetX;
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  const keyOffYVal = h.keyOffsetY !== undefined ? h.keyOffsetY : 0;
+  const keyOffYDiv = makeSliderField('Key Offset Y', 'he-koffy', -50, 50, 1, keyOffYVal, v=>v);
+  editor.appendChild(keyOffYDiv);
+  keyOffYDiv.querySelector('#he-koffy').addEventListener('input', e=>{
+    h.keyOffsetY=parseInt(e.target.value)||0;
+    keyOffYDiv.querySelector('#he-koffy-val').textContent=h.keyOffsetY;
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  editor.appendChild(document.createElement('hr')).className='section-sep';
+
+  // ─── LABEL SETTINGS ───
+  const lblRow = makeCheckRow('Show Labels', 'he-labels', h.showLabels);
+  editor.appendChild(lblRow);
+  lblRow.querySelector('#he-labels').addEventListener('change', e => {
+    h.showLabels = e.target.checked;
+    refreshEditorDirtyState();
+    renderSVG();
+    markProjectDirty();
+  });
+
+  // ─── LABEL TYPE ───
+  const lblTypeDiv = document.createElement('div');
+  lblTypeDiv.className = 'field-row';
+  lblTypeDiv.style.marginTop='0.35rem';
+  lblTypeDiv.innerHTML = `
+    <label class="field-label">Label Type</label>
+    <select class="field-select" id="he-label-type">
+      <option value="ratio" ${(h.labelType||'ratio')==='ratio'?'selected':''}>Ratio (e.g. 5/4)</option>
+      <option value="cents" ${h.labelType==='cents'?'selected':''}>Cents</option>
+      <option value="heji" ${h.labelType==='heji'?'selected':''}>Tone name (HEJI)</option>
+    </select>
+  `;
+  editor.appendChild(lblTypeDiv);
+  lblTypeDiv.querySelector('#he-label-type').addEventListener('change', e=>{
+    h.labelType=e.target.value;
+    refreshEditorDirtyState();
+    renderSVG();
+    markProjectDirty();
+  });
+
+  // ─── LABEL FONT SIZE ───
+  const fontRow = document.createElement('div');
+  fontRow.className = 'field-row';
+  fontRow.style.marginTop = '0.25rem';
+  fontRow.innerHTML = `<label class="field-label">Label Font Size</label>
+    <div style="display:flex;align-items:center;gap:0.4rem;">
+      <input type="range" class="range-sm" id="he-font" min="6" max="48" step="1" value="${h.labelFontSize}" style="flex:1;">
+      <span id="he-font-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:1.5rem;text-align:right;">${h.labelFontSize}</span>
+    </div>`;
+  editor.appendChild(fontRow);
+  fontRow.querySelector('#he-font').addEventListener('input', e=>{
+    h.labelFontSize=parseInt(e.target.value)||11;
+    fontRow.querySelector('#he-font-val').textContent=h.labelFontSize;
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  // ─── LABEL FONT COLOR ───
+  const lblColorRow = document.createElement('div');
+  lblColorRow.className = 'color-picker-row';
+  lblColorRow.style.marginTop='0.25rem';
+  const currentLblColor = h.labelColor || '#ffffff';
+  lblColorRow.innerHTML = `
+    <label class="field-label" style="text-transform:none;font-size:var(--text-xs);color:var(--color-text-muted);">Label Font Color:</label>
+    <label class="color-swatch">
+      <input type="color" id="he-lbl-color" value="${currentLblColor}">
+    </label>
+    <span id="he-lbl-color-hex" style="font-size:var(--text-xs);color:var(--color-text-muted);">${h.labelColor||'auto'}</span>
+    <button id="he-lbl-color-clear" style="font-size:var(--text-xs);padding:0.1rem 0.3rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;">Auto</button>
+  `;
+  editor.appendChild(lblColorRow);
+  lblColorRow.querySelector('#he-lbl-color').addEventListener('input', e=>{
+    h.labelColor=e.target.value;
+    lblColorRow.querySelector('#he-lbl-color-hex').textContent=e.target.value;
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+  lblColorRow.querySelector('#he-lbl-color-clear').addEventListener('click', ()=>{
+    h.labelColor='';
+    lblColorRow.querySelector('#he-lbl-color-hex').textContent='auto';
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  // ─── LABEL OFFSET X / Y ───
+  const offXRow = document.createElement('div');
+  offXRow.className = 'field-row';
+  offXRow.style.marginTop = '0.2rem';
+  offXRow.innerHTML = `<label class="field-label">Label Offset X</label>
+    <div style="display:flex;align-items:center;gap:0.4rem;">
+      <input type="range" class="range-sm" id="he-offx" min="-50" max="50" step="1" value="${h.labelOffsetX}" style="flex:1;">
+      <span id="he-offx-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2rem;text-align:right;">${h.labelOffsetX}</span>
+    </div>`;
+  editor.appendChild(offXRow);
+  offXRow.querySelector('#he-offx').addEventListener('input', e=>{
+    h.labelOffsetX=parseInt(e.target.value)||0;
+    offXRow.querySelector('#he-offx-val').textContent=h.labelOffsetX;
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  const offYRow = document.createElement('div');
+  offYRow.className = 'field-row';
+  offYRow.style.marginTop = '0.2rem';
+  offYRow.innerHTML = `<label class="field-label">Label Offset Y</label>
+    <div style="display:flex;align-items:center;gap:0.4rem;">
+      <input type="range" class="range-sm" id="he-offy" min="-50" max="50" step="1" value="${h.labelOffsetY}" style="flex:1;">
+      <span id="he-offy-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2rem;text-align:right;">${h.labelOffsetY}</span>
+    </div>`;
+  editor.appendChild(offYRow);
+  offYRow.querySelector('#he-offy').addEventListener('input', e=>{
+    h.labelOffsetY=parseInt(e.target.value)||0;
+    offYRow.querySelector('#he-offy-val').textContent=h.labelOffsetY;
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  // (Actions are added at top — see above)
 
   // Tone preview table — when octave equiv is on, show only base octave (oct===0)
   try {
@@ -2658,7 +3115,7 @@ function renderHarmonyEditor() {
       const lbl = document.createElement('div');
       lbl.className='field-label';
       lbl.style.marginBottom='0.3rem';
-      lbl.textContent=`Computed tones (${keys.length}${h.octaveEquiv?' — base octave only':''})` ;
+      lbl.textContent=`Computed tones (${keys.length})`;
       editor.appendChild(lbl);
       const tbl = document.createElement('table');
       tbl.className='tone-table';
@@ -2681,35 +3138,13 @@ function renderHarmonyEditor() {
 }
 
 function refreshEditorDirtyState() {
+  // No per-harmony dirty tracking — just keep list item name in sync
   const h = harmonies.find(x=>x.id===selectedHarmonyId);
   if (!h) return;
-  const dirty = harmonyIsDirty(h);
-  // Update list item
   const item = document.querySelector(`.harmony-item[data-id="${h.id}"]`);
   if (item) {
-    item.classList.toggle('dirty', dirty);
-    const badge = item.querySelector('.unsaved-badge');
-    if (dirty && !badge) {
-      const b=document.createElement('span'); b.className='unsaved-badge'; b.textContent='★'; b.title='Unsaved changes';
-      const visBtn = item.querySelector('.harmony-vis-toggle');
-      item.insertBefore(b, visBtn);
-    } else if (!dirty && badge) {
-      badge.remove();
-    }
     const nm = item.querySelector('.harmony-name');
     if (nm) nm.textContent = h.name;
-  }
-  // Update Save/Revert button states in the editor
-  const saveBtn = document.getElementById('he-save-btn');
-  if (saveBtn) {
-    saveBtn.disabled = !dirty;
-    saveBtn.title = dirty ? 'Save changes' : 'No unsaved changes';
-    saveBtn.classList.toggle('active', dirty);
-  }
-  const revertBtn = document.getElementById('he-revert-btn');
-  if (revertBtn) {
-    revertBtn.disabled = !dirty;
-    revertBtn.title = dirty ? 'Revert to saved' : 'No changes to revert';
   }
 }
 
@@ -2734,6 +3169,115 @@ function makeCheckRow(label, id, checked, hint) {
 
 function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  DIRTY STATE TRACKING
+// ─────────────────────────────────────────────────────────────────────────────
+
+function markProjectDirty() {
+  projectIsDirty = true;
+  updateDirtyUI();
+}
+
+function updateDirtyUI() {
+  // Update panel save button
+  const configSave = document.getElementById('btn-config-save');
+  if (configSave) {
+    configSave.classList.toggle('active-save', projectIsDirty);
+  }
+  // Update header project name — add asterisk when dirty
+  const headerName = document.getElementById('header-project-name');
+  if (headerName) {
+    const base = projectName;
+    headerName.textContent = projectIsDirty ? base + ' *' : base;
+  }
+  // Update browser tab title
+  document.title = projectName + ' — Faithful Keyboard';
+}
+
+function markProjectSaved() {
+  projectIsDirty = false;
+  updateDirtyUI();
+}
+
+function getCurrentViewSnapshot() {
+  return {
+    zoomFactor,
+    panX: Math.round(viewState.panX),
+    panY: Math.round(viewState.panY),
+    rotation: layout.keyboardRotation || 0,
+    stretchX: layout.viewStretchX || 1,
+    stretchY: layout.viewStretchY || 1
+  };
+}
+
+function isViewDirty() {
+  if (!layout.savedView) return false;
+  const cur = getCurrentViewSnapshot();
+  const sv = layout.savedView;
+  const svZf = sv.zoomFactor !== undefined ? sv.zoomFactor : 1;
+  return Math.abs(cur.zoomFactor - svZf) > 0.001 ||
+    Math.abs((cur.panX||0) - (sv.panX||0)) > 0.5 ||
+    Math.abs((cur.panY||0) - (sv.panY||0)) > 0.5 ||
+    Math.abs((cur.rotation||0) - (sv.rotation||0)) > 0.1 ||
+    Math.abs((cur.stretchX||1) - (sv.stretchX||1)) > 0.001 ||
+    Math.abs((cur.stretchY||1) - (sv.stretchY||1)) > 0.001;
+}
+
+function updateViewDirtyIndicator() {
+  const el = document.getElementById('view-dirty-indicator');
+  if (el) el.style.display = isViewDirty() ? '' : 'none';
+}
+
+function getCurrentLayoutSnapshot() {
+  return {
+    coordSystem: layout.coordSystem,
+    widths: JSON.stringify(layout.widths),
+    showOctaveLines: layout.showOctaveLines,
+    showSemitoneLines: layout.showSemitoneLines,
+    baseFreq: document.getElementById('base-freq') ? document.getElementById('base-freq').value : '261.63',
+    octaveEquiv: layout.octaveEquiv
+  };
+}
+
+function isLayoutDirty() {
+  if (!layout.savedLayoutState) return false;
+  const cur = JSON.stringify(getCurrentLayoutSnapshot());
+  const saved = JSON.stringify(layout.savedLayoutState);
+  return cur !== saved;
+}
+
+function updateLayoutDirtyIndicator() {
+  const el = document.getElementById('layout-dirty-indicator');
+  if (el) el.style.display = isLayoutDirty() ? '' : 'none';
+}
+
+function getCurrentSoundSnapshot() {
+  const wf = document.getElementById('waveform');
+  const atk = document.getElementById('env-attack');
+  const rel = document.getElementById('env-release');
+  const sus = document.getElementById('env-sustain');
+  const vol = document.getElementById('master-vol');
+  const poly = document.getElementById('polyphony');
+  return {
+    waveform: wf ? wf.value : 'sine',
+    attack: atk ? atk.value : '10',
+    release: rel ? rel.value : '600',
+    sustain: sus ? sus.value : '0.4',
+    volume: vol ? vol.value : '0.5',
+    polyphony: poly ? poly.value : '8'
+  };
+}
+
+function isSoundDirty() {
+  if (!layout.savedSoundState) return false;
+  return JSON.stringify(getCurrentSoundSnapshot()) !== JSON.stringify(layout.savedSoundState);
+}
+
+function updateSoundDirtyIndicator() {
+  const el = document.getElementById('sound-dirty-indicator');
+  if (el) el.style.display = isSoundDirty() ? '' : 'none';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3001,6 +3545,52 @@ function convertToneMode(text, fromMode, toMode) {
   return {text: out.join(', '), warnings};
 }
 
+// Transpose a harmony by multiplying each tone by an interval
+function transposeHarmony(h, intervalStr, toneMode) {
+  toneMode = toneMode || h.toneMode || 'ratios';
+  try {
+    if (toneMode === 'ratios') {
+      const interval = evalRationalExpr(intervalStr.replace(/\s+/g,''));
+      if (!interval || interval.isFloat) { alert('Could not parse interval: ' + intervalStr); return; }
+      const parts = h.ratios.split(',').map(s=>s.trim()).filter(Boolean);
+      const newParts = parts.map(p => {
+        try {
+          const r = evalRationalExpr(p.replace(/\s+/g,''));
+          if (!r || r.isFloat) return p;
+          const mul = _ratMul(r, interval);
+          return _formatRat(mul);
+        } catch(e) { return p; }
+      });
+      h.ratios = newParts.join(', ');
+    } else if (toneMode === 'vectors') {
+      const ivec = parseVectorStr(intervalStr);
+      if (!ivec) { alert('Could not parse vector: ' + intervalStr); return; }
+      const parts = splitToneList(h.ratios);
+      const newParts = parts.map(p => {
+        const v = parseVectorStr(p);
+        if (!v) return p;
+        const res = v.map((e,i) => e + (ivec[i]||0));
+        let lastNz = 1; for(let _i=res.length-1;_i>=0;_i--){if(res[_i]!==0){lastNz=_i;break;}} return '(' + res.slice(0, Math.max(2, lastNz+1)+1).join(', ') + ')';
+      });
+      h.ratios = newParts.join(', ');
+    } else {
+      // primepowers: convert to exps, add, convert back
+      const ivec = ratioToExpsFromStr(intervalStr) || parsePrimePowersToExps(intervalStr);
+      if (!ivec) { alert('Could not parse interval: ' + intervalStr); return; }
+      const parts = h.ratios.split(',').map(s=>s.trim()).filter(Boolean);
+      const newParts = parts.map(p => {
+        const exps = parsePrimePowersToExps(p);
+        if (!exps) return p;
+        const res = exps.map((e,i) => e + (ivec[i]||0));
+        return expsToString(res, 'primepowers');
+      });
+      h.ratios = newParts.join(', ');
+    }
+  } catch(e) {
+    alert('Transpose error: ' + e.message);
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  PROJECT NAME
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3026,6 +3616,10 @@ function initProjectName() {
     display.style.display = '';
     editBtn.style.display = '';
     input.style.display = 'none';
+    // Update header center
+    const hdr = document.getElementById('header-project-name');
+    if (hdr) hdr.textContent = projectIsDirty ? projectName + ' *' : projectName;
+    markProjectDirty();
   }
   editBtn.addEventListener('click', startEdit);
   display.addEventListener('dblclick', startEdit);
@@ -3034,6 +3628,18 @@ function initProjectName() {
     if (e.key === 'Enter') { e.preventDefault(); finishEdit(); }
     if (e.key === 'Escape') { input.value = projectName; finishEdit(); }
   });
+}
+
+// Project description change handler (wired after DOM ready)
+function initProjectDescription() {
+  const descEl = document.getElementById('project-description');
+  if (descEl) {
+    descEl.value = projectDescription;
+    descEl.addEventListener('input', e => {
+      projectDescription = e.target.value;
+      markProjectDirty();
+    });
+  }
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -3142,19 +3748,22 @@ function buildWidthControls() {
 }
 
 function updateWidthsDirtyIndicator() {
-  const dirty = JSON.stringify(layout.widths) !== JSON.stringify(layout.savedWidths);
-  document.getElementById('widths-dirty-indicator').style.display = dirty ? '' : 'none';
+  // Widths dirty state is now folded into the layout dirty bar at the top of the Layout tab
+  updateLayoutDirtyIndicator();
 }
 
 document.addEventListener('click', e => {
   if (e.target.id === 'btn-save-widths') {
     layout.savedWidths = [...layout.widths];
     updateWidthsDirtyIndicator();
+    markProjectDirty();
+    updateLayoutDirtyIndicator();
   }
   if (e.target.id === 'btn-revert-widths') {
     layout.widths = [...layout.savedWidths];
     buildWidthControls();
     applyAndDraw();
+    updateLayoutDirtyIndicator();
   }
 });
 
@@ -3165,17 +3774,19 @@ document.addEventListener('click', e => {
 function applyAndDraw() {
   allKeysCache = getAllKeys();
   renderSVG();
+  markProjectDirty();
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
 //  EXPORT / IMPORT
 // ═════════════════════════════════════════════════════════════════════════════
 
-function exportProject() {
+function buildProjectJSON() {
   const project = {
     version: 1,
     appName: 'Faithful Keyboard',
     projectName: projectName,
+    projectDescription: projectDescription,
     harmonies: harmonies.map(h => ({
       id: h.id, name: h.name, visible: h.visible,
       ratios: h.ratios, octaveEquiv: h.octaveEquiv,
@@ -3187,7 +3798,10 @@ function exportProject() {
       keySize: h.keySize !== undefined ? h.keySize : 42,
       keyShape: h.keyShape, keyRotation: h.keyRotation,
       keyStretchX: h.keyStretchX, keyStretchY: h.keyStretchY,
-      colorMode: h.colorMode, uniformColor: h.uniformColor
+      colorMode: h.colorMode, uniformColor: h.uniformColor,
+      opacity: h.opacity !== undefined ? h.opacity : 1.0,
+      keyOffsetX: h.keyOffsetX !== undefined ? h.keyOffsetX : 0,
+      keyOffsetY: h.keyOffsetY !== undefined ? h.keyOffsetY : 0
     })),
     layout: {
       coordSystem: layout.coordSystem,
@@ -3198,7 +3812,11 @@ function exportProject() {
       keySize: layout.keySize,
       showOctaveLines: layout.showOctaveLines,
       showSemitoneLines: layout.showSemitoneLines,
-      keyboardRotation: layout.keyboardRotation
+      keyboardRotation: layout.keyboardRotation,
+      viewStretchX: layout.viewStretchX || 1,
+      viewStretchY: layout.viewStretchY || 1,
+      savedView: layout.savedView,
+      octaveEquiv: layout.octaveEquiv !== undefined ? layout.octaveEquiv : true
     },
     baseFreq: getBaseFreq(),
     sound: {
@@ -3209,12 +3827,151 @@ function exportProject() {
       volume: parseFloat(document.getElementById('master-vol').value)
     }
   };
-  const blob = new Blob([JSON.stringify(project, null, 2)], {type:'application/json'});
+  return JSON.stringify(project, null, 2);
+}
+
+function downloadProjectJSON(json, filename) {
+  const blob = new Blob([json], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const safeName = (projectName||'faithful-keyboard').replace(/[^a-zA-Z0-9_\-. ]/g,'_').trim() || 'project';
-  a.href=url; a.download=safeName+'.json';
-  a.click(); URL.revokeObjectURL(url);
+  a.href = url; a.download = filename || 'project.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function newProject() {
+  if (projectIsDirty) {
+    const choice = confirm('Unsaved changes. Save before creating new project?\nOK = Save first, Cancel = Discard changes');
+    if (choice) {
+      saveProject();
+      return;
+    }
+  }
+  // Reset to blank
+  harmonies = [];
+  selectedHarmonyId = null;
+  nextHarmonyId = 1;
+  projectName = 'My Project';
+  projectDescription = '';
+  currentFileHandle = null;
+  layout.coordSystem = 'reduced';
+  layout.widths = [0, 0.9, 4.5, 4.0, 3.5, 1.6];
+  layout.savedWidths = [...layout.widths];
+  layout.keyboardRotation = 0;
+  layout.viewStretchX = 1; layout.viewStretchY = 1;
+  layout.savedView = null;
+  layout.octaveEquiv = true;
+  document.getElementById('project-name-display').textContent = projectName;
+  document.getElementById('project-name-input').value = projectName;
+  document.getElementById('header-project-name').textContent = projectName;
+  const descEl = document.getElementById('project-description');
+  if (descEl) descEl.value = '';
+  buildWidthControls();
+  renderHarmonyList();
+  renderHarmonyEditor();
+  allKeysCache = [];
+  renderSVG();
+  markProjectSaved();
+}
+
+async function openProject() {
+  if (window.showOpenFilePicker) {
+    try {
+      const [fh] = await window.showOpenFilePicker({
+        types: [{ description: 'Keyboard Project', accept: {'application/json': ['.json']} }]
+      });
+      currentFileHandle = fh;
+      const file = await fh.getFile();
+      importProject(await file.text());
+    } catch(e) {
+      if (e.name !== 'AbortError') alert('Error opening file: ' + e.message);
+    }
+  } else {
+    document.getElementById('import-file').click();
+  }
+}
+
+async function saveProject() {
+  const json = buildProjectJSON();
+  if (window.showSaveFilePicker && !currentFileHandle) {
+    try {
+      currentFileHandle = await window.showSaveFilePicker({
+        suggestedName: (projectName||'project').replace(/[^a-zA-Z0-9_\-. ]/g,'_') + '.json',
+        types: [{ description: 'Keyboard Project', accept: {'application/json': ['.json']} }]
+      });
+    } catch(e) {
+      if (e.name !== 'AbortError') {
+        // Fall through to download
+        downloadProjectJSON(json, (projectName||'project').replace(/[^a-zA-Z0-9_\-. ]/g,'_') + '.json');
+        markProjectSaved();
+      }
+      return;
+    }
+  }
+  if (currentFileHandle) {
+    try {
+      const writable = await currentFileHandle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      markProjectSaved();
+    } catch(e) {
+      alert('Error saving: ' + e.message);
+    }
+  } else {
+    downloadProjectJSON(json, (projectName||'project').replace(/[^a-zA-Z0-9_\-. ]/g,'_') + '.json');
+    markProjectSaved();
+  }
+}
+
+async function saveProjectCopy() {
+  const json = buildProjectJSON();
+  if (window.showSaveFilePicker) {
+    try {
+      const fh = await window.showSaveFilePicker({
+        suggestedName: (projectName||'project').replace(/[^a-zA-Z0-9_\-. ]/g,'_') + '-copy.json',
+        types: [{ description: 'Keyboard Project', accept: {'application/json': ['.json']} }]
+      });
+      const writable = await fh.createWritable();
+      await writable.write(json);
+      await writable.close();
+    } catch(e) {
+      if (e.name !== 'AbortError') {
+        downloadProjectJSON(json, (projectName||'project').replace(/[^a-zA-Z0-9_\-. ]/g,'_') + '-copy.json');
+      }
+    }
+  } else {
+    downloadProjectJSON(json, (projectName||'project').replace(/[^a-zA-Z0-9_\-. ]/g,'_') + '-copy.json');
+  }
+}
+
+function importHarmoniesFromFile(jsonStr) {
+  try {
+    const project = JSON.parse(jsonStr);
+    if (!project.harmonies || !Array.isArray(project.harmonies)) {
+      alert('No harmonies found in file.'); return;
+    }
+    const modal = document.getElementById('import-harmonies-modal');
+    const listEl = document.getElementById('import-harmonies-list');
+    listEl.innerHTML = '';
+    project.harmonies.forEach((h, i) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:0.5rem;';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.checked = true; cb.id = 'ih-cb-' + i;
+      cb.dataset.idx = i;
+      cb.style.cssText = 'accent-color:var(--color-primary);width:14px;height:14px;';
+      const lbl = document.createElement('label');
+      lbl.htmlFor = 'ih-cb-' + i;
+      lbl.style.cssText = 'font-size:var(--text-sm);cursor:pointer;';
+      lbl.textContent = h.name || ('Harmony ' + (i+1));
+      row.appendChild(cb); row.appendChild(lbl);
+      listEl.appendChild(row);
+    });
+    modal._importData = project.harmonies;
+    modal.style.display = 'flex';
+  } catch(e) {
+    alert('Error parsing file: ' + e.message);
+  }
 }
 
 function importProject(jsonStr) {
@@ -3236,7 +3993,17 @@ function importProject(jsonStr) {
     const maxNum = harmonies.map(h=>parseInt(h.id.replace('h',''))||0).reduce((a,b)=>Math.max(a,b),0);
     nextHarmonyId = maxNum + 1;
     selectedHarmonyId = harmonies.length ? harmonies[0].id : null;
-    if (project.projectName) { projectName = project.projectName; const d=document.getElementById('project-name-display'); if(d) d.textContent=projectName; const inp=document.getElementById('project-name-input'); if(inp) inp.value=projectName; }
+    if (project.projectName) {
+      projectName = project.projectName;
+      const d=document.getElementById('project-name-display'); if(d) d.textContent=projectName;
+      const inp=document.getElementById('project-name-input'); if(inp) inp.value=projectName;
+      const hdr=document.getElementById('header-project-name'); if(hdr) hdr.textContent=projectName;
+    }
+    if (project.projectDescription !== undefined) {
+      projectDescription = project.projectDescription || '';
+      const descEl = document.getElementById('project-description');
+      if (descEl) descEl.value = projectDescription;
+    }
 
     // Load layout
     if (project.layout) {
@@ -3249,6 +4016,10 @@ function importProject(jsonStr) {
       layout.showOctaveLines = project.layout.showOctaveLines !== false;
       layout.showSemitoneLines = !!project.layout.showSemitoneLines;
       layout.keyboardRotation = project.layout.keyboardRotation || 0;
+      layout.viewStretchX = project.layout.viewStretchX !== undefined ? project.layout.viewStretchX : 1;
+      layout.viewStretchY = project.layout.viewStretchY !== undefined ? project.layout.viewStretchY : 1;
+      layout.savedView = project.layout.savedView || null;
+      layout.octaveEquiv = project.layout.octaveEquiv !== undefined ? project.layout.octaveEquiv : true;
     }
     if (project.baseFreq) document.getElementById('base-freq').value = project.baseFreq;
     if (project.sound) {
@@ -3266,25 +4037,76 @@ function importProject(jsonStr) {
     document.getElementById('show-semitone-lines').checked = layout.showSemitoneLines;
     document.getElementById('keyboard-rotation').value = layout.keyboardRotation;
     document.getElementById('keyboard-rotation-num').value = layout.keyboardRotation;
+    const globalOctEl = document.getElementById('global-octave-equiv');
+    if (globalOctEl) globalOctEl.checked = layout.octaveEquiv !== false;
     buildWidthControls();
     renderHarmonyList();
     renderHarmonyEditor();
     allKeysCache = getAllKeys();
     resetView();
+    markProjectSaved();
   } catch(e) {
     alert('Error loading project: ' + e.message);
   }
 }
 
-document.getElementById('btn-export').addEventListener('click', exportProject);
-document.getElementById('btn-import').addEventListener('click', ()=>document.getElementById('import-file').click());
+// Project tab button handlers
+document.addEventListener('click', e => {
+  if (e.target.id === 'btn-new-project' || e.target.closest('#btn-new-project')) newProject();
+  if (e.target.id === 'btn-open-project' || e.target.closest('#btn-open-project')) openProject();
+  if (e.target.id === 'btn-save-project' || e.target.closest('#btn-save-project')) saveProject();
+  if (e.target.id === 'btn-save-copy-project' || e.target.closest('#btn-save-copy-project')) saveProjectCopy();
+  if (e.target.id === 'btn-config-save' || e.target.closest('#btn-config-save')) saveProject();
+  if (e.target.id === 'btn-import-harmonies-open' || e.target.closest('#btn-import-harmonies-open')) {
+    document.getElementById('import-harmonies-file').click();
+  }
+  if (e.target.id === 'btn-import-harmonies-confirm' || e.target.closest('#btn-import-harmonies-confirm')) {
+    const modal = document.getElementById('import-harmonies-modal');
+    const checkboxes = modal.querySelectorAll('input[type=checkbox]');
+    const toImport = modal._importData || [];
+    let added = 0;
+    checkboxes.forEach(cb => {
+      if (cb.checked) {
+        const idx = parseInt(cb.dataset.idx);
+        const hData = toImport[idx];
+        if (hData) {
+          const newH = makeHarmony(hData);
+          newH.savedState = snapshotHarmony(newH);
+          harmonies.push(newH);
+          added++;
+        }
+      }
+    });
+    modal.style.display = 'none';
+    if (added > 0) {
+      selectedHarmonyId = harmonies[harmonies.length-1].id;
+      renderHarmonyList();
+      renderHarmonyEditor();
+      applyAndDraw();
+      markProjectDirty();
+    }
+  }
+  if (e.target.id === 'btn-import-harmonies-cancel' || e.target.closest('#btn-import-harmonies-cancel')) {
+    document.getElementById('import-harmonies-modal').style.display = 'none';
+  }
+});
+
 document.getElementById('import-file').addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => importProject(ev.target.result);
   reader.readAsText(file);
-  e.target.value=''; // reset so same file can be re-imported
+  e.target.value='';
+});
+
+document.getElementById('import-harmonies-file').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => importHarmoniesFromFile(ev.target.result);
+  reader.readAsText(file);
+  e.target.value='';
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -3301,13 +4123,15 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 function setPanelOpen(open) {
   const panel = document.getElementById('side-panel');
-  const fab = document.getElementById('panel-gear-fab');
   if (open) {
     panel.classList.add('open');
-    fab.classList.add('hidden');
   } else {
     panel.classList.remove('open');
-    fab.classList.remove('hidden');
+  }
+  // Update btn-toggle-config icon
+  const toggleBtn = document.getElementById('btn-toggle-config');
+  if (toggleBtn) {
+    toggleBtn.title = open ? 'Hide configuration panel' : 'Show configuration panel';
   }
   // Panel is now overlay — no layout shift, but SVG might need re-centering
   setTimeout(()=>renderSVG(), 300);
@@ -3317,8 +4141,9 @@ document.getElementById('panel-toggle').addEventListener('click', () => {
   setPanelOpen(false);
 });
 
-document.getElementById('panel-gear-fab').addEventListener('click', () => {
-  setPanelOpen(true);
+document.getElementById('btn-toggle-config').addEventListener('click', () => {
+  const panel = document.getElementById('side-panel');
+  setPanelOpen(!panel.classList.contains('open'));
 });
 
 // Coordinate system change — recalculate widths to preserve tone positions
@@ -3361,6 +4186,8 @@ document.getElementById('coord-select').addEventListener('change', e => {
   layout.widthScopes = newWidths.map((w,i) => Math.max(layout.widthScopes[i]||5, Math.ceil(Math.abs(w))+1));
   buildWidthControls();
   applyAndDraw();
+  markProjectDirty();
+  updateLayoutDirtyIndicator();
 });
 
 // Custom basis input
@@ -3382,10 +4209,14 @@ document.getElementById('custom-basis-input').addEventListener('change', () => {
 document.getElementById('show-octave-lines').addEventListener('change', e => {
   layout.showOctaveLines = e.target.checked;
   renderSVG();
+  markProjectDirty();
+  updateLayoutDirtyIndicator();
 });
 document.getElementById('show-semitone-lines').addEventListener('change', e => {
   layout.showSemitoneLines = e.target.checked;
   renderSVG();
+  markProjectDirty();
+  updateLayoutDirtyIndicator();
 });
 
 // Keyboard rotation
@@ -3397,11 +4228,34 @@ document.getElementById('show-semitone-lines').addEventListener('change', e => {
     layout.keyboardRotation = v;
     slider.value = v;
     numInput.value = v;
+    if (window._syncOverlaySliders) window._syncOverlaySliders();
     renderSVG();
+    updateViewDirtyIndicator();
+    markProjectDirty();
   }
   slider.addEventListener('input', () => setRot(slider.value));
   numInput.addEventListener('change', () => setRot(numInput.value));
 })();
+
+// Zoom toward screen center by a zoom factor
+function applyZoom(newZoomFactor) {
+  // Commit any in-progress touch pan into viewState before zooming
+  if (window._commitTouchPan) window._commitTouchPan();
+  const zf = Math.max(0.001, newZoomFactor);
+  const wrap = svgEl.parentElement;
+  const cx = wrap.clientWidth / 2, cy = wrap.clientHeight / 2;
+  const factor = zf / zoomFactor;
+  viewState.panX = cx + (viewState.panX - cx) * factor;
+  viewState.panY = cy + (viewState.panY - cy) * factor;
+  zoomFactor = zf;
+  syncScales();
+  const zoomEl = document.getElementById('view-zoom');
+  const zoomSlider = document.getElementById('view-zoom-slider');
+  if (zoomEl) zoomEl.value = zf.toFixed(3);
+  if (zoomSlider) zoomSlider.value = Math.log10(zf).toFixed(4);
+  if (window._syncOverlaySliders) window._syncOverlaySliders();
+  renderSVG();
+}
 
 // View zoom/pan inputs
 (function(){
@@ -3409,22 +4263,6 @@ document.getElementById('show-semitone-lines').addEventListener('change', e => {
   const zoomSlider = document.getElementById('view-zoom-slider');
   const panxEl = document.getElementById('view-panx');
   const panyEl = document.getElementById('view-pany');
-
-  function applyZoom(newZoom) {
-    const z = Math.max(0.01, newZoom);
-    const wrap = svgEl.parentElement;
-    const cx = wrap.clientWidth / 2, cy = wrap.clientHeight / 2;
-    const oldZoom = (viewState.scaleX + viewState.scaleY) / 2;
-    const factor = z / oldZoom;
-    viewState.panX = cx + (viewState.panX - cx) * factor;
-    viewState.panY = cy + (viewState.panY - cy) * factor;
-    viewState.scaleX = z;
-    viewState.scaleY = z;
-    // Sync both controls without triggering events
-    if (zoomEl) zoomEl.value = z.toFixed(4);
-    if (zoomSlider) zoomSlider.value = Math.log10(z).toFixed(4);
-    renderSVG();
-  }
 
   // Zoom slider: log scale, slider position = log10(zoom)
   if (zoomSlider) {
@@ -3449,10 +4287,14 @@ document.getElementById('show-semitone-lines').addEventListener('change', e => {
   panxEl.addEventListener('change', () => {
     viewState.panX = parseFloat(panxEl.value)||0;
     renderSVG();
+    updateViewDirtyIndicator();
+    markProjectDirty();
   });
   panyEl.addEventListener('change', () => {
     viewState.panY = parseFloat(panyEl.value)||0;
     renderSVG();
+    updateViewDirtyIndicator();
+    markProjectDirty();
   });
 })();
 
@@ -3461,6 +4303,118 @@ document.getElementById('base-freq').addEventListener('input', ()=>{
   renderSVG();
   // Update all harmony editors
   if (selectedHarmonyId) renderHarmonyEditor();
+  markProjectDirty();
+  updateLayoutDirtyIndicator();
+});
+
+// View tab buttons
+document.addEventListener('click', e => {
+  if (e.target.id === 'btn-reset-view-tab' || e.target.closest('#btn-reset-view-tab')) {
+    allKeysCache = getAllKeys();
+    resetView();
+  }
+  if (e.target.id === 'btn-save-view-btn' || e.target.closest('#btn-save-view-btn')) {
+    saveCurrentView();
+    updateViewDirtyIndicator();
+    syncViewControls();
+  }
+  if (e.target.id === 'btn-save-view-tab' || e.target.closest('#btn-save-view-tab')) {
+    saveCurrentView();
+    updateViewDirtyIndicator();
+    syncViewControls();
+  }
+  if (e.target.id === 'btn-revert-view' || e.target.closest('#btn-revert-view')) {
+    resetView(); // resets to savedView
+    updateViewDirtyIndicator();
+  }
+  if (e.target.id === 'btn-save-layout' || e.target.closest('#btn-save-layout')) {
+    layout.savedLayoutState = getCurrentLayoutSnapshot();
+    layout.savedWidths = [...layout.widths];
+    updateLayoutDirtyIndicator();
+    updateWidthsDirtyIndicator();
+    markProjectDirty();
+  }
+  if (e.target.id === 'btn-revert-layout' || e.target.closest('#btn-revert-layout')) {
+    if (!layout.savedLayoutState) return;
+    layout.coordSystem = layout.savedLayoutState.coordSystem || 'reduced';
+    layout.widths = JSON.parse(layout.savedLayoutState.widths);
+    layout.showOctaveLines = layout.savedLayoutState.showOctaveLines !== false;
+    layout.showSemitoneLines = !!layout.savedLayoutState.showSemitoneLines;
+    layout.octaveEquiv = layout.savedLayoutState.octaveEquiv !== false;
+    document.getElementById('coord-select').value = layout.coordSystem;
+    document.getElementById('show-octave-lines').checked = layout.showOctaveLines;
+    document.getElementById('show-semitone-lines').checked = layout.showSemitoneLines;
+    document.getElementById('base-freq').value = layout.savedLayoutState.baseFreq || '261.63';
+    const globalOctEl = document.getElementById('global-octave-equiv');
+    if (globalOctEl) globalOctEl.checked = layout.octaveEquiv;
+    buildWidthControls();
+    applyAndDraw();
+    updateLayoutDirtyIndicator();
+  }
+  if (e.target.id === 'btn-save-sound' || e.target.closest('#btn-save-sound')) {
+    layout.savedSoundState = getCurrentSoundSnapshot();
+    updateSoundDirtyIndicator();
+    markProjectDirty();
+  }
+  if (e.target.id === 'btn-revert-sound' || e.target.closest('#btn-revert-sound')) {
+    if (!layout.savedSoundState) return;
+    const ss = layout.savedSoundState;
+    if (ss.waveform) document.getElementById('waveform').value = ss.waveform;
+    if (ss.attack !== undefined) document.getElementById('env-attack').value = ss.attack;
+    if (ss.release !== undefined) document.getElementById('env-release').value = ss.release;
+    if (ss.sustain !== undefined) document.getElementById('env-sustain').value = ss.sustain;
+    if (ss.volume !== undefined) document.getElementById('master-vol').value = ss.volume;
+    if (ss.polyphony !== undefined) document.getElementById('polyphony').value = ss.polyphony;
+    updateSoundDirtyIndicator();
+  }
+});
+
+// Wire View stretch sliders
+(function(){
+  const sxSlider = document.getElementById('view-stretch-x-slider');
+  const sxNum = document.getElementById('view-stretch-x-num');
+  const sySlider = document.getElementById('view-stretch-y-slider');
+  const syNum = document.getElementById('view-stretch-y-num');
+  function setStretchX(v) {
+    v = Math.max(0.1, Math.min(5, parseFloat(v)||1));
+    layout.viewStretchX = v;
+    if (sxSlider) sxSlider.value = v.toFixed(2);
+    if (sxNum) sxNum.value = v.toFixed(2);
+    syncScales(); // recompute scaleX/Y with new stretch
+    renderSVG();
+    updateViewDirtyIndicator();
+    markProjectDirty();
+  }
+  function setStretchY(v) {
+    v = Math.max(0.1, Math.min(5, parseFloat(v)||1));
+    layout.viewStretchY = v;
+    if (sySlider) sySlider.value = v.toFixed(2);
+    if (syNum) syNum.value = v.toFixed(2);
+    syncScales(); // recompute scaleX/Y with new stretch
+    renderSVG();
+    updateViewDirtyIndicator();
+    markProjectDirty();
+  }
+  if (sxSlider) sxSlider.addEventListener('input', () => setStretchX(sxSlider.value));
+  if (sxNum) { sxNum.addEventListener('input', () => setStretchX(sxNum.value)); sxNum.addEventListener('change', () => setStretchX(sxNum.value)); }
+  if (sySlider) sySlider.addEventListener('input', () => setStretchY(sySlider.value));
+  if (syNum) { syNum.addEventListener('input', () => setStretchY(syNum.value)); syNum.addEventListener('change', () => setStretchY(syNum.value)); }
+})();
+
+// Global Octave Equivalence toggle
+document.getElementById('global-octave-equiv').addEventListener('change', e => {
+  layout.octaveEquiv = e.target.checked;
+  harmonies.forEach(h => { h.octaveEquiv = layout.octaveEquiv; });
+  applyAndDraw();
+  markProjectDirty();
+  updateLayoutDirtyIndicator();
+});
+
+// Sound settings — mark dirty
+['waveform','env-attack','env-release','env-sustain','master-vol','polyphony'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', () => { markProjectDirty(); updateSoundDirtyIndicator(); });
+  if (el) el.addEventListener('input', () => { markProjectDirty(); updateSoundDirtyIndicator(); });
 });
 
 // Add harmony button
@@ -3473,8 +4427,40 @@ document.getElementById('btn-add-harmony').addEventListener('click', () => {
   applyAndDraw();
 });
 
-// Reset view
-document.getElementById('btn-reset-view').addEventListener('click', ()=>{allKeysCache=getAllKeys();resetView();});
+// Reset view (header button)
+document.getElementById('btn-reset-view').addEventListener('click', ()=>{
+  allKeysCache=getAllKeys();
+  resetView();
+});
+
+// Save View (header button)
+document.getElementById('btn-save-view').addEventListener('click', ()=>{
+  saveCurrentView();
+  updateViewDirtyIndicator();
+  syncViewControls();
+});
+
+// Lock/Unlock view
+// Locked = closed padlock, Unlocked = open padlock
+const LOCK_ICON_LOCKED   = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+const LOCK_ICON_UNLOCKED = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>';
+
+document.getElementById('btn-lock-view').addEventListener('click', ()=>{
+  isViewLocked = !isViewLocked;
+  const btn = document.getElementById('btn-lock-view');
+  if (isViewLocked) {
+    btn.classList.add('locked');
+    btn.title = 'View locked — click to unlock pan/zoom/rotate';
+    btn.innerHTML = LOCK_ICON_LOCKED;
+  } else {
+    btn.classList.remove('locked');
+    btn.title = 'Unlock view (enable pan/zoom/rotate)';
+    btn.innerHTML = LOCK_ICON_UNLOCKED;
+  }
+  if (window._updateOverlayVisibility) window._updateOverlayVisibility();
+});
+// Init with unlocked icon
+(()=>{ document.getElementById('btn-lock-view').innerHTML = LOCK_ICON_UNLOCKED; })();
 
 // Test sound
 document.getElementById('btn-test-sound').addEventListener('click', ()=>{
@@ -3505,6 +4491,68 @@ document.getElementById('btn-test-sound').addEventListener('click', ()=>{
 // Resize observer
 new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-wrap'));
 
+// ── Floating overlay buttons: zoom + rotation ──
+(function() {
+  const overlayEl = document.getElementById('view-overlay-controls');
+  const ZOOM_STEP = 1.10;  // 10% per click
+  const ROT_STEP  = 5;     // 5 degrees per click
+  let repeatTimer = null;
+
+  function doZoom(dir) {
+    if (window._commitTouchPan) window._commitTouchPan();
+    applyZoom(zoomFactor * (dir > 0 ? ZOOM_STEP : 1 / ZOOM_STEP));
+  }
+
+  function doRotate(dir) {
+    const v = Math.max(-180, Math.min(180, (layout.keyboardRotation || 0) + dir * ROT_STEP));
+    layout.keyboardRotation = v;
+    const rs = document.getElementById('keyboard-rotation');
+    const rn = document.getElementById('keyboard-rotation-num');
+    if (rs) rs.value = v;
+    if (rn) rn.value = v;
+    renderSVG();
+    updateViewDirtyIndicator();
+    markProjectDirty();
+  }
+
+  function startRepeat(fn) {
+    fn();
+    repeatTimer = setInterval(fn, 120);
+  }
+  function stopRepeat() {
+    clearInterval(repeatTimer); repeatTimer = null;
+  }
+
+  function wireBtn(id, fn) {
+    const btn = document.getElementById(id);
+    // Mouse
+    btn.addEventListener('mousedown',  e => { e.preventDefault(); e.stopPropagation(); startRepeat(fn); });
+    // Touch
+    btn.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); startRepeat(fn); }, {passive:false});
+    btn.addEventListener('touchend',   e => { e.preventDefault(); stopRepeat(); }, {passive:false});
+    btn.addEventListener('touchcancel',() => stopRepeat(), {passive:true});
+  }
+
+  wireBtn('btn-zoom-in',   () => doZoom(1));
+  wireBtn('btn-zoom-out',  () => doZoom(-1));
+  wireBtn('btn-rot-left',  () => doRotate(-1));
+  wireBtn('btn-rot-right', () => doRotate(1));
+
+  document.addEventListener('mouseup',    stopRepeat);
+  document.addEventListener('mouseleave', stopRepeat);
+
+  // Show/hide based on lock state
+  function updateOverlayVisibility() {
+    if (isViewLocked) overlayEl.classList.add('hidden');
+    else              overlayEl.classList.remove('hidden');
+  }
+  window._updateOverlayVisibility = updateOverlayVisibility;
+  // Remove stale ref (no longer needed)
+  window._syncOverlaySliders = null;
+})();
+
+// (Feedback section now shows email address directly)
+
 // ═════════════════════════════════════════════════════════════════════════════
 //  INIT — Default project: Natural Scale harmony
 // ═════════════════════════════════════════════════════════════════════════════
@@ -3533,7 +4581,15 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
   // Wait for layout to stabilize before computing view
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=>{
-      resetView();
+      resetView(true); // force auto-compute on initial load
+      // Save this as the initial savedView
+      saveCurrentView();
+      // Save initial layout + sound state
+      layout.savedLayoutState = getCurrentLayoutSnapshot();
+      layout.savedSoundState = getCurrentSoundSnapshot();
+      updateViewDirtyIndicator();
+      updateLayoutDirtyIndicator();
+      updateSoundDirtyIndicator();
     });
   });
 
@@ -3543,7 +4599,69 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
   }
 
   initProjectName();
+  initProjectDescription();
 })();
 </script>
-</body>
+<script data-pplx-inline-edit>
+(function(){
+  if(window===window.top)return;
+  function inlineAll(orig,clone){
+    if(orig.nodeType!==1)return;
+    try{
+      var cs=getComputedStyle(orig);
+      var t='';
+      for(var i=0;i<cs.length;i++){t+=cs[i]+':'+cs.getPropertyValue(cs[i])+';';}
+      clone.style.cssText=t;
+    }catch(e){}
+    var oc=orig.children,cc=clone.children;
+    for(var j=0;j<oc.length&&j<cc.length;j++){inlineAll(oc[j],cc[j]);}
+  }
+  function stripExternal(clone){
+    var imgs=clone.querySelectorAll('img');
+    for(var i=0;i<imgs.length;i++){
+      var s=imgs[i].getAttribute('src');
+      if(s&&!s.startsWith('data:'))imgs[i].removeAttribute('src');
+    }
+    var all=clone.querySelectorAll('*');
+    for(var i=0;i<all.length;i++){
+      var st=all[i].style.cssText;
+      if(st&&st.indexOf('url(')>=0){
+        all[i].style.cssText=st.replace(/url\(["']?(?!data:)[^)"']*["']?\)/gi,'none');
+      }
+    }
+  }
+  window.addEventListener('message',function(e){
+    if(!e.data||e.data.type!=='INLINE_EDIT_CAPTURE_REQUEST')return;
+    var scrollX=window.scrollX||window.pageXOffset||0;
+    var scrollY=window.scrollY||window.pageYOffset||0;
+    var w=window.innerWidth,h=window.innerHeight;
+    try{
+      var clone=document.documentElement.cloneNode(true);
+      var rm=clone.querySelectorAll('script,link[rel="stylesheet"],style');
+      for(var i=0;i<rm.length;i++){rm[i].remove();}
+      inlineAll(document.documentElement,clone);
+      stripExternal(clone);
+      var html=new XMLSerializer().serializeToString(clone);
+      var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'">'
+        +'<foreignObject width="100%" height="100%">'
+        +'<div xmlns="http://www.w3.org/1999/xhtml" style="width:'+w+'px;height:'+h+'px;overflow:hidden">'
+        +'<div style="transform:translate(-'+scrollX+'px,-'+scrollY+'px);transform-origin:top left">'
+        +html+'</div></div></foreignObject></svg>';
+      var svgUrl='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+      var img=new Image();
+      img.onload=function(){
+        var c=document.createElement('canvas');c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0);
+        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:c.toDataURL('image/png'),scrollX:scrollX,scrollY:scrollY},'*');
+      };
+      img.onerror=function(){
+        window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
+      };
+      img.src=svgUrl;
+    }catch(err){
+      window.parent.postMessage({type:'INLINE_EDIT_SCREENSHOT_RESULT',dataUrl:null,scrollX:scrollX,scrollY:scrollY},'*');
+    }
+  });
+})();
+</script></body>
 </html>
