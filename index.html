@@ -1,3 +1,19 @@
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+
+<!-- Perplexity Computer Attribution — SEO Meta Tags -->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -758,9 +774,9 @@
               </div>
               <div id="octave-line-opts" style="margin-left:1.5rem;margin-top:0.3rem;display:flex;gap:0.5rem;align-items:center;">
                 <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Color</label>
-                <input type="color" id="octave-line-color" value="#8888bb" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
+                <input type="color" id="octave-line-color" value="#aaaaaa" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
                 <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Width</label>
-                <input type="number" id="octave-line-width" value="2" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
+                <input type="number" id="octave-line-width" value="1" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
               </div>
               <div class="option-row" style="margin-top:0.3rem;">
                 <input type="checkbox" id="show-semitone-lines" style="accent-color:var(--color-primary);width:14px;height:14px;">
@@ -768,9 +784,9 @@
               </div>
               <div id="semitone-line-opts" style="margin-left:1.5rem;margin-top:0.3rem;display:none;gap:0.5rem;align-items:center;">
                 <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Color</label>
-                <input type="color" id="semitone-line-color" value="#666688" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
+                <input type="color" id="semitone-line-color" value="#aaaaaa" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
                 <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Width</label>
-                <input type="number" id="semitone-line-width" value="1" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
+                <input type="number" id="semitone-line-width" value="0.5" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
               </div>
               <div class="option-row" style="margin-top:0.4rem;">
                 <input type="checkbox" id="show-major-width-lines" checked style="accent-color:var(--color-primary);width:14px;height:14px;">
@@ -783,9 +799,9 @@
                 </div>
                 <div style="display:flex;gap:0.5rem;align-items:center;">
                   <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Color</label>
-                  <input type="color" id="major-width-color" value="#555577" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
+                  <input type="color" id="major-width-color" value="#aaaaaa" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
                   <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Width</label>
-                  <input type="number" id="major-width-stroke" value="1.5" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
+                  <input type="number" id="major-width-stroke" value="1" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
                 </div>
               </div>
               <div class="option-row" style="margin-top:0.4rem;">
@@ -799,9 +815,9 @@
                 </div>
                 <div style="display:flex;gap:0.5rem;align-items:center;">
                   <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Color</label>
-                  <input type="color" id="minor-width-color" value="#444466" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
+                  <input type="color" id="minor-width-color" value="#aaaaaa" style="width:2rem;height:1.4rem;border:none;background:none;cursor:pointer;padding:0;">
                   <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Width</label>
-                  <input type="number" id="minor-width-stroke" value="1" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
+                  <input type="number" id="minor-width-stroke" value="0.5" min="0.5" max="10" step="0.5" class="field-input" style="width:3.5rem;padding:0.2rem 0.4rem;">
                 </div>
               </div>
             </div>
@@ -1186,18 +1202,18 @@ const layout = {
   octaveEquiv: true,
   savedView: null,
   savedLayoutState: null,
-  octaveLineColor: '#8888bb',
-  octaveLineWidth: 2,
-  semitoneLineColor: '#666688',
-  semitoneLineWidth: 1,
+  octaveLineColor: '#aaaaaa',
+  octaveLineWidth: 1,
+  semitoneLineColor: '#aaaaaa',
+  semitoneLineWidth: 0.5,
   showMajorWidthLines: true,
   majorWidthInterval: 10,
-  majorWidthColor: '#555577',
-  majorWidthStroke: 1.5,
+  majorWidthColor: '#aaaaaa',
+  majorWidthStroke: 1,
   showMinorWidthLines: false,
   minorWidthInterval: 1,
-  minorWidthColor: '#444466',
-  minorWidthStroke: 1,
+  minorWidthColor: '#aaaaaa',
+  minorWidthStroke: 0.5,
   bgColor: null
 };
 
@@ -1216,18 +1232,22 @@ function makeHarmony(overrides = {}) {
     labelColor: overrides.labelColor || '',
     labelType: overrides.labelType || 'ratio', // 'ratio' or 'heji'
     toneMode: overrides.toneMode || 'ratios', // 'ratios' | 'primepowers' | 'vectors'
-    keySize: overrides.keySize !== undefined ? overrides.keySize : 80,
+    keySize: overrides.keySize !== undefined ? overrides.keySize : 120,
     keyShape: overrides.keyShape || 'round',
     keyRotation: overrides.keyRotation || 0,
     keyStretchX: overrides.keyStretchX !== undefined ? overrides.keyStretchX : 1.0,
     keyStretchY: overrides.keyStretchY !== undefined ? overrides.keyStretchY : 1.0,
     keyRounding: overrides.keyRounding !== undefined ? overrides.keyRounding : 0,
     keyEdge: overrides.keyEdge || 'straight',
-    colorMode: 'uniform', // always uniform; colorMode field kept for backward compat
+    colorMode: overrides.colorMode || 'uniform',
     uniformColor: overrides.uniformColor || '#6490c4',
     opacity: overrides.opacity !== undefined ? overrides.opacity : 1.0,
     keyOffsetX: overrides.keyOffsetX !== undefined ? overrides.keyOffsetX : 0,
     keyOffsetY: overrides.keyOffsetY !== undefined ? overrides.keyOffsetY : 0,
+    connectTones: overrides.connectTones !== undefined ? overrides.connectTones : true,
+    connectStyle: overrides.connectStyle || 'curve',
+    connectColor: overrides.connectColor || '#888888',
+    connectWidth: overrides.connectWidth !== undefined ? overrides.connectWidth : 2,
     // edit state (null = no unsaved changes)
     editState: null,
     // saved snapshot
@@ -1245,14 +1265,18 @@ function snapshotHarmony(h) {
     labelColor: h.labelColor || '',
     labelType: h.labelType || 'ratio',
     toneMode: h.toneMode || 'ratios',
-    keySize: h.keySize !== undefined ? h.keySize : 80,
+    keySize: h.keySize !== undefined ? h.keySize : 120,
     keyShape: h.keyShape, keyRotation: h.keyRotation,
-    keyRounding: h.keyRounding || 0, keyEdge: h.keyEdge || 'straight',
+    keyRounding: h.keyRounding || 0, keyEdge: h.keyEdge || 'straight', keyBulge: h.keyBulge !== undefined ? h.keyBulge : 0.2,
     keyStretchX: h.keyStretchX, keyStretchY: h.keyStretchY,
     colorMode: h.colorMode, uniformColor: h.uniformColor,
     opacity: h.opacity !== undefined ? h.opacity : 1.0,
     keyOffsetX: h.keyOffsetX !== undefined ? h.keyOffsetX : 0,
-    keyOffsetY: h.keyOffsetY !== undefined ? h.keyOffsetY : 0
+    keyOffsetY: h.keyOffsetY !== undefined ? h.keyOffsetY : 0,
+    connectTones: h.connectTones !== undefined ? h.connectTones : true,
+    connectStyle: h.connectStyle || 'curve',
+    connectColor: h.connectColor || '#888888',
+    connectWidth: h.connectWidth !== undefined ? h.connectWidth : 2
   };
 }
 
@@ -1436,7 +1460,20 @@ function widthGradColor(w, minW, maxW) {
 }
 
 function getKeyColor(key, harmony, allKeys) {
-  // Always use uniform color (other modes kept for backward compat but ignored)
+  const mode = harmony.colorMode || 'uniform';
+  if (mode === 'limit') {
+    return limitColor(key.limit);
+  } else if (mode === 'pitch') {
+    // Cycle through octaves using cents
+    const octCents = ((key.cents % 1200) + 1200) % 1200;
+    return `hsl(${Math.round(octCents / 1200 * 360)},65%,55%)`;
+  } else if (mode === 'width') {
+    const allW = (allKeys || []).filter(k => k.harmonyId === key.harmonyId).map(k => k.width || 0);
+    const minW = allW.length ? Math.min(...allW) : 0;
+    const maxW = allW.length ? Math.max(...allW) : 1;
+    return widthGradColor(key.width || 0, minW, maxW);
+  }
+  // uniform (default)
   return harmony.uniformColor || '#6490c4';
 }
 
@@ -1721,7 +1758,7 @@ function buildKeyPath(cx, cy, ks, harmony, isActive) {
     points = [[0,-r*sy],[r*0.75*sx,0],[0,r*sy],[-r*0.75*sx,0]];
     if (rotation) rotatePoints(points, rotation);
   } else if (shape === 'rect') {
-    const hw=r*0.8*sx, hh=r*0.5*sy;
+    const hw=r*0.6*sx, hh=r*sy;
     points = [[-hw,-hh],[hw,-hh],[hw,hh],[-hw,hh]];
     if (rotation) rotatePoints(points, rotation);
   } else if (shape === 'triangle') {
@@ -1764,7 +1801,7 @@ function buildKeyPath(cx, cy, ks, harmony, isActive) {
   const rounding = harmony.keyRounding || 0;
   const edgeStyle = harmony.keyEdge || 'straight';
   if (rounding > 0 || edgeStyle !== 'straight') {
-    pathData = buildRoundedPolygonPath(absPoints, rounding * r * 0.5, edgeStyle);
+    pathData = buildRoundedPolygonPath(absPoints, rounding * r * 0.5, edgeStyle, harmony.keyBulge !== undefined ? harmony.keyBulge : 0.2);
   } else {
     pathData = absPoints.map(([px,py],i)=>`${i===0?'M':'L'}${px.toFixed(2)},${py.toFixed(2)}`).join(' ')+'Z';
   }
@@ -1772,52 +1809,71 @@ function buildKeyPath(cx, cy, ks, harmony, isActive) {
 }
 
 // Helper: build rounded polygon SVG path with optional convex/concave edges
-function buildRoundedPolygonPath(pts, cornerR, edgeStyle) {
+// edgeStyle: 'straight'|'convex'|'concave', bulgeAmount: 0..1 controls deformation depth
+function buildRoundedPolygonPath(pts, cornerR, edgeStyle, bulgeAmount) {
   const n = pts.length;
   if (n < 3) return '';
-  // Clamp corner radius so it fits
-  const segments = [];
-  for (let i = 0; i < n; i++) {
-    const prev = pts[(i-1+n)%n];
-    const curr = pts[i];
-    const next = pts[(i+1)%n];
-    // Vectors from curr
+
+  // Compute tangent points for each vertex
+  const tangents = pts.map((curr, i) => {
+    const prev = pts[(i - 1 + n) % n];
+    const next = pts[(i + 1) % n];
     const dx1 = prev[0]-curr[0], dy1 = prev[1]-curr[1];
     const dx2 = next[0]-curr[0], dy2 = next[1]-curr[1];
     const len1 = Math.sqrt(dx1*dx1+dy1*dy1);
     const len2 = Math.sqrt(dx2*dx2+dy2*dy2);
-    const maxR = Math.min(len1, len2) * 0.45;
-    const cr = Math.min(cornerR, maxR);
-    const t1x = curr[0] + (dx1/len1)*cr;
-    const t1y = curr[1] + (dy1/len1)*cr;
-    const t2x = curr[0] + (dx2/len2)*cr;
-    const t2y = curr[1] + (dy2/len2)*cr;
-    segments.push({ t1x, t1y, t2x, t2y, cx: curr[0], cy: curr[1] });
-  }
-  let d = '';
+    const cr = Math.min(cornerR, len1*0.45, len2*0.45);
+    // t1: point on edge coming INTO this vertex
+    const t1 = [curr[0] + (dx1/len1)*cr, curr[1] + (dy1/len1)*cr];
+    // t2: point on edge going OUT of this vertex
+    const t2 = [curr[0] + (dx2/len2)*cr, curr[1] + (dy2/len2)*cr];
+    return { t1, t2, v: curr };
+  });
+
+  let d = `M${tangents[0].t2[0].toFixed(2)},${tangents[0].t2[1].toFixed(2)}`;
+
   for (let i = 0; i < n; i++) {
-    const seg = segments[i];
-    const nextSeg = segments[(i+1)%n];
-    if (i === 0) d += `M${seg.t2x.toFixed(2)},${seg.t2y.toFixed(2)}`;
-    // Edge to next corner's t1
-    const ex = nextSeg.t1x, ey = nextSeg.t1y;
+    const curr = tangents[i];
+    const nextIdx = (i + 1) % n;
+    const next = tangents[nextIdx];
+
+    // Edge from curr.t2 to next.t1
+    const ex = next.t1[0], ey = next.t1[1];
+    const sx = curr.t2[0], sy = curr.t2[1];
+
     if (edgeStyle === 'convex' || edgeStyle === 'concave') {
-      const mx = (seg.t2x+ex)/2, my = (seg.t2y+ey)/2;
-      const edx = ex-seg.t2x, edy = ey-seg.t2y;
-      const edLen = Math.sqrt(edx*edx+edy*edy);
-      const bulge = edLen * 0.25 * (edgeStyle==='convex' ? 1 : -1);
-      // Normal perpendicular to edge, pointing outward (approximate)
-      const nx2 = -edy/edLen*bulge, ny2 = edx/edLen*bulge;
-      const cpx = mx+nx2, cpy = my+ny2;
-      d += ` Q${cpx.toFixed(2)},${cpy.toFixed(2)} ${ex.toFixed(2)},${ey.toFixed(2)}`;
+      // Compute outward normal for this edge
+      const edx = ex - sx, edy = ey - sy;
+      const edLen = Math.sqrt(edx*edx + edy*edy);
+      if (edLen > 0.001) {
+        // Outward normal: for a CCW polygon, outward is (-edy, edx)
+        const amount = (bulgeAmount !== undefined ? bulgeAmount : 0.2);
+        const bulge = edLen * amount; // always positive; sign controls direction
+        // Find centroid to determine "outward"
+        const centX = pts.reduce((s,p)=>s+p[0],0)/n;
+        const centY = pts.reduce((s,p)=>s+p[1],0)/n;
+        const midX = (sx+ex)/2, midY = (sy+ey)/2;
+        const normX = -edy/edLen, normY = edx/edLen;
+        // dot > 0 means normal points toward centroid (inward)
+        const toCentX = centX - midX, toCentY = centY - midY;
+        const dot = normX*toCentX + normY*toCentY;
+        // convex: push away from centroid; concave: push toward centroid
+        const sign = (edgeStyle === 'convex') ? (dot < 0 ? 1 : -1) : (dot > 0 ? 1 : -1);
+        const cpx = midX + normX*bulge*sign;
+        const cpy = midY + normY*bulge*sign;
+        d += ` Q${cpx.toFixed(2)},${cpy.toFixed(2)} ${ex.toFixed(2)},${ey.toFixed(2)}`;
+      } else {
+        d += ` L${ex.toFixed(2)},${ey.toFixed(2)}`;
+      }
     } else {
       d += ` L${ex.toFixed(2)},${ey.toFixed(2)}`;
     }
-    // Corner arc
-    d += ` Q${seg.cx.toFixed(2)},${seg.cy.toFixed(2)} ${seg.t2x.toFixed(2)},${seg.t2y.toFixed(2)}`;
+
+    // Corner arc: from next.t1 to next.t2 through the vertex
+    d += ` Q${next.v[0].toFixed(2)},${next.v[1].toFixed(2)} ${next.t2[0].toFixed(2)},${next.t2[1].toFixed(2)}`;
   }
-  d += 'Z';
-  return d;
+
+  return d + 'Z';
 }
 
 function rotatePoints(points, degrees) {
@@ -1889,7 +1945,7 @@ function renderSVG() {
       'text-anchor': 'middle', 'dominant-baseline': 'middle',
       fill: textFaint, 'font-size': '14', 'font-family': cs.getPropertyValue('--font-body').trim()
     });
-    txt.textContent = 'Configure your harmony layers and click Apply';
+    txt.textContent = 'Configure your Harmonies';
     axesGroup.appendChild(txt);
     return;
   }
@@ -1960,10 +2016,10 @@ function renderSVG() {
         }
       };
       if (layout.showMajorWidthLines) {
-        drawWidthLines(layout.majorWidthInterval||10, layout.majorWidthColor||'#555577', layout.majorWidthStroke||1.5, '0.45');
+        drawWidthLines(layout.majorWidthInterval||10, layout.majorWidthColor||'#aaaaaa', layout.majorWidthStroke||1, '0.45');
       }
       if (layout.showMinorWidthLines) {
-        drawWidthLines(layout.minorWidthInterval||1, layout.minorWidthColor||'#444466', layout.minorWidthStroke||1, '0.25');
+        drawWidthLines(layout.minorWidthInterval||1, layout.minorWidthColor||'#aaaaaa', layout.minorWidthStroke||0.5, '0.25');
       }
     }
   }
@@ -1976,7 +2032,51 @@ function renderSVG() {
   });
   axesGroup.appendChild(axisLine);
 
-  // connGroup is now empty (dashed connections removed)
+  // Draw connect-tones connections for each harmony
+  for (const harm of harmonies) {
+    if (!harm.visible) continue;
+    if (harm.connectTones === false) continue;
+    const harmKeys = keys.filter(k => k.harmonyId === harm.id);
+    if (harmKeys.length < 2) continue;
+    // Sort by x_logical (cents)
+    const sorted = harmKeys.slice().sort((a, b) => a.x_logical - b.x_logical);
+    const strokeColor = harm.connectColor || '#888888';
+    const strokeW = harm.connectWidth !== undefined ? harm.connectWidth : 2;
+    const style = harm.connectStyle || 'curve';
+    // Collect all pixel positions
+    const pxPts = sorted.map(k => {
+      const p = logicalToPixel(k.x_logical, k.y_logical);
+      return [p.px + (harm.keyOffsetX || 0), p.py + (harm.keyOffsetY || 0)];
+    });
+    let pathD;
+    if (style === 'curve' && pxPts.length >= 2) {
+      // Catmull-Rom spline through all points — smooth, no kinks at tone positions
+      // Convert to cubic bezier segments
+      const tension = 0.5;
+      let d = `M${pxPts[0][0].toFixed(2)},${pxPts[0][1].toFixed(2)}`;
+      for (let ci = 0; ci < pxPts.length - 1; ci++) {
+        const p0 = pxPts[Math.max(0, ci - 1)];
+        const p1 = pxPts[ci];
+        const p2 = pxPts[ci + 1];
+        const p3 = pxPts[Math.min(pxPts.length - 1, ci + 2)];
+        // Catmull-Rom to cubic bezier control points
+        const cp1x = p1[0] + (p2[0] - p0[0]) * tension / 3;
+        const cp1y = p1[1] + (p2[1] - p0[1]) * tension / 3;
+        const cp2x = p2[0] - (p3[0] - p1[0]) * tension / 3;
+        const cp2y = p2[1] - (p3[1] - p1[1]) * tension / 3;
+        d += ` C${cp1x.toFixed(2)},${cp1y.toFixed(2)} ${cp2x.toFixed(2)},${cp2y.toFixed(2)} ${p2[0].toFixed(2)},${p2[1].toFixed(2)}`;
+      }
+      pathD = d;
+    } else {
+      // Straight lines
+      pathD = pxPts.map(([x,y],i) => `${i===0?'M':'L'}${x.toFixed(2)},${y.toFixed(2)}`).join(' ');
+    }
+    const connPath = svgEl2('path', {
+      d: pathD, fill: 'none', stroke: strokeColor,
+      'stroke-width': strokeW, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: '0.7'
+    });
+    connGroup.appendChild(connPath);
+  }
 
   // Overall keyboard rotation
   const kbRot = layout.keyboardRotation || 0;
@@ -2470,41 +2570,185 @@ function handleKeyClick(key) {
   setTimeout(()=>{ activeKeyIds.delete(id); renderSVG(); }, 400);
 }
 
+function freqGain(freq) {
+  // Equal-loudness compensation: boost low/high freqs
+  // Based on a simplified inverse of the equal-loudness curve
+  // Returns a multiplier 0.3–1.5
+  const f = Math.max(20, Math.min(20000, freq));
+  // Simplified: boost below 300Hz, boost above 4000Hz, unity around 1000Hz
+  if (f < 300) return 1.0 + (300 - f) / 300 * 1.2;   // up to 2.2x at 20Hz
+  if (f > 4000) return 1.0 + (f - 4000) / 16000 * 0.5; // up to 1.5x at 20kHz
+  return 1.0;
+}
+
 // Sustained play: returns a release() function. Holds note at sustain level until released.
 function playKeySustained(key) {
   const ctx = getAudioCtx(), env = getEnvelope();
   const waveform = document.getElementById('waveform').value;
   const now = ctx.currentTime;
-  // Build a simple sustained oscillator regardless of waveform type
-  // (complex waveforms still use attack+hold+release model)
-  const masterGain = ctx.createGain();
-  masterGain.gain.setValueAtTime(0, now);
-  masterGain.gain.linearRampToValueAtTime(env.volume * env.sustain, now + env.attack);
-  masterGain.connect(ctx.destination);
-
-  const nodes = [];
   const freq = key.freq;
+  const vol = env.volume * env.sustain * freqGain(freq);
+
+  // Each waveform gets its own sustained implementation
+  // Returns { masterGain, nodes[] } — release() ramps masterGain to 0 and stops nodes
+
+  let masterGain = ctx.createGain();
+  masterGain.gain.setValueAtTime(0, now);
+  masterGain.gain.linearRampToValueAtTime(vol, now + env.attack);
+  masterGain.connect(ctx.destination);
+  let nodes = [];
 
   if (waveform === 'sine' || waveform === 'triangle' || waveform === 'square' || waveform === 'sawtooth') {
     const osc = ctx.createOscillator();
     osc.type = waveform; osc.frequency.value = freq;
     osc.connect(masterGain); osc.start(now);
     nodes.push(osc);
+
   } else if (waveform === 'organ') {
-    const harmonics=[1,2,3,4,6,8], amps=[0.5,0.3,0.15,0.1,0.05,0.03];
+    const harmonics=[1,2,3,4,6,8], amps=[0.4,0.25,0.12,0.08,0.04,0.02];
     harmonics.forEach((h,i) => {
       const osc=ctx.createOscillator(), g=ctx.createGain();
       osc.type='sine'; osc.frequency.value=freq*h; g.gain.value=amps[i];
-      osc.connect(g); g.connect(masterGain); osc.start(now);
-      nodes.push(osc);
+      osc.connect(g); g.connect(masterGain); osc.start(now); nodes.push(osc);
     });
-  } else if (waveform === 'pad' || waveform === 'choir' || waveform === 'flute') {
-    // Pad-style: two detuned oscillators
-    [-4,4].forEach(det => {
-      const osc=ctx.createOscillator(); osc.type='sine';
-      osc.frequency.value=freq*(1+det/1200);
-      osc.connect(masterGain); osc.start(now); nodes.push(osc);
+
+  } else if (waveform === 'bell') {
+    // FM bell: inharmonic sustain that fades slowly
+    const car=ctx.createOscillator(), mod=ctx.createOscillator();
+    const modGain=ctx.createGain();
+    car.type='sine'; car.frequency.value=freq;
+    mod.type='sine'; mod.frequency.value=freq*3.5;
+    modGain.gain.setValueAtTime(freq*4, now);
+    modGain.gain.exponentialRampToValueAtTime(freq*0.3, now+2.0);
+    mod.connect(modGain); modGain.connect(car.frequency);
+    car.connect(masterGain);
+    car.start(now); mod.start(now);
+    nodes.push(car); nodes.push(mod);
+
+  } else if (waveform === 'pluck') {
+    // Karplus-Strong: noise burst through resonant filter — decays naturally
+    // Use looped noise + aggressive lowpass for pluck character, sustained via gate
+    const bufSize=Math.max(64, Math.round(ctx.sampleRate/freq));
+    const buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<bufSize;i++) data[i]=Math.random()*2-1;
+    const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true;
+    const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=freq*3; lp.Q.value=8;
+    src.connect(lp); lp.connect(masterGain); src.start(now);
+    nodes.push(src);
+
+  } else if (waveform === 'marimba') {
+    // Mallet: sine + inharmonics, attack transient
+    const partials=[1,3.93,9.85], amps=[0.7,0.2,0.06];
+    partials.forEach((p,i)=>{
+      const osc=ctx.createOscillator(), g=ctx.createGain();
+      osc.type='sine'; osc.frequency.value=freq*p;
+      g.gain.setValueAtTime(amps[i], now);
+      g.gain.exponentialRampToValueAtTime(amps[i]*0.05, now+0.5/(i+1));
+      g.gain.setValueAtTime(amps[i]*0.02, now+0.5/(i+1));
+      osc.connect(g); g.connect(masterGain); osc.start(now); nodes.push(osc);
     });
+
+  } else if (waveform === 'flute') {
+    // Flute: sine + vibrato + breathiness
+    const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.setValueAtTime(freq,now);
+    const vib=ctx.createOscillator(); vib.frequency.value=5.5;
+    const vibGain=ctx.createGain(); vibGain.gain.value=freq*0.005;
+    vib.connect(vibGain); vibGain.connect(osc.frequency);
+    // Noise for breathiness
+    const noiseLen=Math.round(ctx.sampleRate*1.0);
+    const noiseBuf=ctx.createBuffer(1,noiseLen,ctx.sampleRate);
+    const nd=noiseBuf.getChannelData(0); for(let i=0;i<noiseLen;i++) nd[i]=(Math.random()*2-1);
+    const noiseSrc=ctx.createBufferSource(); noiseSrc.buffer=noiseBuf; noiseSrc.loop=true;
+    const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq*1.5; bp.Q.value=0.8;
+    const noiseGain=ctx.createGain(); noiseGain.gain.value=0.12;
+    noiseSrc.connect(bp); bp.connect(noiseGain);
+    // Mix oscillator and noise
+    const oscGain=ctx.createGain(); oscGain.gain.value=0.85;
+    osc.connect(oscGain); oscGain.connect(masterGain);
+    noiseGain.connect(masterGain);
+    osc.start(now); vib.start(now); noiseSrc.start(now);
+    nodes.push(osc); nodes.push(vib); nodes.push(noiseSrc);
+
+  } else if (waveform === 'glass') {
+    // Glass harmonica: pure chorused tone, very slow attack
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(vol, now + Math.max(env.attack, 0.35));
+    const freqs=[freq, freq*1.004, freq*0.997];
+    freqs.forEach(f=>{
+      const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=f;
+      const g=ctx.createGain(); g.gain.value=1/freqs.length;
+      osc.connect(g); g.connect(masterGain); osc.start(now); nodes.push(osc);
+    });
+
+  } else if (waveform === 'pad') {
+    // Lush pad: multiple detuned sawtooths + lowpass
+    const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=freq*3; lp.Q.value=0.5;
+    lp.connect(masterGain);
+    // Slow attack for pad
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(vol, now + Math.max(env.attack, 0.4));
+    const detunes=[-10,-4,0,4,10];
+    detunes.forEach(d=>{
+      const osc=ctx.createOscillator(); osc.type='sawtooth';
+      osc.frequency.value=freq*Math.pow(2,d/1200);
+      const g=ctx.createGain(); g.gain.value=0.18;
+      osc.connect(g); g.connect(lp); osc.start(now); nodes.push(osc);
+    });
+
+  } else if (waveform === 'choir') {
+    // Choir: sawtooth through formant filters (vowel 'ah')
+    const src=ctx.createOscillator(); src.type='sawtooth'; src.frequency.value=freq;
+    // Vibrato for choir feel
+    const vib=ctx.createOscillator(); vib.frequency.value=5.2;
+    const vibG=ctx.createGain(); vibG.gain.value=freq*0.003;
+    vib.connect(vibG); vibG.connect(src.frequency);
+    // Formants for 'ah' vowel
+    const formants=[800,1200,2500,3500];
+    const fbws=[80,100,200,300];
+    formants.forEach((f,i)=>{
+      const bp=ctx.createBiquadFilter(); bp.type='bandpass';
+      bp.frequency.value=f; bp.Q.value=f/(fbws[i]||100);
+      const g=ctx.createGain(); g.gain.value=0.5/Math.sqrt(i+1);
+      src.connect(bp); bp.connect(g); g.connect(masterGain);
+    });
+    src.start(now); vib.start(now);
+    nodes.push(src); nodes.push(vib);
+    // Slow attack for choir
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(vol, now + Math.max(env.attack, 0.3));
+
+  } else if (waveform === 'clavinet') {
+    // Clavinet/electric piano: sharp attack, honky bandpass, quick decay to sustain
+    const osc=ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.value=freq;
+    const osc2=ctx.createOscillator(); osc2.type='square'; osc2.frequency.value=freq*1.007;
+    const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq*2.5; bp.Q.value=2.5;
+    const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=freq*0.5;
+    osc.connect(bp); osc2.connect(bp); bp.connect(hp); hp.connect(masterGain);
+    // Attack transient
+    masterGain.gain.cancelScheduledValues(now);
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(vol*1.5, now+0.01);
+    masterGain.gain.exponentialRampToValueAtTime(vol, now+0.08);
+    osc.start(now); osc2.start(now); nodes.push(osc); nodes.push(osc2);
+
+  } else if (waveform === 'gamelan') {
+    // Gamelan: inharmonic partials, struck, natural decay to silence
+    const ratios=[1, 2.756, 5.404, 8.933];
+    const amps=[0.8, 0.4, 0.2, 0.08];
+    const decayTimes=[4.0, 2.5, 1.5, 0.8];
+    ratios.forEach((r,i)=>{
+      const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=freq*r;
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(amps[i]*vol/env.sustain, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now+decayTimes[i]);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(now); nodes.push(osc);
+    });
+    // masterGain not used for gamelan — disconnect it
+    masterGain.disconnect();
+    masterGain.gain.setValueAtTime(0, now);
+
   } else {
     // Fallback: simple sine
     const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=freq;
@@ -2517,7 +2761,7 @@ function playKeySustained(key) {
     masterGain.gain.cancelScheduledValues(t);
     masterGain.gain.setValueAtTime(masterGain.gain.value, t);
     masterGain.gain.linearRampToValueAtTime(0, t + env.release);
-    nodes.forEach(n => { try { n.stop(t + env.release + 0.05); } catch(e) {} });
+    nodes.forEach(n => { try { n.stop(t + env.release + 0.1); } catch(e) {} });
   };
 }
 
@@ -2573,9 +2817,9 @@ function playBell(ctx,freq,env,now) {
   const modGain=ctx.createGain(),masterGain=ctx.createGain();
   carrier.type='sine';mod.type='sine';
   carrier.frequency.value=freq; mod.frequency.value=freq*3.5;
-  modGain.gain.setValueAtTime(freq*6,now);
-  modGain.gain.exponentialRampToValueAtTime(freq*0.5,now+2);
-  masterGain.gain.setValueAtTime(env.volume*0.6,now);
+  modGain.gain.setValueAtTime(Math.min(freq*3, 800),now);
+  modGain.gain.exponentialRampToValueAtTime(Math.min(freq*0.2, 50),now+2);
+  masterGain.gain.setValueAtTime(env.volume * freqGain(freq) * 0.6,now);
   masterGain.gain.exponentialRampToValueAtTime(0.001,now+3);
   mod.connect(modGain);modGain.connect(carrier.frequency);
   carrier.connect(masterGain);masterGain.connect(ctx.destination);
@@ -2583,16 +2827,16 @@ function playBell(ctx,freq,env,now) {
 }
 
 function playPluck(ctx,freq,env,now) {
-  const bufSize=Math.round(ctx.sampleRate/freq);
+  const bufSize=Math.max(64, Math.round(ctx.sampleRate/freq));
   const buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
   const data=buf.getChannelData(0);
   for(let i=0;i<bufSize;i++) data[i]=Math.random()*2-1;
   const src=ctx.createBufferSource();
   src.buffer=buf;src.loop=true;
   const filter=ctx.createBiquadFilter();
-  filter.type='lowpass';filter.frequency.value=freq*2;filter.Q.value=20;
+  filter.type='lowpass';filter.frequency.value=freq*3;filter.Q.value=8;
   const gain=ctx.createGain();
-  gain.gain.setValueAtTime(env.volume*0.5,now);
+  gain.gain.setValueAtTime(env.volume * freqGain(freq) * 0.5,now);
   gain.gain.exponentialRampToValueAtTime(0.001,now+env.release*2);
   src.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
   src.start(now);src.stop(now+env.release*2+0.1);
@@ -3034,10 +3278,27 @@ function renderHarmonyEditor() {
 
   editor.appendChild(document.createElement('hr')).className='section-sep';
 
-  // ─── COLOR PICKER (always uniform) ───
+  // ─── COLOR MODE ───
+  const colorModeDiv = document.createElement('div');
+  colorModeDiv.className = 'field-row';
+  colorModeDiv.style.marginTop = '0.35rem';
+  const colorModeVal = h.colorMode || 'uniform';
+  colorModeDiv.innerHTML = `
+    <label class="field-label">Color Mode</label>
+    <select class="field-select" id="he-color-mode">
+      <option value="uniform" ${colorModeVal==='uniform'?'selected':''}>Uniform</option>
+      <option value="limit" ${colorModeVal==='limit'?'selected':''}>JI Limit</option>
+      <option value="pitch" ${colorModeVal==='pitch'?'selected':''}>Pitch</option>
+      <option value="width" ${colorModeVal==='width'?'selected':''}>Width</option>
+    </select>
+  `;
+  editor.appendChild(colorModeDiv);
+
+  // ─── COLOR PICKER (for uniform mode) ───
   const uniformRow = document.createElement('div');
   uniformRow.className = 'color-picker-row';
   uniformRow.id = 'he-uniform-row';
+  uniformRow.style.display = colorModeVal === 'uniform' ? '' : 'none';
   uniformRow.innerHTML = `
     <label class="field-label" style="text-transform:none;font-size:var(--text-xs);color:var(--color-text-muted);">Color:</label>
     <label class="color-swatch">
@@ -3046,6 +3307,15 @@ function renderHarmonyEditor() {
     <span id="he-color-hex" style="font-size:var(--text-xs);color:var(--color-text-muted);">${h.uniformColor}</span>
   `;
   editor.appendChild(uniformRow);
+
+  colorModeDiv.querySelector('#he-color-mode').addEventListener('change', e=>{
+    h.colorMode = e.target.value;
+    uniformRow.style.display = h.colorMode === 'uniform' ? '' : 'none';
+    refreshEditorDirtyState();
+    renderSVG();
+    markProjectDirty();
+  });
+
   uniformRow.querySelector('#he-color').addEventListener('input', e=>{
     h.uniformColor=e.target.value;
     h.colorMode='uniform';
@@ -3086,12 +3356,12 @@ function renderHarmonyEditor() {
     <label class="field-label">Key Shape</label>
     <select class="field-select" id="he-shape">
       <option value="round" ${h.keyShape==='round'?'selected':''}>Circle</option>
-      <option value="hex" ${h.keyShape==='hex'?'selected':''}>Hexagon</option>
-      <option value="diamond" ${h.keyShape==='diamond'?'selected':''}>Diamond</option>
-      <option value="rect" ${h.keyShape==='rect'?'selected':''}>Rectangle</option>
-      <option value="triangle" ${h.keyShape==='triangle'?'selected':''}>Triangle</option>
       <option value="square" ${h.keyShape==='square'?'selected':''}>Square</option>
+      <option value="rect" ${h.keyShape==='rect'?'selected':''}>Rectangle</option>
+      <option value="diamond" ${h.keyShape==='diamond'?'selected':''}>Diamond</option>
+      <option value="triangle" ${h.keyShape==='triangle'?'selected':''}>Triangle</option>
       <option value="pentagon" ${h.keyShape==='pentagon'?'selected':''}>Pentagon</option>
+      <option value="hex" ${h.keyShape==='hex'?'selected':''}>Hexagon</option>
       <option value="octagon" ${h.keyShape==='octagon'?'selected':''}>Octagon</option>
     </select>
   `;
@@ -3124,12 +3394,27 @@ function renderHarmonyEditor() {
   editor.appendChild(edgeDiv);
   edgeDiv.querySelector('#he-edge').addEventListener('change', e=>{h.keyEdge=e.target.value;refreshEditorDirtyState();renderSVG();markProjectDirty();});
 
+  // ─── EDGE BULGE AMOUNT ─── (only relevant for convex/concave)
+  const bulgeVal = h.keyBulge !== undefined ? h.keyBulge : 0.2;
+  const bulgeDiv = makeSliderField('Bulge Amount', 'he-bulge', 0.02, 0.8, 0.02, bulgeVal, v=>parseFloat(v).toFixed(2));
+  bulgeDiv.style.display = (h.keyEdge === 'straight' || !h.keyEdge) ? 'none' : '';
+  editor.appendChild(bulgeDiv);
+  bulgeDiv.querySelector('#he-bulge').addEventListener('input', e=>{
+    h.keyBulge=parseFloat(e.target.value);
+    bulgeDiv.querySelector('#he-bulge-val').textContent=h.keyBulge.toFixed(2);
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+  // Show/hide bulge slider based on edge style
+  edgeDiv.querySelector('#he-edge').addEventListener('change', e=>{
+    bulgeDiv.style.display = (e.target.value === 'straight') ? 'none' : '';
+  });
+
   // ─── KEY SIZE ───
-  const keySizeVal = h.keySize !== undefined ? h.keySize : 80;
-  const keySizeDiv = makeSliderField('Key Size', 'he-key-size', 8, 120, 1, keySizeVal, v=>v);
+  const keySizeVal = h.keySize !== undefined ? h.keySize : 120;
+  const keySizeDiv = makeSliderField('Key Size', 'he-key-size', 8, 400, 1, keySizeVal, v=>v);
   editor.appendChild(keySizeDiv);
   keySizeDiv.querySelector('#he-key-size').addEventListener('input', e=>{
-    h.keySize=parseInt(e.target.value)||80;
+    h.keySize=parseInt(e.target.value)||120;
     keySizeDiv.querySelector('#he-key-size-val').textContent=h.keySize;
     refreshEditorDirtyState();renderSVG();markProjectDirty();
   });
@@ -3180,6 +3465,72 @@ function renderHarmonyEditor() {
   });
 
   editor.appendChild(document.createElement('hr')).className='section-sep';
+
+  // ─── CONNECT TONES ───
+  const connectRow = makeCheckRow('Connect Tones', 'he-connect-tones', h.connectTones !== false);
+  editor.appendChild(connectRow);
+
+  const connectOptsDiv = document.createElement('div');
+  connectOptsDiv.id = 'he-connect-opts';
+  connectOptsDiv.style.display = h.connectTones !== false ? '' : 'none';
+  connectOptsDiv.style.paddingLeft = '1.2rem';
+  connectOptsDiv.style.marginTop = '0.25rem';
+
+  // Style select
+  const connectStyleDiv = document.createElement('div');
+  connectStyleDiv.className = 'field-row';
+  connectStyleDiv.style.marginTop = '0.2rem';
+  const connectStyleVal = h.connectStyle || 'curve';
+  connectStyleDiv.innerHTML = `
+    <label class="field-label">Style</label>
+    <select class="field-select" id="he-connect-style">
+      <option value="curve" ${connectStyleVal==='curve'?'selected':''}>Bezier</option>
+      <option value="straight" ${connectStyleVal==='straight'?'selected':''}>Straight</option>
+    </select>
+  `;
+  connectOptsDiv.appendChild(connectStyleDiv);
+
+  // Color picker
+  const connectColorRow = document.createElement('div');
+  connectColorRow.className = 'color-picker-row';
+  connectColorRow.style.marginTop = '0.25rem';
+  const connectColorVal = h.connectColor || '#888888';
+  connectColorRow.innerHTML = `
+    <label class="field-label" style="text-transform:none;font-size:var(--text-xs);color:var(--color-text-muted);">Color:</label>
+    <label class="color-swatch">
+      <input type="color" id="he-connect-color" value="${connectColorVal}">
+    </label>
+    <span id="he-connect-color-hex" style="font-size:var(--text-xs);color:var(--color-text-muted);">${connectColorVal}</span>
+  `;
+  connectOptsDiv.appendChild(connectColorRow);
+
+  // Width slider
+  const connectWidthVal = h.connectWidth !== undefined ? h.connectWidth : 2;
+  const connectWidthDiv = makeSliderField('Width', 'he-connect-width', 0.5, 30, 0.5, connectWidthVal, v=>parseFloat(v).toFixed(1));
+  connectWidthDiv.style.marginTop = '0.2rem';
+  connectOptsDiv.appendChild(connectWidthDiv);
+
+  editor.appendChild(connectOptsDiv);
+
+  connectRow.querySelector('#he-connect-tones').addEventListener('change', e => {
+    h.connectTones = e.target.checked;
+    connectOptsDiv.style.display = h.connectTones ? '' : 'none';
+    refreshEditorDirtyState(); renderSVG(); markProjectDirty();
+  });
+  connectStyleDiv.querySelector('#he-connect-style').addEventListener('change', e => {
+    h.connectStyle = e.target.value;
+    refreshEditorDirtyState(); renderSVG(); markProjectDirty();
+  });
+  connectColorRow.querySelector('#he-connect-color').addEventListener('input', e => {
+    h.connectColor = e.target.value;
+    connectColorRow.querySelector('#he-connect-color-hex').textContent = e.target.value;
+    refreshEditorDirtyState(); renderSVG(); markProjectDirty();
+  });
+  connectWidthDiv.querySelector('#he-connect-width').addEventListener('input', e => {
+    h.connectWidth = parseFloat(e.target.value) || 2;
+    connectWidthDiv.querySelector('#he-connect-width-val').textContent = h.connectWidth.toFixed(1);
+    refreshEditorDirtyState(); renderSVG(); markProjectDirty();
+  });
 
   // ─── LABEL SETTINGS ───
   const lblRow = makeCheckRow('Show Labels', 'he-labels', h.showLabels);
@@ -3357,16 +3708,10 @@ function escHtml(s) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 let lastSavedJSON = null;
-let _lsAutoSaveTimer = null;
 
 function markProjectDirty() {
   projectIsDirty = true;
   updateDirtyUI();
-  // Auto-save in-memory (debounced 2s)
-  if (_lsAutoSaveTimer) clearTimeout(_lsAutoSaveTimer);
-  _lsAutoSaveTimer = setTimeout(() => {
-    try { lastSavedJSON = buildProjectJSON(); } catch(e) {}
-  }, 2000);
 }
 
 function updateDirtyUI() {
@@ -3391,6 +3736,7 @@ function revertProject() {
     return;
   }
   importProject(lastSavedJSON);
+  markProjectSaved();
 }
 
 function markProjectSaved() {
@@ -3995,14 +4341,18 @@ function buildProjectJSON() {
       labelColor: h.labelColor || '',
       labelType: h.labelType || 'ratio',
       toneMode: h.toneMode || 'ratios',
-      keySize: h.keySize !== undefined ? h.keySize : 80,
+      keySize: h.keySize !== undefined ? h.keySize : 120,
       keyShape: h.keyShape, keyRotation: h.keyRotation,
-      keyRounding: h.keyRounding || 0, keyEdge: h.keyEdge || 'straight',
+      keyRounding: h.keyRounding || 0, keyEdge: h.keyEdge || 'straight', keyBulge: h.keyBulge !== undefined ? h.keyBulge : 0.2,
       keyStretchX: h.keyStretchX, keyStretchY: h.keyStretchY,
       colorMode: h.colorMode, uniformColor: h.uniformColor,
       opacity: h.opacity !== undefined ? h.opacity : 1.0,
       keyOffsetX: h.keyOffsetX !== undefined ? h.keyOffsetX : 0,
-      keyOffsetY: h.keyOffsetY !== undefined ? h.keyOffsetY : 0
+      keyOffsetY: h.keyOffsetY !== undefined ? h.keyOffsetY : 0,
+      connectTones: h.connectTones !== undefined ? h.connectTones : true,
+      connectStyle: h.connectStyle || 'curve',
+      connectColor: h.connectColor || '#888888',
+      connectWidth: h.connectWidth !== undefined ? h.connectWidth : 2
     })),
     layout: {
       coordSystem: layout.coordSystem,
@@ -4018,18 +4368,18 @@ function buildProjectJSON() {
       viewStretchY: layout.viewStretchY || 1,
       savedView: { baseScaleX, baseScaleY, zoomFactor, panX: Math.round(viewState.panX), panY: Math.round(viewState.panY), rotation: layout.keyboardRotation||0, stretchX: layout.viewStretchX||1, stretchY: layout.viewStretchY||1 },
       octaveEquiv: layout.octaveEquiv !== undefined ? layout.octaveEquiv : true,
-      octaveLineColor: layout.octaveLineColor || '#8888bb',
-      octaveLineWidth: layout.octaveLineWidth || 2,
-      semitoneLineColor: layout.semitoneLineColor || '#666688',
-      semitoneLineWidth: layout.semitoneLineWidth || 1,
+      octaveLineColor: layout.octaveLineColor || '#aaaaaa',
+      octaveLineWidth: layout.octaveLineWidth || 1,
+      semitoneLineColor: layout.semitoneLineColor || '#aaaaaa',
+      semitoneLineWidth: layout.semitoneLineWidth || 0.5,
       showMajorWidthLines: layout.showMajorWidthLines !== false,
       majorWidthInterval: layout.majorWidthInterval || 10,
-      majorWidthColor: layout.majorWidthColor || '#555577',
-      majorWidthStroke: layout.majorWidthStroke || 1.5,
+      majorWidthColor: layout.majorWidthColor || '#aaaaaa',
+      majorWidthStroke: layout.majorWidthStroke || 1,
       showMinorWidthLines: !!layout.showMinorWidthLines,
       minorWidthInterval: layout.minorWidthInterval || 1,
-      minorWidthColor: layout.minorWidthColor || '#444466',
-      minorWidthStroke: layout.minorWidthStroke || 1,
+      minorWidthColor: layout.minorWidthColor || '#aaaaaa',
+      minorWidthStroke: layout.minorWidthStroke || 0.5,
       bgColor: layout.bgColor || null
     },
     baseFreq: getBaseFreq(),
@@ -4235,18 +4585,18 @@ function importProject(jsonStr) {
       layout.viewStretchY = project.layout.viewStretchY !== undefined ? project.layout.viewStretchY : 1;
       layout.savedView = project.layout.savedView || null;
       layout.octaveEquiv = project.layout.octaveEquiv !== undefined ? project.layout.octaveEquiv : true;
-      layout.octaveLineColor = project.layout.octaveLineColor || '#8888bb';
-      layout.octaveLineWidth = project.layout.octaveLineWidth || 2;
-      layout.semitoneLineColor = project.layout.semitoneLineColor || '#666688';
-      layout.semitoneLineWidth = project.layout.semitoneLineWidth || 1;
+      layout.octaveLineColor = project.layout.octaveLineColor || '#aaaaaa';
+      layout.octaveLineWidth = project.layout.octaveLineWidth !== undefined ? project.layout.octaveLineWidth : 1;
+      layout.semitoneLineColor = project.layout.semitoneLineColor || '#aaaaaa';
+      layout.semitoneLineWidth = project.layout.semitoneLineWidth !== undefined ? project.layout.semitoneLineWidth : 0.5;
       layout.showMajorWidthLines = project.layout.showMajorWidthLines !== false;
       layout.majorWidthInterval = project.layout.majorWidthInterval || 10;
-      layout.majorWidthColor = project.layout.majorWidthColor || '#555577';
-      layout.majorWidthStroke = project.layout.majorWidthStroke || 1.5;
+      layout.majorWidthColor = project.layout.majorWidthColor || '#aaaaaa';
+      layout.majorWidthStroke = project.layout.majorWidthStroke !== undefined ? project.layout.majorWidthStroke : 1;
       layout.showMinorWidthLines = !!project.layout.showMinorWidthLines;
       layout.minorWidthInterval = project.layout.minorWidthInterval || 1;
-      layout.minorWidthColor = project.layout.minorWidthColor || '#444466';
-      layout.minorWidthStroke = project.layout.minorWidthStroke || 1;
+      layout.minorWidthColor = project.layout.minorWidthColor || '#aaaaaa';
+      layout.minorWidthStroke = project.layout.minorWidthStroke !== undefined ? project.layout.minorWidthStroke : 0.5;
       layout.bgColor = project.layout.bgColor || null;
     }
     if (project.baseFreq) document.getElementById('base-freq').value = project.baseFreq;
