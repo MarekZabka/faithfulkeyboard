@@ -102,26 +102,45 @@
     /* ── Layout ── */
     .app { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
 
-    /* Header */
-    .header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.75rem 1.5rem;
+    /* Top bar — splits into stage portion and panel portion */
+    .top-bar {
+      display: flex; flex-direction: row; flex-shrink: 0;
+      height: 40px;
       background: var(--color-surface);
       border-bottom: 1px solid var(--color-divider);
-      gap: 1rem;
-      position: sticky; top: 0; z-index: 100;
+      position: relative; z-index: 100;
     }
-    .logo { display: flex; align-items: center; gap: 0.625rem; flex-shrink: 0; }
-    .logo-svg { color: var(--color-primary); }
-    .logo-text { font-family: var(--font-display), sans-serif; font-size: var(--text-lg); font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
-    .logo-sub { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: 400; margin-top: 1px; }
-    .header-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .top-bar-stage {
+      flex: 1; display: flex; align-items: center; gap: 0.75rem;
+      padding: 0 1rem; min-width: 0;
+    }
+    .top-bar-project-name {
+      flex: 1; font-family: var(--font-display), sans-serif; font-size: var(--text-sm);
+      font-weight: 600; color: var(--color-text);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      text-align: center;
+    }
+    /* Panel portion of top bar — same width as the panel, hidden when panel closed */
+    .top-bar-panel {
+      display: flex; align-items: center; gap: 0.15rem;
+      padding: 0 0.4rem;
+      width: var(--panel-width, 360px); flex-shrink: 0;
+      border-left: 1px solid var(--color-divider);
+      transition: width 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, padding 0.3s;
+    }
+    .top-bar-panel.panel-hidden {
+      width: 0; padding: 0; overflow: hidden; opacity: 0; pointer-events: none;
+      border-left: none;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+    .logo-text { font-family: var(--font-display), sans-serif; font-size: var(--text-sm); font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
     .btn-icon {
       width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center;
-      border-radius: var(--radius-md); color: var(--color-text-muted);
+      border-radius: var(--radius-md); color: var(--color-text-muted); flex-shrink: 0;
       transition: background var(--transition), color var(--transition);
     }
     .btn-icon:hover { background: var(--color-surface-dynamic); color: var(--color-text); }
+    .header-actions { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
     .btn-primary {
       display: inline-flex; align-items: center; gap: 0.375rem;
       padding: 0.4rem 0.875rem;
@@ -160,7 +179,7 @@
     .btn-sm.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
 
     /* Main */
-    .main { flex: 1; display: flex; flex-direction: column; gap: 0; overflow: hidden; min-height: 0; position: relative; }
+    .main { flex: 1; display: flex; flex-direction: row; overflow: hidden; min-height: 0; position: relative; }
 
     /* Keyboard stage */
     .stage-wrap {
@@ -213,24 +232,22 @@
     .axis-label-x { bottom: 0.5rem; left: 50%; transform: translateX(-50%); }
     .axis-label-y { top: 50%; left: 0.5rem; transform: translateY(-50%) rotate(-90deg); transform-origin: center; }
 
-    /* Panel — overlay mode on all screen sizes */
+    /* Panel — in normal flow next to stage */
     .panel {
-      position: absolute;
-      top: 0; right: 0; bottom: 0;
-      width: 360px;
+      position: relative;
+      width: 360px; flex-shrink: 0;
       background: var(--color-surface);
       border-left: 1px solid var(--color-divider);
       display: flex; flex-direction: column;
       overflow: hidden;
       z-index: 10;
-      box-shadow: -4px 0 16px rgba(0,0,0,0.12);
-      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
-      transform: translateX(0);
-      opacity: 1;
+      box-shadow: none;
+      transition: width 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
     }
     .panel:not(.open) {
-      transform: translateX(100%);
+      width: 0;
       opacity: 0;
+      overflow: hidden;
       pointer-events: none;
     }
     .panel-header {
@@ -407,6 +424,9 @@
     .tone-table tr:last-child td { border-bottom: none; }
     .tone-table tr:hover td { background: var(--color-surface-offset); }
     .tone-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+    .tone-table td:first-child { padding: 0.15rem 0.2rem; width: 20px; }
+    .tone-name-cell { max-width: 60px; overflow: hidden; line-height: 1; }
+    .tone-name-cell svg { display: inline-block; vertical-align: middle; }
 
     /* Tooltip */
     .tooltip {
@@ -444,13 +464,10 @@
     .panel-resize-handle:hover { background: var(--color-primary); }
 
     /* Responsive */
-    @media (min-width: 960px) {
-      .main { flex-direction: row; overflow: hidden; }
-      .stage-wrap { flex: 1; }
-    }
-    /* Mobile: panel is full-width overlay */
+    .stage-wrap { flex: 1; }
     @media (max-width: 959px) {
       .panel { width: 100%; max-width: 420px; }
+      .top-bar-panel { width: 100%; max-width: 420px; }
     }
 
     /* Scrollbar styling */
@@ -550,18 +567,16 @@
   line-height: 1;
 }
 
-/* ── Panel header merged with tabs ── */
+/* ── Panel header: tabs only (actions are in the top-bar) ── */
 .panel-header-merged {
   display: flex; flex-direction: column;
   border-bottom: 1px solid var(--color-divider);
   flex-shrink: 0; user-select: none;
 }
-.panel-header-top {
-  display: flex; align-items: center; gap: 0.2rem;
-  padding: 0.3rem 0.5rem;
-}
-.panel-header-top .panel-actions {
-  display: flex; align-items: center; gap: 0.15rem; margin-left: auto;
+#panel-tabs {
+  padding: 0 0.3rem; border-bottom: none; margin-bottom: 0;
+  overflow-x: auto; flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 .panel-action-btn {
   width: 24px; height: 24px;
@@ -574,10 +589,7 @@
 .panel-action-btn:hover { background: var(--color-divider); color: var(--color-text); }
 .panel-action-btn.active-save { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
 /* Tabs row sits directly below the header top row */
-.panel-header-merged .tabs {
-  margin-bottom: 0; border-bottom: none;
-  padding: 0 0.4rem;
-}
+
 
 /* ── Harmony edit mode ── */
 .harmony-edit-mode-hidden { display: none !important; }

@@ -8,10 +8,19 @@
 
 const tooltip=document.getElementById('tooltip');
 function showTooltip(cx,cy,key) {
+  document.getElementById('tt-harmony').textContent = key.harmonyName || '';
   document.getElementById('tt-ratio').textContent = key.label;
+  // HEJI name
+  const ttName = document.getElementById('tt-name');
+  if (ttName) {
+    let hejiHtml = '';
+    try {
+      hejiHtml = key._exps ? expsToHEJI(key._exps) : (key.ratio ? expsToHEJI(ratioExponents(key.ratio)) : '');
+    } catch(e) { hejiHtml = ''; }
+    ttName.innerHTML = hejiHtml;
+  }
   document.getElementById('tt-cents').textContent = `${key.cents.toFixed(1)} ¢`;
   document.getElementById('tt-freq').textContent = `${key.freq.toFixed(2)} Hz`;
-  document.getElementById('tt-harmony').textContent = key.harmonyName || '';
   const ttWidth = document.getElementById('tt-width');
   if (ttWidth) ttWidth.textContent = key.width !== undefined ? `w: ${key.width.toFixed(3)}` : '';
   const w=tooltip.offsetWidth||200, h=tooltip.offsetHeight||70;
@@ -58,35 +67,92 @@ function getMiniKeyShapeSVG(h) {
   const color = h.uniformColor || '#6490c4';
   const opacity = h.opacity !== undefined ? h.opacity : 1;
   const shape = h.keyShape || 'round';
-  const s = 18, r = 7;
+  const strokeW = h.keyStrokeWidth !== undefined ? h.keyStrokeWidth : 0;
+  const strokeColor = strokeW > 0 && h.edgeColor ? h.edgeColor : (strokeW > 0 ? 'rgba(0,0,0,0.5)' : 'none');
+  const rounding = h.keyRounding || 0;
+  const edgeStyle = h.keyEdge || 'straight';
+  const bulge = h.keyBulge !== undefined ? h.keyBulge : 0.2;
+  // Clamp stroke so the mini icon doesn't get swallowed
+  const sw = Math.min(strokeW, 2);
+  const s = 18;
+  // Keep effective radius so stroke doesn't clip
+  const r = Math.max(3, 7 - sw * 0.5);
   const cx = s/2, cy = s/2;
+  const strokeAttrs = `stroke="${strokeColor}" stroke-width="${sw}"`;
+
   let shapeHTML = '';
   if (shape === 'round') {
-    shapeHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
-  } else if (shape === 'hex') {
-    const pts = [];
-    for (let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3;pts.push(`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`);}
-    shapeHTML = `<polygon points="${pts.join(' ')}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
-  } else if (shape === 'diamond') {
-    shapeHTML = `<polygon points="${cx},${cy-r} ${cx+r*0.75},${cy} ${cx},${cy+r} ${cx-r*0.75},${cy}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
-  } else if (shape === 'rect') {
-    shapeHTML = `<rect x="${cx-r*0.8}" y="${cy-r*0.5}" width="${r*1.6}" height="${r}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
-  } else if (shape === 'triangle') {
-    shapeHTML = `<polygon points="${cx},${cy-r} ${cx+r*0.87},${cy+r*0.5} ${cx-r*0.87},${cy+r*0.5}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
-  } else if (shape === 'square') {
-    shapeHTML = `<rect x="${cx-r}" y="${cy-r}" width="${r*2}" height="${r*2}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
-  } else if (shape === 'pentagon') {
-    const pts = [];
-    for (let i=0;i<5;i++){const a=-Math.PI/2+i*2*Math.PI/5;pts.push(`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`);}
-    shapeHTML = `<polygon points="${pts.join(' ')}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
-  } else if (shape === 'octagon') {
-    const pts = [];
-    for (let i=0;i<8;i++){const a=Math.PI/8+i*Math.PI/4;pts.push(`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`);}
-    shapeHTML = `<polygon points="${pts.join(' ')}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
+    shapeHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" ${strokeAttrs}/>`;
   } else {
-    shapeHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="${opacity}" stroke="none"/>`;
+    // Build polygon points matching buildKeyPath logic
+    let points = [];
+    if (shape === 'hex') {
+      for (let i=0;i<6;i++){const a=Math.PI/6+i*Math.PI/3;points.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}
+    } else if (shape === 'diamond') {
+      points = [[cx,cy-r],[cx+r*0.75,cy],[cx,cy+r],[cx-r*0.75,cy]];
+    } else if (shape === 'rect') {
+      const hw=r*0.8,hh=r*0.5;points=[[cx-hw,cy-hh],[cx+hw,cy-hh],[cx+hw,cy+hh],[cx-hw,cy+hh]];
+    } else if (shape === 'triangle') {
+      points=[[cx,cy-r],[cx+r*0.87,cy+r*0.5],[cx-r*0.87,cy+r*0.5]];
+    } else if (shape === 'square') {
+      points=[[cx-r,cy-r],[cx+r,cy-r],[cx+r,cy+r],[cx-r,cy+r]];
+    } else if (shape === 'pentagon') {
+      for (let i=0;i<5;i++){const a=-Math.PI/2+i*2*Math.PI/5;points.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}
+    } else if (shape === 'octagon') {
+      for (let i=0;i<8;i++){const a=Math.PI/8+i*Math.PI/4;points.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}
+    } else {
+      // fallback circle
+      shapeHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" ${strokeAttrs}/>`;
+    }
+    if (!shapeHTML && points.length) {
+      if (rounding > 0 || edgeStyle !== 'straight') {
+        try {
+          const d = buildRoundedPolygonPath(points, rounding * r * 0.5, edgeStyle, bulge);
+          shapeHTML = `<path d="${d}" fill="${color}" ${strokeAttrs}/>`;
+        } catch(e) {
+          shapeHTML = `<polygon points="${points.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="${color}" ${strokeAttrs}/>`;
+        }
+      } else {
+        shapeHTML = `<polygon points="${points.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="${color}" ${strokeAttrs}/>`;
+      }
+    }
   }
-  return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" style="display:block;">${shapeHTML}</svg>`;
+  return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" style="display:block;overflow:visible;" opacity="${opacity}">${shapeHTML}</svg>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  TONE TABLE HELPER — shared by editor (edit mode) and list (view mode)
+// ─────────────────────────────────────────────────────────────────────────────
+function renderToneTable(h, container) {
+  try {
+    let keys = computeKeysForHarmony(h, getBaseFreq());
+    if (h.octaveEquiv) keys = keys.filter(k => k.oct === 0);
+    if (!keys.length) return;
+    const sep = document.createElement('hr'); sep.className='section-sep'; container.appendChild(sep);
+    const lbl = document.createElement('div'); lbl.className='field-label'; lbl.style.marginBottom='0.25rem';
+    lbl.textContent=`Included Tones (${keys.length})`; container.appendChild(lbl);
+    const tbl = document.createElement('table'); tbl.className='tone-table';
+    tbl.innerHTML='<thead><tr><th></th><th>Tone</th><th>Name</th><th>¢</th><th>Hz</th><th>W</th></tr></thead>';
+    const tbody=document.createElement('tbody');
+    for (const k of keys.slice(0,30)) {
+      const tr=document.createElement('tr');
+      const ratioDisplay=escHtml(k.label);
+      // HEJI name — always from exps/ratio regardless of harmony label type
+      let hejiName='';
+      try {
+        hejiName = k._exps ? expsToHEJI(k._exps) : (k.ratio ? expsToHEJI(ratioExponents(k.ratio)) : '');
+      } catch(e2) { hejiName=''; }
+      const miniSvg=getMiniKeyShapeSVG(h);
+      tr.innerHTML=`<td style="padding:0 2px;">${miniSvg}</td><td>${ratioDisplay}</td><td class="tone-name-cell">${hejiName}</td><td>${k.cents.toFixed(1)}</td><td>${k.freq.toFixed(2)}</td><td>${k.width!==undefined?k.width.toFixed(2):'–'}</td>`;
+      tbody.appendChild(tr);
+    }
+    if (keys.length>30) {
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td colspan="6" style="color:var(--color-text-faint);font-size:0.7rem;">…and ${keys.length-30} more</td>`;
+      tbody.appendChild(tr);
+    }
+    tbl.appendChild(tbody); container.appendChild(tbl);
+  } catch(e) {}
 }
 
 function renderHarmonyList() {
@@ -195,6 +261,21 @@ function renderHarmonyList() {
     });
 
     list.appendChild(item);
+  }
+
+  // When NOT in edit mode, show the Included Tones table for the selected harmony below the list
+  if (!harmonyEditMode && selectedHarmonyId) {
+    const selH = harmonies.find(x => x.id === selectedHarmonyId);
+    if (selH) {
+      const toneWrap = document.getElementById('harmony-list-tone-table');
+      if (toneWrap) {
+        toneWrap.innerHTML = '';
+        renderToneTable(selH, toneWrap);
+      }
+    }
+  } else {
+    const toneWrap = document.getElementById('harmony-list-tone-table');
+    if (toneWrap) toneWrap.innerHTML = '';
   }
 }
 
@@ -378,7 +459,7 @@ function renderHarmonyEditor() {
   });
 
   // Edge Width (new)
-  const edgeWidthVal = h.keyStrokeWidth !== undefined ? h.keyStrokeWidth : 1.5;
+  const edgeWidthVal = h.keyStrokeWidth !== undefined ? h.keyStrokeWidth : 0;
   const edgeWidthDiv = makeSliderField('Edge Width', 'he-edge-width', 0, 8, 0.5, edgeWidthVal, v=>parseFloat(v).toFixed(1));
   appendSub(shapeSectionBody, edgeWidthDiv);
   edgeWidthDiv.querySelector('#he-edge-width').addEventListener('input', e=>{
@@ -698,30 +779,7 @@ function renderHarmonyEditor() {
   });
 
   // ── TONE PREVIEW TABLE ──
-  try {
-    let keys = computeKeysForHarmony(h, getBaseFreq());
-    if (h.octaveEquiv) keys = keys.filter(k => k.oct === 0);
-    if (keys.length) {
-      const sep = document.createElement('hr'); sep.className='section-sep'; editor.appendChild(sep);
-      const lbl = document.createElement('div'); lbl.className='field-label'; lbl.style.marginBottom='0.25rem';
-      lbl.textContent=`Computed tones (${keys.length})`; editor.appendChild(lbl);
-      const tbl = document.createElement('table'); tbl.className='tone-table';
-      tbl.innerHTML='<thead><tr><th>Tone</th><th>¢</th><th>Hz</th><th>W</th></tr></thead>';
-      const tbody=document.createElement('tbody');
-      for (const k of keys.slice(0,30)) {
-        const tr=document.createElement('tr');
-        const toneDisplay=(h.labelType==='heji')?getKeyLabel(k,h):escHtml(k.label);
-        tr.innerHTML=`<td><span class="tone-dot" style="background:${limitColor(k.limit)}"></span>${toneDisplay}</td><td>${k.cents.toFixed(1)}</td><td>${k.freq.toFixed(2)}</td><td>${k.width!==undefined?k.width.toFixed(2):'–'}</td>`;
-        tbody.appendChild(tr);
-      }
-      if (keys.length>30) {
-        const tr=document.createElement('tr');
-        tr.innerHTML=`<td colspan="4" style="color:var(--color-text-faint);font-size:0.7rem;">…and ${keys.length-30} more</td>`;
-        tbody.appendChild(tr);
-      }
-      tbl.appendChild(tbody); editor.appendChild(tbl);
-    }
-  } catch(e) {}
+  renderToneTable(h, editor);
 }
 
 function refreshEditorDirtyState() {

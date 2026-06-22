@@ -488,8 +488,9 @@ function renderSVG() {
     const py = py0 + (h.keyOffsetY || 0);
     const isActive = activeKeyIds.has(key.label+'_'+key.harmonyId);
     const color = isActive ? activeColor : getKeyColor(key, h, keys);
-    const strokeColor = isActive ? '#fff' : cs.getPropertyValue('--color-key-stroke').trim();
-    const strokeW = isActive ? 2 : (harmony.keyStrokeWidth !== undefined ? harmony.keyStrokeWidth : 1.5);
+    const defaultStroke = cs.getPropertyValue('--color-key-stroke').trim();
+    const strokeColor = isActive ? '#fff' : (h.edgeColor ? h.edgeColor : defaultStroke);
+    const strokeW = isActive ? 2 : (h.keyStrokeWidth !== undefined ? h.keyStrokeWidth : 0);
 
     const g = svgEl2('g', {
       class: 'svg-key' + (isActive ? ' key-active' : ''),
@@ -597,8 +598,8 @@ function renderSVG() {
     // Mouse play handled at stage level (mousedown/mouseup)
     // Store key reference on element — stage touch handlers use elementFromPoint to find this
     hit._fkKey = key;
-    hit.addEventListener('mouseover', e => showTooltip(e.clientX, e.clientY, key));
-    hit.addEventListener('mousemove', e => showTooltip(e.clientX, e.clientY, key));
+    hit.addEventListener('mouseover', e => { if (!isViewLocked) showTooltip(e.clientX, e.clientY, key); });
+    hit.addEventListener('mousemove', e => { if (!isViewLocked) showTooltip(e.clientX, e.clientY, key); });
     hit.addEventListener('mouseout', hideTooltip);
     g.appendChild(hit);
 
