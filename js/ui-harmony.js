@@ -311,13 +311,61 @@ function renderHarmonyEditor() {
 
   editor.appendChild(document.createElement('hr')).className = 'section-sep';
 
-  // ── APPEARANCE SECTION ──
-  const appearBody = makeSection('Appearance', true);
+  // ── KEY SHAPE (flat, non-collapsible header) ─────────────────────────────
+  // Static section label
+  const shapeSectionHdr = document.createElement('div');
+  shapeSectionHdr.className = 'editor-section-header';
+  shapeSectionHdr.style.cursor = 'default';
+  shapeSectionHdr.innerHTML = '<span class="section-title">Key Shape</span>';
+  editor.appendChild(shapeSectionHdr);
 
-  // Color Mode + Fill Color + Edge Color
+  const shapeSectionBody = document.createElement('div');
+  shapeSectionBody.className = 'editor-section-body';
+  editor.appendChild(shapeSectionBody);
+
+  function appendSub(parent, el) { parent.appendChild(el); return el; }
+
+  // Shape select
+  const shapeSel = document.createElement('div');
+  shapeSel.className = 'field-row';
+  shapeSel.innerHTML = `<label class="field-label sub-label">Shape</label>
+    <select class="field-select" id="he-shape">
+      <option value="round" ${h.keyShape==='round'?'selected':''}>Circle</option>
+      <option value="square" ${h.keyShape==='square'?'selected':''}>Square</option>
+      <option value="rect" ${h.keyShape==='rect'?'selected':''}>Rectangle</option>
+      <option value="diamond" ${h.keyShape==='diamond'?'selected':''}>Diamond</option>
+      <option value="triangle" ${h.keyShape==='triangle'?'selected':''}>Triangle</option>
+      <option value="pentagon" ${h.keyShape==='pentagon'?'selected':''}>Pentagon</option>
+      <option value="hex" ${h.keyShape==='hex'?'selected':''}>Hexagon</option>
+      <option value="octagon" ${h.keyShape==='octagon'?'selected':''}>Octagon</option>
+    </select>`;
+  appendSub(shapeSectionBody, shapeSel);
+  shapeSel.querySelector('#he-shape').addEventListener('change', e=>{h.keyShape=e.target.value;refreshEditorDirtyState();renderSVG();markProjectDirty();});
+
+  // Size
+  const keySizeVal = h.keySize !== undefined ? h.keySize : 120;
+  const keySizeDiv = makeSliderField('Size', 'he-key-size', 8, 400, 1, keySizeVal, v=>v);
+  appendSub(shapeSectionBody, keySizeDiv);
+  keySizeDiv.querySelector('#he-key-size').addEventListener('input', e=>{
+    h.keySize = parseInt(e.target.value)||120;
+    keySizeDiv.querySelector('#he-key-size-val').textContent = h.keySize;
+    refreshEditorDirtyState(); renderSVG(); markProjectDirty();
+  });
+
+  // Edge Width (new)
+  const edgeWidthVal = h.keyStrokeWidth !== undefined ? h.keyStrokeWidth : 1.5;
+  const edgeWidthDiv = makeSliderField('Edge Width', 'he-edge-width', 0, 8, 0.5, edgeWidthVal, v=>parseFloat(v).toFixed(1));
+  appendSub(shapeSectionBody, edgeWidthDiv);
+  edgeWidthDiv.querySelector('#he-edge-width').addEventListener('input', e=>{
+    h.keyStrokeWidth = parseFloat(e.target.value);
+    edgeWidthDiv.querySelector('#he-edge-width-val').textContent = h.keyStrokeWidth.toFixed(1);
+    refreshEditorDirtyState(); renderSVG(); markProjectDirty();
+  });
+
+  // Color Mode
   const colorModeVal = h.colorMode || 'uniform';
   const cmDiv = document.createElement('div');
-  cmDiv.className = 'field-row';
+  cmDiv.className = 'field-row'; cmDiv.style.marginTop = '0.2rem';
   cmDiv.innerHTML = `<label class="field-label sub-label">Color Mode</label>
     <select class="field-select" id="he-color-mode">
       <option value="uniform" ${colorModeVal==='uniform'?'selected':''}>Uniform</option>
@@ -325,14 +373,14 @@ function renderHarmonyEditor() {
       <option value="pitch" ${colorModeVal==='pitch'?'selected':''}>Pitch</option>
       <option value="width" ${colorModeVal==='width'?'selected':''}>Width</option>
     </select>`;
-  appearBody.appendChild(cmDiv);
+  appendSub(shapeSectionBody, cmDiv);
 
   // Fill Color + Edge Color on one line
   const colorPairDiv = document.createElement('div');
   colorPairDiv.id = 'he-color-pair';
   colorPairDiv.className = 'color-pair-row';
   colorPairDiv.style.display = colorModeVal === 'uniform' ? '' : 'none';
-  colorPairDiv.style.marginTop = '0.25rem';
+  colorPairDiv.style.marginTop = '0.2rem';
   const edgeColorVal = h.edgeColor || '#ffffff';
   colorPairDiv.innerHTML = `
     <div class="color-pair-item">
@@ -344,9 +392,8 @@ function renderHarmonyEditor() {
       <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Edge</label>
       <label class="color-swatch"><input type="color" id="he-edge-color" value="${edgeColorVal}"></label>
       <span id="he-edge-color-hex" style="font-size:var(--text-xs);color:var(--color-text-muted);">${edgeColorVal}</span>
-    </div>
-  `;
-  appearBody.appendChild(colorPairDiv);
+    </div>`;
+  appendSub(shapeSectionBody, colorPairDiv);
 
   cmDiv.querySelector('#he-color-mode').addEventListener('change', e=>{
     h.colorMode = e.target.value;
@@ -367,49 +414,21 @@ function renderHarmonyEditor() {
   // Opacity
   const opacityVal = h.opacity !== undefined ? h.opacity : 1.0;
   const opacityDiv = makeSliderField('Opacity', 'he-opacity', 0, 1, 0.05, opacityVal, v=>parseFloat(v).toFixed(2));
-  appearBody.appendChild(opacityDiv);
+  appendSub(shapeSectionBody, opacityDiv);
   opacityDiv.querySelector('#he-opacity').addEventListener('input', e=>{
     h.opacity = parseFloat(e.target.value);
     opacityDiv.querySelector('#he-opacity-val').textContent = h.opacity.toFixed(2);
     refreshEditorDirtyState(); renderSVG(); markProjectDirty();
   });
 
-  // ── KEY SHAPE SECTION (with sub-options gated by "Key Style" checkbox) ──
-  const shapeSection = makeSection('Key Shape', true);
-
-  // Shape select
-  const shapeSel = document.createElement('div');
-  shapeSel.className = 'field-row';
-  shapeSel.innerHTML = `<label class="field-label sub-label">Shape</label>
-    <select class="field-select" id="he-shape">
-      <option value="round" ${h.keyShape==='round'?'selected':''}>Circle</option>
-      <option value="square" ${h.keyShape==='square'?'selected':''}>Square</option>
-      <option value="rect" ${h.keyShape==='rect'?'selected':''}>Rectangle</option>
-      <option value="diamond" ${h.keyShape==='diamond'?'selected':''}>Diamond</option>
-      <option value="triangle" ${h.keyShape==='triangle'?'selected':''}>Triangle</option>
-      <option value="pentagon" ${h.keyShape==='pentagon'?'selected':''}>Pentagon</option>
-      <option value="hex" ${h.keyShape==='hex'?'selected':''}>Hexagon</option>
-      <option value="octagon" ${h.keyShape==='octagon'?'selected':''}>Octagon</option>
-    </select>`;
-  shapeSection.appendChild(shapeSel);
-  shapeSel.querySelector('#he-shape').addEventListener('change', e=>{h.keyShape=e.target.value;refreshEditorDirtyState();renderSVG();markProjectDirty();});
-
-  // Key Size
-  const keySizeVal = h.keySize !== undefined ? h.keySize : 120;
-  const keySizeDiv = makeSliderField('Size', 'he-key-size', 8, 400, 1, keySizeVal, v=>v);
-  shapeSection.appendChild(keySizeDiv);
-  keySizeDiv.querySelector('#he-key-size').addEventListener('input', e=>{
-    h.keySize = parseInt(e.target.value)||120;
-    keySizeDiv.querySelector('#he-key-size-val').textContent = h.keySize;
-    refreshEditorDirtyState(); renderSVG(); markProjectDirty();
-  });
-
-  // Key Style checkbox → Rounding, Edge Form, Bulge Amount
-  const keyStyleCheck = makeCheckRow('Key Style', 'he-key-style', h.keyRounding > 0 || (h.keyEdge && h.keyEdge !== 'straight'), true);
-  shapeSection.appendChild(keyStyleCheck);
+  // KEY STYLE checkbox → Rounding, Edge Form, Bulge Amount
+  // Uncheck resets all style values to defaults
+  const keyStyleActive = h.keyRounding > 0 || (h.keyEdge && h.keyEdge !== 'straight');
+  const keyStyleCheck = makeCheckRow('Key Style', 'he-key-style', keyStyleActive, true);
+  appendSub(shapeSectionBody, keyStyleCheck);
   const keyStyleOpts = document.createElement('div');
-  keyStyleOpts.style.cssText = `padding-left:1.2rem;margin-top:0.15rem;display:${(h.keyRounding > 0 || (h.keyEdge && h.keyEdge !== 'straight')) ? 'flex' : 'none'};flex-direction:column;gap:0.15rem;`;
-  shapeSection.appendChild(keyStyleOpts);
+  keyStyleOpts.style.cssText = `padding-left:1.2rem;margin-top:0.1rem;display:${keyStyleActive ? 'flex' : 'none'};flex-direction:column;gap:0.1rem;`;
+  appendSub(shapeSectionBody, keyStyleOpts);
 
   const roundingVal = h.keyRounding !== undefined ? h.keyRounding : 0;
   const roundingDiv = makeSliderField('Rounding', 'he-rounding', 0, 1, 0.05, roundingVal, v=>parseFloat(v).toFixed(2));
@@ -421,22 +440,22 @@ function renderHarmonyEditor() {
   });
 
   const edgeVal = h.keyEdge || 'straight';
-  const edgeDiv = document.createElement('div');
-  edgeDiv.className = 'field-row'; edgeDiv.style.marginTop='0.15rem';
-  edgeDiv.innerHTML = `<label class="field-label sub-label">Edge Form</label>
+  const edgeFormDiv = document.createElement('div');
+  edgeFormDiv.className = 'field-row'; edgeFormDiv.style.marginTop='0.1rem';
+  edgeFormDiv.innerHTML = `<label class="field-label sub-label">Edge Form</label>
     <select class="field-select" id="he-edge">
       <option value="straight" ${edgeVal==='straight'?'selected':''}>Straight</option>
       <option value="convex" ${edgeVal==='convex'?'selected':''}>Convex</option>
       <option value="concave" ${edgeVal==='concave'?'selected':''}>Concave</option>
     </select>`;
-  keyStyleOpts.appendChild(edgeDiv);
+  keyStyleOpts.appendChild(edgeFormDiv);
 
   const bulgeVal = h.keyBulge !== undefined ? h.keyBulge : 0.2;
   const bulgeDiv = makeSliderField('Bulge Amount', 'he-bulge', 0.02, 0.8, 0.02, bulgeVal, v=>parseFloat(v).toFixed(2));
   bulgeDiv.style.display = (edgeVal === 'straight') ? 'none' : '';
   keyStyleOpts.appendChild(bulgeDiv);
 
-  edgeDiv.querySelector('#he-edge').addEventListener('change', e=>{
+  edgeFormDiv.querySelector('#he-edge').addEventListener('change', e=>{
     h.keyEdge = e.target.value;
     bulgeDiv.style.display = (e.target.value === 'straight') ? 'none' : '';
     refreshEditorDirtyState(); renderSVG(); markProjectDirty();
@@ -446,26 +465,50 @@ function renderHarmonyEditor() {
     bulgeDiv.querySelector('#he-bulge-val').textContent = h.keyBulge.toFixed(2);
     refreshEditorDirtyState(); renderSVG(); markProjectDirty();
   });
-
   keyStyleCheck.querySelector('#he-key-style').addEventListener('change', e=>{
     keyStyleOpts.style.display = e.target.checked ? 'flex' : 'none';
+    if (!e.target.checked) {
+      // Reset style to defaults
+      h.keyRounding = 0; h.keyEdge = 'straight'; h.keyBulge = 0.2;
+      roundingDiv.querySelector('#he-rounding').value = 0;
+      roundingDiv.querySelector('#he-rounding-val').textContent = '0.00';
+      edgeFormDiv.querySelector('#he-edge').value = 'straight';
+      bulgeDiv.style.display = 'none';
+      refreshEditorDirtyState(); renderSVG(); markProjectDirty();
+    }
   });
 
-  // Key Rotation
+  // KEY ROTATION checkbox → Rotation slider
+  const rotActive = h.keyRotation !== 0;
+  const rotCheck = makeCheckRow('Key Rotation', 'he-key-rotation-check', rotActive, true);
+  appendSub(shapeSectionBody, rotCheck);
+  const rotOpts = document.createElement('div');
+  rotOpts.style.cssText = `padding-left:1.2rem;margin-top:0.1rem;display:${rotActive ? 'flex' : 'none'};flex-direction:column;gap:0.1rem;`;
+  appendSub(shapeSectionBody, rotOpts);
+
   const rotDiv = makeSliderField('Rotation (°)', 'he-rot', -180, 180, 1, h.keyRotation, v=>v+'°');
-  shapeSection.appendChild(rotDiv);
+  rotOpts.appendChild(rotDiv);
   rotDiv.querySelector('#he-rot').addEventListener('input', e=>{
     h.keyRotation = parseFloat(e.target.value)||0;
     rotDiv.querySelector('#he-rot-val').textContent = h.keyRotation+'°';
     refreshEditorDirtyState(); renderSVG(); markProjectDirty();
   });
+  rotCheck.querySelector('#he-key-rotation-check').addEventListener('change', e=>{
+    rotOpts.style.display = e.target.checked ? 'flex' : 'none';
+    if (!e.target.checked) {
+      h.keyRotation = 0;
+      rotDiv.querySelector('#he-rot').value = 0;
+      rotDiv.querySelector('#he-rot-val').textContent = '0°';
+      refreshEditorDirtyState(); renderSVG(); markProjectDirty();
+    }
+  });
 
-  // Key Stretch checkbox → X, Y
+  // KEY STRETCH checkbox → X, Y (uncheck resets to 1)
   const stretchCheck = makeCheckRow('Key Stretch', 'he-key-stretch', h.keyStretchX !== 1 || h.keyStretchY !== 1, true);
-  shapeSection.appendChild(stretchCheck);
+  appendSub(shapeSectionBody, stretchCheck);
   const stretchOpts = document.createElement('div');
-  stretchOpts.style.cssText = `padding-left:1.2rem;margin-top:0.15rem;display:${(h.keyStretchX !== 1 || h.keyStretchY !== 1) ? 'flex' : 'none'};flex-direction:column;gap:0.15rem;`;
-  shapeSection.appendChild(stretchOpts);
+  stretchOpts.style.cssText = `padding-left:1.2rem;margin-top:0.1rem;display:${(h.keyStretchX !== 1 || h.keyStretchY !== 1) ? 'flex' : 'none'};flex-direction:column;gap:0.1rem;`;
+  appendSub(shapeSectionBody, stretchOpts);
 
   const sxDiv = makeSliderField('X', 'he-sx', 0.1, 5, 0.05, h.keyStretchX, v=>parseFloat(v).toFixed(2));
   stretchOpts.appendChild(sxDiv);
@@ -474,7 +517,6 @@ function renderHarmonyEditor() {
     sxDiv.querySelector('#he-sx-val').textContent = h.keyStretchX.toFixed(2);
     refreshEditorDirtyState(); renderSVG(); markProjectDirty();
   });
-
   const syDiv = makeSliderField('Y', 'he-sy', 0.1, 5, 0.05, h.keyStretchY, v=>parseFloat(v).toFixed(2));
   stretchOpts.appendChild(syDiv);
   syDiv.querySelector('#he-sy').addEventListener('input', e=>{
@@ -482,19 +524,24 @@ function renderHarmonyEditor() {
     syDiv.querySelector('#he-sy-val').textContent = h.keyStretchY.toFixed(2);
     refreshEditorDirtyState(); renderSVG(); markProjectDirty();
   });
-
   stretchCheck.querySelector('#he-key-stretch').addEventListener('change', e=>{
     stretchOpts.style.display = e.target.checked ? 'flex' : 'none';
+    if (!e.target.checked) {
+      h.keyStretchX = 1; h.keyStretchY = 1;
+      sxDiv.querySelector('#he-sx').value = 1; sxDiv.querySelector('#he-sx-val').textContent = '1.00';
+      syDiv.querySelector('#he-sy').value = 1; syDiv.querySelector('#he-sy-val').textContent = '1.00';
+      refreshEditorDirtyState(); renderSVG(); markProjectDirty();
+    }
   });
 
-  // Key Offset checkbox → X, Y
+  // KEY OFFSET checkbox → X, Y (uncheck resets to 0)
   const keyOffXVal = h.keyOffsetX !== undefined ? h.keyOffsetX : 0;
   const keyOffYVal = h.keyOffsetY !== undefined ? h.keyOffsetY : 0;
   const offsetCheck = makeCheckRow('Key Offset', 'he-key-offset', keyOffXVal !== 0 || keyOffYVal !== 0, true);
-  shapeSection.appendChild(offsetCheck);
+  appendSub(shapeSectionBody, offsetCheck);
   const offsetOpts = document.createElement('div');
-  offsetOpts.style.cssText = `padding-left:1.2rem;margin-top:0.15rem;display:${(keyOffXVal !== 0 || keyOffYVal !== 0) ? 'flex' : 'none'};flex-direction:column;gap:0.15rem;`;
-  shapeSection.appendChild(offsetOpts);
+  offsetOpts.style.cssText = `padding-left:1.2rem;margin-top:0.1rem;display:${(keyOffXVal !== 0 || keyOffYVal !== 0) ? 'flex' : 'none'};flex-direction:column;gap:0.1rem;`;
+  appendSub(shapeSectionBody, offsetOpts);
 
   const koffxDiv = makeSliderField('X', 'he-koffx', -50, 50, 1, keyOffXVal, v=>v);
   offsetOpts.appendChild(koffxDiv);
@@ -503,7 +550,6 @@ function renderHarmonyEditor() {
     koffxDiv.querySelector('#he-koffx-val').textContent = h.keyOffsetX;
     refreshEditorDirtyState(); renderSVG(); markProjectDirty();
   });
-
   const koffyDiv = makeSliderField('Y', 'he-koffy', -50, 50, 1, keyOffYVal, v=>v);
   offsetOpts.appendChild(koffyDiv);
   koffyDiv.querySelector('#he-koffy').addEventListener('input', e=>{
@@ -511,9 +557,14 @@ function renderHarmonyEditor() {
     koffyDiv.querySelector('#he-koffy-val').textContent = h.keyOffsetY;
     refreshEditorDirtyState(); renderSVG(); markProjectDirty();
   });
-
   offsetCheck.querySelector('#he-key-offset').addEventListener('change', e=>{
     offsetOpts.style.display = e.target.checked ? 'flex' : 'none';
+    if (!e.target.checked) {
+      h.keyOffsetX = 0; h.keyOffsetY = 0;
+      koffxDiv.querySelector('#he-koffx').value = 0; koffxDiv.querySelector('#he-koffx-val').textContent = '0';
+      koffyDiv.querySelector('#he-koffy').value = 0; koffyDiv.querySelector('#he-koffy-val').textContent = '0';
+      refreshEditorDirtyState(); renderSVG(); markProjectDirty();
+    }
   });
 
   editor.appendChild(document.createElement('hr')).className = 'section-sep';
