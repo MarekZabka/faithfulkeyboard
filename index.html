@@ -134,9 +134,9 @@
           </button>
         </div>
       </div>
+      <!-- Sticky editing title — direct child of panel so sticky works against panel-body scroll -->
+      <div id="harmony-editor-title" style="display:none; position:sticky; top:0; z-index:20;"></div>
       <div class="panel-body" id="panel-body">
-        <!-- Sticky editing title — first child of panel-body so sticky:top:0 works -->
-        <div id="harmony-editor-title" style="display:none; position:sticky; top:-0.5rem; z-index:20; margin: -0.5rem -0.75rem 0;"></div>
 
         <!-- Import Harmonies Modal (overlay inside panel-body) -->
         <div id="import-harmonies-modal" style="display:none; position:absolute; top:0;left:0;right:0;bottom:0; background:var(--color-surface); z-index:50; padding:1rem; overflow-y:auto; flex-direction:column; gap:0.75rem;">
