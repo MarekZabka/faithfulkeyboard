@@ -455,21 +455,8 @@ _soundSliders.forEach(({ id, valId, fmt }) => {
 });
 
 // Add harmony button
-document.getElementById('btn-add-harmony').addEventListener('click', () => {
-  const h = makeHarmony({ name: `Harmony ${harmonies.length+1}`, ratios: '' });
-  harmonies.push(h);
-  selectedHarmonyId = h.id;
-  renderHarmonyList();
-  if (harmonyEditMode) renderHarmonyEditor();
-  applyAndDraw();
-  markProjectDirty();
-});
-
-
-// Edit mode toggle
-document.getElementById('btn-edit-harmony-toggle').addEventListener('click', () => {
-  setHarmonyEditMode(!harmonyEditMode);
-});
+// Harmony New / Edit buttons live in the sticky title bar (rendered dynamically)
+// — wired via event delegation in ui-harmony.js renderHarmonyTitleBar()
 
 // Reset/Save View header buttons removed
 

@@ -40,22 +40,11 @@ let harmonyEditMode = false;  // toggled by the Edit button
 
 function setHarmonyEditMode(on) {
   harmonyEditMode = on;
-  const btn = document.getElementById('btn-edit-harmony-toggle');
-  if (btn) {
-    btn.classList.toggle('active', on);
-    btn.style.background = on ? 'var(--color-primary)' : '';
-    btn.style.color = on ? '#fff' : '';
-    btn.style.borderColor = on ? 'var(--color-primary)' : '';
-  }
-  // Show New button only in edit mode
-  const newBtn = document.getElementById('btn-add-harmony');
-  if (newBtn) newBtn.style.display = on ? '' : 'none';
   renderHarmonyList();
+  renderHarmonyTitleBar();
   if (!on) {
     const ed = document.getElementById('harmony-editor');
     if (ed) ed.style.display = 'none';
-    const tb = document.getElementById('harmony-editor-title');
-    if (tb) tb.style.display = 'none';
   } else {
     renderHarmonyEditor();
   }
@@ -120,6 +109,41 @@ function getMiniKeyShapeSVG(h) {
     }
   }
   return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" style="display:block;overflow:visible;" opacity="${opacity}">${shapeHTML}</svg>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  STICKY TITLE BAR
+// ─────────────────────────────────────────────────────────────────────────────
+function renderHarmonyTitleBar() {
+  const bar = document.getElementById('harmony-editor-title');
+  if (!bar) return;
+  const h = harmonies.find(x => x.id === selectedHarmonyId);
+  const name = h ? escHtml(h.name) : '';
+  bar.innerHTML = `
+    <span class="harmony-title-name">${name}</span>
+    <div style="flex:1;"></div>
+    <button class="btn-icon harmony-title-btn" id="btn-add-harmony" title="New harmony"
+      style="display:${harmonyEditMode ? '' : 'none'}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+    <button class="btn-icon harmony-title-btn" id="btn-edit-harmony-toggle" title="Toggle edit mode"
+      style="${harmonyEditMode ? 'background:var(--color-primary);color:#fff;border-color:var(--color-primary);' : ''}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    </button>`;
+  bar.style.display = 'flex';
+  // Wire buttons
+  bar.querySelector('#btn-add-harmony').addEventListener('click', () => {
+    const newH = makeHarmony({ name: `Harmony ${harmonies.length+1}`, ratios: '' });
+    harmonies.push(newH);
+    selectedHarmonyId = newH.id;
+    renderHarmonyList();
+    if (harmonyEditMode) renderHarmonyEditor();
+    applyAndDraw();
+    markProjectDirty();
+  });
+  bar.querySelector('#btn-edit-harmony-toggle').addEventListener('click', () => {
+    setHarmonyEditMode(!harmonyEditMode);
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -289,6 +313,7 @@ function renderHarmonyList() {
     const toneWrap = document.getElementById('harmony-list-tone-table');
     if (toneWrap) toneWrap.innerHTML = '';
   }
+  renderHarmonyTitleBar();
 }
 
 function getHarmonyRepColor(h) {
@@ -305,14 +330,6 @@ function renderHarmonyEditor() {
   if (!h || !harmonyEditMode) { editor.style.display = 'none'; return; }
   editor.style.display = 'flex';
   editor.innerHTML = '';
-
-  // ── Sticky title bar (lives outside the editor, in panel-body scroll context) ──
-  const titleBar = document.getElementById('harmony-editor-title');
-  if (titleBar) {
-    titleBar.className = 'harmony-editor-title';
-    titleBar.innerHTML = `<span>Editing</span><strong>${escHtml(h.name)}</strong>`;
-    titleBar.style.display = 'flex';
-  }
 
   // ── Helper: slider field ──
   function makeSliderField(label, id, min, max, step, value, fmt) {
@@ -864,8 +881,8 @@ function refreshEditorDirtyState() {
   const item = document.querySelector(`.harmony-item[data-id="${h.id}"]`);
   if (item) { const nm = item.querySelector('.harmony-name'); if (nm) nm.textContent = h.name; }
   // Keep title bar in sync when harmony is renamed
-  const titleStrong = document.querySelector('#harmony-editor-title strong');
-  if (titleStrong) titleStrong.textContent = h.name;
+  const titleName = document.querySelector('#harmony-editor-title .harmony-title-name');
+  if (titleName) titleName.textContent = h.name;
 }
 
 function addEditorField(parent, label, inputHTML) {
