@@ -86,23 +86,32 @@ function computeKeysForHarmony(harmony, baseFreq) {
     const baseRatio = r.expsOverride ? r : (harmony.octaveEquiv ? reduceOctave(r) : r);
     const baseVal = r.expsOverride ? Math.exp(dot(r.expsOverride, H_VEC.map(x=>x/1200))*Math.LN2) : ratioVal(baseRatio);
 
-    if (harmony.octaveEquiv && !r.expsOverride) {
-      // Generate all octave transpositions within [20, 4000] Hz
+    if (harmony.octaveEquiv) {
+      // Generate all octave transpositions within [18, 4200] Hz
+      // Works for both ratio-mode and vector-mode tones.
       for (let oct = -10; oct <= 10; oct++) {
         const freq = baseFreq * baseVal * Math.pow(2, oct);
         if (freq < 18 || freq > 4200) continue;
-        const ratio_cents = ratioToCents(baseRatio);
-        const actual_cents = ratio_cents + oct * 1200;
-        const exps = ratioExponents(baseRatio).map((e,i)=>i===0?e+oct:e);
+        let actual_cents, exps, labelBase;
+        if (r.expsOverride) {
+          // Vector mode: shift e2 (octave exponent) by oct
+          exps = r.expsOverride.map((e, i) => i === 0 ? e + oct : e);
+          actual_cents = expsToHeight(exps);
+          labelBase = r.rawLabel || `[${r.expsOverride.join(',')}]`;
+        } else {
+          const ratio_cents = ratioToCents(baseRatio);
+          actual_cents = ratio_cents + oct * 1200;
+          exps = ratioExponents(baseRatio).map((e, i) => i === 0 ? e + oct : e);
+          labelBase = formatRatio(baseRatio);
+        }
         const width = computeWidth(exps, basis, layout.widths);
-        const labelBase = r.expsOverride ? (r.rawLabel || `[${r.expsOverride.join(',')}]`) : formatRatio(baseRatio);
         const label = oct === 0 ? labelBase : `${labelBase}·2^${oct}`;
         const key = `${labelBase}_${oct}`;
         if (seen.has(key)) continue;
         seen.add(key);
         keys.push({
-          ratio: baseRatio, label, cents: actual_cents, freq, width,
-          limit: jiLimit(baseRatio),
+          ratio: r.expsOverride ? null : baseRatio, label, cents: actual_cents, freq, width,
+          limit: r.expsOverride ? jiLimit(null) : jiLimit(baseRatio),
           x_logical: actual_cents, y_logical: width,
           harmonyId: harmony.id, harmonyName: harmony.name,
           oct: oct,
