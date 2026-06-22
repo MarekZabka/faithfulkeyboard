@@ -488,8 +488,9 @@ function renderSVG() {
     const py = py0 + (h.keyOffsetY || 0);
     const isActive = activeKeyIds.has(key.label+'_'+key.harmonyId);
     const color = isActive ? activeColor : getKeyColor(key, h, keys);
-    const strokeColor = isActive ? '#fff' : cs.getPropertyValue('--color-key-stroke').trim();
-    const strokeW = isActive ? 2 : (h.keyStrokeWidth !== undefined ? h.keyStrokeWidth : 1.5);
+    const defaultStroke = cs.getPropertyValue('--color-key-stroke').trim();
+    const strokeColor = isActive ? '#fff' : (h.edgeColor ? h.edgeColor : defaultStroke);
+    const strokeW = isActive ? 2 : (h.keyStrokeWidth !== undefined ? h.keyStrokeWidth : 0);
 
     const g = svgEl2('g', {
       class: 'svg-key' + (isActive ? ' key-active' : ''),

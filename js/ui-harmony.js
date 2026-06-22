@@ -378,7 +378,7 @@ function renderHarmonyEditor() {
   });
 
   // Edge Width (new)
-  const edgeWidthVal = h.keyStrokeWidth !== undefined ? h.keyStrokeWidth : 1.5;
+  const edgeWidthVal = h.keyStrokeWidth !== undefined ? h.keyStrokeWidth : 0;
   const edgeWidthDiv = makeSliderField('Edge Width', 'he-edge-width', 0, 8, 0.5, edgeWidthVal, v=>parseFloat(v).toFixed(1));
   appendSub(shapeSectionBody, edgeWidthDiv);
   edgeWidthDiv.querySelector('#he-edge-width').addEventListener('input', e=>{
