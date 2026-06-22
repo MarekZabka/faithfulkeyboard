@@ -118,6 +118,7 @@
       flex: 1; font-family: var(--font-display), sans-serif; font-size: var(--text-sm);
       font-weight: 600; color: var(--color-text);
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      text-align: center;
     }
     /* Panel portion of top bar — same width as the panel, hidden when panel closed */
     .top-bar-panel {
