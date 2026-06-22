@@ -25,10 +25,11 @@ function setPanelOpen(open) {
     panel.classList.remove('open');
     if (topBarPanel) topBarPanel.classList.add('panel-hidden');
   }
-  // Update btn-toggle-config icon
+  // Show gear button only when panel is closed
   const toggleBtn = document.getElementById('btn-toggle-config');
   if (toggleBtn) {
-    toggleBtn.title = open ? 'Hide configuration panel' : 'Show configuration panel';
+    toggleBtn.style.display = open ? 'none' : '';
+    toggleBtn.title = 'Show configuration panel';
   }
   // Re-render after transition so stage fills its new size
   setTimeout(()=>{ if (typeof applyAndDraw === 'function') applyAndDraw(); else renderSVG(); }, 320);
