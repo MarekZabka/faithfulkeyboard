@@ -305,13 +305,6 @@ function renderHarmonyEditor() {
   editor.style.display = 'flex';
   editor.innerHTML = '';
 
-  // ── Sticky name bar ──
-  const stickyName = document.createElement('div');
-  stickyName.className = 'harmony-editor-sticky-name';
-  stickyName.id = 'harmony-editor-sticky-name';
-  stickyName.innerHTML = `<span>Editing</span><strong>${escHtml(h.name)}</strong>`;
-  editor.appendChild(stickyName);
-
   // ── Helper: slider field ──
   function makeSliderField(label, id, min, max, step, value, fmt) {
     const div = document.createElement('div');
@@ -861,9 +854,6 @@ function refreshEditorDirtyState() {
   if (!h) return;
   const item = document.querySelector(`.harmony-item[data-id="${h.id}"]`);
   if (item) { const nm = item.querySelector('.harmony-name'); if (nm) nm.textContent = h.name; }
-  // Keep sticky name bar in sync
-  const stickyStrong = document.querySelector('#harmony-editor-sticky-name strong');
-  if (stickyStrong) stickyStrong.textContent = h.name;
 }
 
 function addEditorField(parent, label, inputHTML) {
