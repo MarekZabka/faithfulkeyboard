@@ -598,8 +598,8 @@ function renderSVG() {
     // Mouse play handled at stage level (mousedown/mouseup)
     // Store key reference on element — stage touch handlers use elementFromPoint to find this
     hit._fkKey = key;
-    hit.addEventListener('mouseover', e => showTooltip(e.clientX, e.clientY, key));
-    hit.addEventListener('mousemove', e => showTooltip(e.clientX, e.clientY, key));
+    hit.addEventListener('mouseover', e => { if (!isViewLocked) showTooltip(e.clientX, e.clientY, key); });
+    hit.addEventListener('mousemove', e => { if (!isViewLocked) showTooltip(e.clientX, e.clientY, key); });
     hit.addEventListener('mouseout', hideTooltip);
     g.appendChild(hit);
 

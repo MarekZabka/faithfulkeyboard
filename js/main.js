@@ -483,11 +483,12 @@ document.getElementById('btn-lock-view').addEventListener('click', ()=>{
   const btn = document.getElementById('btn-lock-view');
   if (isViewLocked) {
     btn.classList.add('locked');
-    btn.title = 'View locked — click to unlock pan/zoom/rotate';
+    btn.title = 'Lock view';
     btn.innerHTML = LOCK_ICON_LOCKED;
+    hideTooltip();
   } else {
     btn.classList.remove('locked');
-    btn.title = 'Unlock view (enable pan/zoom/rotate)';
+    btn.title = 'Unlock view';
     btn.innerHTML = LOCK_ICON_UNLOCKED;
   }
   if (window._updateOverlayVisibility) window._updateOverlayVisibility();
