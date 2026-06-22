@@ -100,22 +100,30 @@
     svg { display: block; }
 
     /* ── Layout ── */
-    .app { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+    .app { display: flex; flex-direction: row; height: 100dvh; overflow: hidden; }
 
-    /* Header */
-    .header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.75rem 1.5rem;
+    /* Vertical sidebar */
+    .sidebar {
+      width: 40px; flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center;
       background: var(--color-surface);
-      border-bottom: 1px solid var(--color-divider);
-      gap: 1rem;
-      position: sticky; top: 0; z-index: 100;
+      border-right: 1px solid var(--color-divider);
+      z-index: 100; overflow: hidden;
+      padding: 0.5rem 0;
+      gap: 0.25rem;
     }
+    .sidebar-logo { flex-shrink: 0; padding: 0.25rem 0; }
+    .sidebar-project-name {
+      writing-mode: vertical-rl; transform: rotate(180deg);
+      font-family: var(--font-display), sans-serif; font-size: 0.7rem; font-weight: 600;
+      color: var(--color-text-muted); flex: 1; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap; cursor: default;
+      max-height: 180px; text-align: center; padding: 0.25rem 0;
+    }
+    .sidebar-actions { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; }
+    /* Keep .logo/.logo-text for any remaining references */
     .logo { display: flex; align-items: center; gap: 0.625rem; flex-shrink: 0; }
-    .logo-svg { color: var(--color-primary); }
     .logo-text { font-family: var(--font-display), sans-serif; font-size: var(--text-lg); font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
-    .logo-sub { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: 400; margin-top: 1px; }
-    .header-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     .btn-icon {
       width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center;
       border-radius: var(--radius-md); color: var(--color-text-muted);
@@ -160,7 +168,7 @@
     .btn-sm.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
 
     /* Main */
-    .main { flex: 1; display: flex; flex-direction: column; gap: 0; overflow: hidden; min-height: 0; position: relative; }
+    .main { flex: 1; display: flex; flex-direction: row; overflow: hidden; min-height: 0; position: relative; }
 
     /* Keyboard stage */
     .stage-wrap {
@@ -444,10 +452,8 @@
     .panel-resize-handle:hover { background: var(--color-primary); }
 
     /* Responsive */
-    @media (min-width: 960px) {
-      .main { flex-direction: row; overflow: hidden; }
-      .stage-wrap { flex: 1; }
-    }
+    /* main is always row now (sidebar handles vertical layout) */
+    .stage-wrap { flex: 1; }
     /* Mobile: panel is full-width overlay */
     @media (max-width: 959px) {
       .panel { width: 100%; max-width: 420px; }
@@ -550,18 +556,20 @@
   line-height: 1;
 }
 
-/* ── Panel header merged with tabs ── */
+/* ── Panel header: actions row + tabs row ── */
 .panel-header-merged {
   display: flex; flex-direction: column;
   border-bottom: 1px solid var(--color-divider);
   flex-shrink: 0; user-select: none;
 }
-.panel-header-top {
-  display: flex; align-items: center; gap: 0.2rem;
-  padding: 0.3rem 0.5rem;
+.panel-actions-row {
+  display: flex; align-items: center; gap: 0.15rem;
+  padding: 0.25rem 0.4rem;
+  border-bottom: 1px solid var(--color-divider);
 }
-.panel-header-top .panel-actions {
-  display: flex; align-items: center; gap: 0.15rem; margin-left: auto;
+#panel-tabs {
+  padding: 0 0.3rem; border-bottom: none; margin-bottom: 0;
+  overflow-x: auto; flex-wrap: nowrap;
 }
 .panel-action-btn {
   width: 24px; height: 24px;
