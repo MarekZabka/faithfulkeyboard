@@ -189,6 +189,8 @@
 
           <!-- Harmony editor (only shown in Edit mode) -->
           <div class="harmony-editor" id="harmony-editor" style="display:none;"></div>
+          <!-- Included Tones table in non-edit mode -->
+          <div id="harmony-list-tone-table"></div>
         </div>
 
         <!-- Tab: Layout -->
@@ -515,10 +517,11 @@
 
 <!-- Tooltip -->
 <div class="tooltip" id="tooltip">
+  <div class="tooltip-harmony" id="tt-harmony"></div>
   <div class="tooltip-ratio" id="tt-ratio">1/1</div>
+  <div id="tt-name" style="font-size:0.72rem;color:var(--color-text-muted);margin-top:1px;"></div>
   <div class="tooltip-cents" id="tt-cents">0.0 ¢</div>
   <div class="tooltip-freq" id="tt-freq">261.6 Hz</div>
-  <div class="tooltip-harmony" id="tt-harmony"></div>
   <div id="tt-width" style="font-size:0.7rem;color:var(--color-text-faint);margin-top:1px;"></div>
 </div>
 

@@ -424,6 +424,9 @@
     .tone-table tr:last-child td { border-bottom: none; }
     .tone-table tr:hover td { background: var(--color-surface-offset); }
     .tone-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+    .tone-table td:first-child { padding: 0.15rem 0.2rem; width: 20px; }
+    .tone-name-cell { max-width: 60px; overflow: hidden; line-height: 1; }
+    .tone-name-cell svg { display: inline-block; vertical-align: middle; }
 
     /* Tooltip */
     .tooltip {
