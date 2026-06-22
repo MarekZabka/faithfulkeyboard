@@ -489,7 +489,7 @@ function renderSVG() {
     const isActive = activeKeyIds.has(key.label+'_'+key.harmonyId);
     const color = isActive ? activeColor : getKeyColor(key, h, keys);
     const strokeColor = isActive ? '#fff' : cs.getPropertyValue('--color-key-stroke').trim();
-    const strokeW = isActive ? 2 : 1.5;
+    const strokeW = isActive ? 2 : (harmony.keyStrokeWidth !== undefined ? harmony.keyStrokeWidth : 1.5);
 
     const g = svgEl2('g', {
       class: 'svg-key' + (isActive ? ' key-active' : ''),
