@@ -525,7 +525,10 @@ function renderSVG() {
     const showLabel = h.showLabels &&
       (h.octaveEquiv ? key.oct === 0 : true);
     if (showLabel) {
-      const fontSize = Math.max(8, Math.min(h.labelFontSize || 11, ks * 0.5));
+      // Scale fontSize proportionally with zoom: anchor labelFontSize to the default-fit key size.
+      const baseFontSize = h.labelFontSize || 11;
+      const defaultKs = (h.keySize !== undefined ? h.keySize : layout.keySize) * baseZoomScale;
+      const fontSize = Math.max(4, baseFontSize * (ks / (defaultKs || ks)));
       const defaultLblColor = isActive ? '#1a1a1a' : 'rgba(255,255,255,0.92)';
       const lblColor = isActive ? '#1a1a1a' : (h.labelColor && h.labelColor !== '' ? h.labelColor : defaultLblColor);
       const lx = (px + (h.labelOffsetX||0)).toFixed(2);

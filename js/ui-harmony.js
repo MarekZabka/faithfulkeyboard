@@ -144,6 +144,17 @@ function renderToneTable(h, container) {
       } catch(e2) { hejiName=''; }
       const miniSvg=getMiniKeyShapeSVG(h);
       tr.innerHTML=`<td style="padding:0 2px;">${miniSvg}</td><td>${ratioDisplay}</td><td class="tone-name-cell">${hejiName}</td><td>${k.cents.toFixed(1)}</td><td>${k.freq.toFixed(2)}</td><td>${k.width!==undefined?k.width.toFixed(2):'–'}</td>`;
+      // Hover highlight matching SVG keys
+      const hid = h.id;
+      const klabel = k.label;
+      tr.addEventListener('mouseenter', () => {
+        document.querySelectorAll(`.svg-key[data-hid="${hid}"][data-label="${CSS.escape(klabel)}"]`)
+          .forEach(el => el.classList.add('key-row-hover'));
+      });
+      tr.addEventListener('mouseleave', () => {
+        document.querySelectorAll(`.svg-key[data-hid="${hid}"][data-label="${CSS.escape(klabel)}"]`)
+          .forEach(el => el.classList.remove('key-row-hover'));
+      });
       tbody.appendChild(tr);
     }
     if (keys.length>30) {
