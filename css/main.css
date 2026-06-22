@@ -480,7 +480,7 @@
 
     /* SVG key flash animation */
     .key-active { filter: brightness(1.4); }
-    .key-row-hover { filter: brightness(1.7) drop-shadow(0 0 8px rgba(255,255,255,0.8)); }
+    .key-row-hover { filter: sepia(0.7) saturate(1.4) brightness(1.8) drop-shadow(0 0 6px rgba(240,220,160,0.9)); }
     @keyframes keyflash { 0% { filter: brightness(2); } 100% { filter: brightness(1); } }
 
     /* Drag over highlight */
