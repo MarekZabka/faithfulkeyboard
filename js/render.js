@@ -268,10 +268,12 @@ function rotatePoints(points, degrees) {
 
 function getEffectiveKeySize(h) {
   const base = (h && h.keySize !== undefined) ? h.keySize : layout.keySize;
-  // Scale proportionally with zoom, no upper cap so zooming in grows keys.
-  // Floor = base*0.4 keeps keys readable at very small zoom levels.
+  // Scale proportionally with zoom.
+  // Floor = 15% of the default-fit size so keys never vanish at extreme zoom-out,
+  // but the floor is low enough that zoom changes are always visible near the default level.
   const zoomScale = baseScaleX * zoomFactor;
-  return Math.max(base * 0.4, base * zoomScale);
+  const defaultSize = base * baseZoomScale;   // size at zoomFactor=1
+  return Math.max(defaultSize * 0.15, base * zoomScale);
 }
 
 // Update view controls display (called after any pan/zoom)
