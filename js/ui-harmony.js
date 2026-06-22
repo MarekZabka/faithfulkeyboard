@@ -129,7 +129,6 @@ function renderToneTable(h, container) {
   try {
     let keys = computeKeysForHarmony(h, getBaseFreq());
     if (h.octaveEquiv) keys = keys.filter(k => k.oct === 0);
-    if (!keys.length) return;
     const sep = document.createElement('hr'); sep.className='section-sep'; container.appendChild(sep);
     const lbl = document.createElement('div'); lbl.className='field-label'; lbl.style.marginBottom='0.25rem';
     lbl.textContent=`Included Tones (${keys.length})`; container.appendChild(lbl);
