@@ -51,25 +51,37 @@ document.getElementById('coord-select').addEventListener('change', e => {
   // Old formula: width = w_old^T * B_old^{-1} * e
   // New formula: width = w_new^T * B_new^{-1} * e
   // Equating: w_new = B_new^T * (B_old^T)^{-1} * w_old
-  const oldBasis = (oldSys === 'other' && layout.customBasis) ? layout.customBasis : COORD_SYSTEMS[oldSys === 'other' ? 'reduced' : oldSys].basis;
-  const wOld = layout.widths.slice(0,6);
+  // Determine actual basis matrices for old and new systems
+  const oldBasis = (oldSys === 'other' && layout.customBasis)
+    ? layout.customBasis
+    : COORD_SYSTEMS[oldSys === 'other' ? 'reduced' : oldSys].basis;
+  const wOld = layout.widths.slice(0, 6);
 
-  const newBasisKey = isOther ? 'reduced' : newSys;
-  const newBasis = COORD_SYSTEMS[newBasisKey].basis;
+  // For 'other': use existing customBasis if defined; otherwise seed with reduced
+  let newBasis;
+  if (isOther) {
+    if (layout.customBasis && layout.customBasis.length === 6) {
+      newBasis = layout.customBasis;
+    } else {
+      newBasis = COORD_SYSTEMS['reduced'].basis;
+      layout.customBasis = newBasis;
+      layout.customBasisLabels = COORD_SYSTEMS['reduced'].labels.slice();
+      const inp = document.getElementById('custom-basis-input');
+      if (inp) inp.value = '2, 3/2, 5/4, 7/4, 11/8, 13/8';
+    }
+  } else {
+    newBasis = COORD_SYSTEMS[newSys].basis;
+  }
 
-  // Preserve w^T * (B^T)^{-1} * e across basis changes.
-  // This means: w_old^T*(B_old^T)^{-1} = w_new^T*(B_new^T)^{-1}
-  // Equivalently: B_old^{-1}*w_old = B_new^{-1}*w_new
-  // So: w_new = B_new * B_old^{-1} * w_old
+  // Preserve tone positions: w_new = B_new * B_old^{-1} * w_old
   const invBold = invertMatrix6(oldBasis);
   let newWidths;
   if (invBold) {
     const wInter = invBold.map(row => dot(row, wOld));
-    // Step 2: w_new = B_new * wInter
     newWidths = newBasis.map(row => dot(row, wInter));
     newWidths = newWidths.map(w => Math.max(-99, Math.min(99, w)));
   } else {
-    newWidths = [...COORD_SYSTEMS[newBasisKey].defaults];
+    newWidths = isOther ? COORD_SYSTEMS['reduced'].defaults.slice() : [...COORD_SYSTEMS[newSys].defaults];
   }
 
   layout.coordSystem = newSys;
@@ -84,18 +96,37 @@ document.getElementById('coord-select').addEventListener('change', e => {
   updateLayoutDirtyIndicator();
 });
 
-// Custom basis input
-document.getElementById('custom-basis-input').addEventListener('change', () => {
-  const lines = document.getElementById('custom-basis-input').value.split('\n').map(s=>s.trim()).filter(Boolean);
-  const newBasis = [];
-  for (const line of lines) {
-    const r = parseRatio(line);
-    if (r && r.expsOverride) { newBasis.push(r.expsOverride); continue; }
-    if (r) { newBasis.push(ratioExponents(r)); continue; }
+// Custom basis input — comma-separated ratios or vectors
+function parseCustomBasisInput(raw) {
+  const parts = splitToneList(raw);
+  const newBasis = [], newLabels = [];
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const vec = parseVectorStr(trimmed);
+    if (vec) { newBasis.push(vec); newLabels.push(trimmed); continue; }
+    const r = parseRatio(trimmed);
+    if (r) { newBasis.push(ratioExponents(r)); newLabels.push(trimmed); continue; }
   }
-  // Pad to 6
-  while (newBasis.length < 6) newBasis.push([0,0,0,0,0,0]);
-  layout.customBasis = newBasis.slice(0,6);
+  while (newBasis.length < 6) { newBasis.push([0,0,0,0,0,0]); newLabels.push('?'); }
+  return { basis: newBasis.slice(0,6), labels: newLabels.slice(0,6) };
+}
+
+document.getElementById('custom-basis-input').addEventListener('change', () => {
+  const raw = document.getElementById('custom-basis-input').value;
+  const { basis, labels } = parseCustomBasisInput(raw);
+  // Recalculate widths to preserve tone positions against the new basis
+  const oldBasis2 = (layout.customBasis && layout.customBasis.length === 6)
+    ? layout.customBasis : COORD_SYSTEMS['reduced'].basis;
+  const invOld2 = invertMatrix6(oldBasis2);
+  if (invOld2) {
+    const wInter2 = invOld2.map(row => dot(row, layout.widths.slice(0,6)));
+    layout.widths = basis.map(row => Math.max(-99, Math.min(99, dot(row, wInter2))));
+  }
+  layout.customBasis = basis;
+  layout.customBasisLabels = labels;
+  layout.savedWidths = [...layout.widths];
+  buildWidthControls();
   applyAndDraw();
 });
 

@@ -133,12 +133,20 @@ function updateSoundDirtyIndicator() {
 function buildWidthControls() {
   const coordSys = layout.coordSystem === 'other' ? 'reduced' : layout.coordSystem;
   const csData = COORD_SYSTEMS[coordSys];
-  const labels = layout.coordSystem === 'other' && layout.customBasis
-    ? layout.customBasis.map((vec, i) => {
+  // Use stored original labels for custom basis (ratio strings or vectors as typed)
+  let labels;
+  if (layout.coordSystem === 'other' && layout.customBasis) {
+    if (layout.customBasisLabels && layout.customBasisLabels.length === layout.customBasis.length) {
+      labels = layout.customBasisLabels;
+    } else {
+      labels = layout.customBasis.map(vec => {
         const s = '[' + vec.join(',') + ']';
         return s.length > 14 ? s.substring(0, 12) + '…' : s;
-      })
-    : csData.labels;
+      });
+    }
+  } else {
+    labels = csData.labels;
+  }
 
   // Scope: half-range for each row slider (e.g. scope=5 ⇒ [-5,+5])
   if (!layout.widthScopes) layout.widthScopes = new Array(6).fill(5);
