@@ -100,30 +100,39 @@
     svg { display: block; }
 
     /* ── Layout ── */
-    .app { display: flex; flex-direction: row; height: 100dvh; overflow: hidden; }
+    .app { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
 
-    /* Vertical sidebar */
-    .sidebar {
-      width: 40px; flex-shrink: 0;
-      display: flex; flex-direction: column; align-items: center;
+    /* Top bar — splits into stage portion and panel portion */
+    .top-bar {
+      display: flex; flex-direction: row; flex-shrink: 0;
+      height: 40px;
       background: var(--color-surface);
-      border-right: 1px solid var(--color-divider);
-      z-index: 100; overflow: hidden;
-      padding: 0.5rem 0;
-      gap: 0.25rem;
+      border-bottom: 1px solid var(--color-divider);
+      position: relative; z-index: 100;
     }
-    .sidebar-logo { flex-shrink: 0; padding: 0.25rem 0; }
-    .sidebar-project-name {
-      writing-mode: vertical-rl; transform: rotate(180deg);
-      font-family: var(--font-display), sans-serif; font-size: 0.7rem; font-weight: 600;
-      color: var(--color-text-muted); flex: 1; overflow: hidden;
-      text-overflow: ellipsis; white-space: nowrap; cursor: default;
-      max-height: 180px; text-align: center; padding: 0.25rem 0;
+    .top-bar-stage {
+      flex: 1; display: flex; align-items: center; gap: 0.75rem;
+      padding: 0 1rem; min-width: 0; overflow: hidden;
     }
-    .sidebar-actions { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; }
-    /* Keep .logo/.logo-text for any remaining references */
-    .logo { display: flex; align-items: center; gap: 0.625rem; flex-shrink: 0; }
-    .logo-text { font-family: var(--font-display), sans-serif; font-size: var(--text-lg); font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+    .top-bar-project-name {
+      flex: 1; font-family: var(--font-display), sans-serif; font-size: var(--text-sm);
+      font-weight: 600; color: var(--color-text);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    /* Panel portion of top bar — same width as the panel, hidden when panel closed */
+    .top-bar-panel {
+      display: flex; align-items: center; gap: 0.15rem;
+      padding: 0 0.4rem;
+      width: var(--panel-width, 360px); flex-shrink: 0;
+      border-left: 1px solid var(--color-divider);
+      transition: width 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, padding 0.3s;
+    }
+    .top-bar-panel.panel-hidden {
+      width: 0; padding: 0; overflow: hidden; opacity: 0; pointer-events: none;
+      border-left: none;
+    }
+    .logo { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+    .logo-text { font-family: var(--font-display), sans-serif; font-size: var(--text-sm); font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
     .btn-icon {
       width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center;
       border-radius: var(--radius-md); color: var(--color-text-muted);
@@ -221,24 +230,22 @@
     .axis-label-x { bottom: 0.5rem; left: 50%; transform: translateX(-50%); }
     .axis-label-y { top: 50%; left: 0.5rem; transform: translateY(-50%) rotate(-90deg); transform-origin: center; }
 
-    /* Panel — overlay mode on all screen sizes */
+    /* Panel — in normal flow next to stage */
     .panel {
-      position: absolute;
-      top: 0; right: 0; bottom: 0;
-      width: 360px;
+      position: relative;
+      width: 360px; flex-shrink: 0;
       background: var(--color-surface);
       border-left: 1px solid var(--color-divider);
       display: flex; flex-direction: column;
       overflow: hidden;
       z-index: 10;
-      box-shadow: -4px 0 16px rgba(0,0,0,0.12);
-      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
-      transform: translateX(0);
-      opacity: 1;
+      box-shadow: none;
+      transition: width 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
     }
     .panel:not(.open) {
-      transform: translateX(100%);
+      width: 0;
       opacity: 0;
+      overflow: hidden;
       pointer-events: none;
     }
     .panel-header {
@@ -452,11 +459,10 @@
     .panel-resize-handle:hover { background: var(--color-primary); }
 
     /* Responsive */
-    /* main is always row now (sidebar handles vertical layout) */
     .stage-wrap { flex: 1; }
-    /* Mobile: panel is full-width overlay */
     @media (max-width: 959px) {
       .panel { width: 100%; max-width: 420px; }
+      .top-bar-panel { width: 100%; max-width: 420px; }
     }
 
     /* Scrollbar styling */
@@ -556,20 +562,16 @@
   line-height: 1;
 }
 
-/* ── Panel header: actions row + tabs row ── */
+/* ── Panel header: tabs only (actions are in the top-bar) ── */
 .panel-header-merged {
   display: flex; flex-direction: column;
   border-bottom: 1px solid var(--color-divider);
   flex-shrink: 0; user-select: none;
 }
-.panel-actions-row {
-  display: flex; align-items: center; gap: 0.15rem;
-  padding: 0.25rem 0.4rem;
-  border-bottom: 1px solid var(--color-divider);
-}
 #panel-tabs {
   padding: 0 0.3rem; border-bottom: none; margin-bottom: 0;
   overflow-x: auto; flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 .panel-action-btn {
   width: 24px; height: 24px;
@@ -582,10 +584,7 @@
 .panel-action-btn:hover { background: var(--color-divider); color: var(--color-text); }
 .panel-action-btn.active-save { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
 /* Tabs row sits directly below the header top row */
-.panel-header-merged .tabs {
-  margin-bottom: 0; border-bottom: none;
-  padding: 0 0.4rem;
-}
+
 
 /* ── Harmony edit mode ── */
 .harmony-edit-mode-hidden { display: none !important; }

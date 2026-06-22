@@ -17,18 +17,21 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 function setPanelOpen(open) {
   const panel = document.getElementById('side-panel');
+  const topBarPanel = document.getElementById('top-bar-panel');
   if (open) {
     panel.classList.add('open');
+    if (topBarPanel) topBarPanel.classList.remove('panel-hidden');
   } else {
     panel.classList.remove('open');
+    if (topBarPanel) topBarPanel.classList.add('panel-hidden');
   }
   // Update btn-toggle-config icon
   const toggleBtn = document.getElementById('btn-toggle-config');
   if (toggleBtn) {
     toggleBtn.title = open ? 'Hide configuration panel' : 'Show configuration panel';
   }
-  // Panel is now overlay — no layout shift, but SVG might need re-centering
-  setTimeout(()=>renderSVG(), 300);
+  // Re-render after transition so stage fills its new size
+  setTimeout(()=>{ if (typeof applyAndDraw === 'function') applyAndDraw(); else renderSVG(); }, 320);
 }
 
 document.getElementById('panel-toggle').addEventListener('click', () => {
@@ -539,6 +542,7 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
     const dx = startX - e.clientX; // panel is on right, so moving left increases width
     const newW = Math.max(260, Math.min(600, startW + dx));
     panel.style.width = newW + 'px';
+    const tbp = document.getElementById('top-bar-panel'); if (tbp) tbp.style.width = newW + 'px';
   });
   document.addEventListener('mouseup', () => {
     if (!resizing) return;
