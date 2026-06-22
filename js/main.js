@@ -461,33 +461,6 @@ document.getElementById('btn-add-harmony').addEventListener('click', () => {
   markProjectDirty();
 });
 
-// Clone Harmony button
-document.getElementById('btn-clone-harmony').addEventListener('click', () => {
-  const h = harmonies.find(x => x.id === selectedHarmonyId);
-  if (!h) return;
-  const cloned = makeHarmony(snapshotHarmony(h));
-  cloned.name = h.name + ' (Clone)';
-  cloned.savedState = snapshotHarmony(cloned);
-  harmonies.push(cloned);
-  selectedHarmonyId = cloned.id;
-  renderHarmonyList();
-  if (harmonyEditMode) renderHarmonyEditor();
-  applyAndDraw();
-  markProjectDirty();
-});
-
-// Delete Harmony button
-document.getElementById('btn-delete-harmony').addEventListener('click', () => {
-  const h = harmonies.find(x => x.id === selectedHarmonyId);
-  if (!h) return;
-  if (!confirm(`Delete "${h.name}"?`)) return;
-  harmonies = harmonies.filter(x => x.id !== h.id);
-  selectedHarmonyId = harmonies.length ? harmonies[harmonies.length-1].id : null;
-  renderHarmonyList();
-  renderHarmonyEditor();
-  applyAndDraw();
-  markProjectDirty();
-});
 
 // Edit mode toggle
 document.getElementById('btn-edit-harmony-toggle').addEventListener('click', () => {

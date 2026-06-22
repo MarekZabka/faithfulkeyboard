@@ -38,9 +38,11 @@ function setHarmonyEditMode(on) {
     btn.style.color = on ? '#fff' : '';
     btn.style.borderColor = on ? 'var(--color-primary)' : '';
   }
+  // Show New button only in edit mode
+  const newBtn = document.getElementById('btn-add-harmony');
+  if (newBtn) newBtn.style.display = on ? '' : 'none';
   renderHarmonyList();
   if (!on) {
-    // Hide editor when leaving edit mode
     const ed = document.getElementById('harmony-editor');
     if (ed) ed.style.display = 'none';
   } else {
@@ -114,21 +116,6 @@ function renderHarmonyList() {
     name.textContent = h.name;
     item.appendChild(name);
 
-    // ── Edit mode pencil button (only in edit mode) ──
-    if (harmonyEditMode) {
-      const editBtn = document.createElement('button');
-      editBtn.className = 'harmony-item-edit-btn' + (h.id === selectedHarmonyId ? ' active' : '');
-      editBtn.title = 'Edit this harmony';
-      editBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`;
-      editBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        selectedHarmonyId = h.id;
-        renderHarmonyList();
-        renderHarmonyEditor();
-      });
-      item.appendChild(editBtn);
-    }
-
     // Visibility toggle (always shown)
     const visBtn = document.createElement('button');
     visBtn.className = 'harmony-vis-toggle' + (h.visible ? '' : ' hidden');
@@ -143,6 +130,44 @@ function renderHarmonyList() {
       applyAndDraw();
     });
     item.appendChild(visBtn);
+
+    // Clone + Delete icon buttons — only in Edit mode
+    if (harmonyEditMode) {
+      const cloneBtn = document.createElement('button');
+      cloneBtn.className = 'harmony-vis-toggle';
+      cloneBtn.title = 'Clone';
+      cloneBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+      cloneBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const cloned = makeHarmony(snapshotHarmony(h));
+        cloned.name = h.name + ' (Clone)';
+        cloned.savedState = snapshotHarmony(cloned);
+        harmonies.push(cloned);
+        selectedHarmonyId = cloned.id;
+        renderHarmonyList();
+        if (harmonyEditMode) renderHarmonyEditor();
+        applyAndDraw();
+        markProjectDirty();
+      });
+      item.appendChild(cloneBtn);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'harmony-vis-toggle';
+      delBtn.title = 'Delete';
+      delBtn.style.color = 'var(--color-danger)';
+      delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+      delBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!confirm(`Delete "${h.name}"?`)) return;
+        harmonies = harmonies.filter(x => x.id !== h.id);
+        selectedHarmonyId = harmonies.length ? harmonies[harmonies.length-1].id : null;
+        renderHarmonyList();
+        renderHarmonyEditor();
+        applyAndDraw();
+        markProjectDirty();
+      });
+      item.appendChild(delBtn);
+    }
 
     // Click to select (in edit mode also shows editor)
     item.addEventListener('click', e => {
