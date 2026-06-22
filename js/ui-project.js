@@ -399,6 +399,7 @@ function buildProjectJSON() {
     layout: {
       coordSystem: layout.coordSystem,
       customBasis: layout.customBasis,
+        customBasisLabels: layout.customBasisLabels || null,
       widths: layout.widths,
       savedWidths: layout.savedWidths,
       widthScopes: layout.widthScopes,
@@ -617,6 +618,7 @@ function importProject(jsonStr) {
     if (project.layout) {
       layout.coordSystem = project.layout.coordSystem || 'reduced';
       layout.customBasis = project.layout.customBasis || null;
+      layout.customBasisLabels = project.layout.customBasisLabels || null;
       layout.widths = project.layout.widths || [0,0.9,4.5,4.0,3.5,1.6];
       layout.savedWidths = project.layout.savedWidths || [...layout.widths];
       layout.widthScopes = project.layout.widthScopes || new Array(6).fill(5);
@@ -655,6 +657,14 @@ function importProject(jsonStr) {
     // Update UI
     document.getElementById('coord-select').value = layout.coordSystem;
     document.getElementById('custom-basis-wrap').style.display = layout.coordSystem==='other'?'':'none';
+    if (layout.coordSystem === 'other' && layout.customBasis) {
+      const cbInp = document.getElementById('custom-basis-input');
+      if (cbInp) {
+        cbInp.value = (layout.customBasisLabels && layout.customBasisLabels.length)
+          ? layout.customBasisLabels.join(', ')
+          : layout.customBasis.map(v => '[' + v.join(',') + ']').join(', ');
+      }
+    }
     document.getElementById('show-octave-lines').checked = layout.showOctaveLines;
     document.getElementById('show-semitone-lines').checked = layout.showSemitoneLines;
     // Sync new layout line controls
