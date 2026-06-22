@@ -139,6 +139,7 @@
       transition: background var(--transition), color var(--transition);
     }
     .btn-icon:hover { background: var(--color-surface-dynamic); color: var(--color-text); }
+    .header-actions { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
     .btn-primary {
       display: inline-flex; align-items: center; gap: 0.375rem;
       padding: 0.4rem 0.875rem;
