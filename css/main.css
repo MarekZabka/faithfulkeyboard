@@ -112,7 +112,7 @@
     }
     .top-bar-stage {
       flex: 1; display: flex; align-items: center; gap: 0.75rem;
-      padding: 0 1rem; min-width: 0; overflow: hidden;
+      padding: 0 1rem; min-width: 0;
     }
     .top-bar-project-name {
       flex: 1; font-family: var(--font-display), sans-serif; font-size: var(--text-sm);
@@ -135,7 +135,7 @@
     .logo-text { font-family: var(--font-display), sans-serif; font-size: var(--text-sm); font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
     .btn-icon {
       width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center;
-      border-radius: var(--radius-md); color: var(--color-text-muted);
+      border-radius: var(--radius-md); color: var(--color-text-muted); flex-shrink: 0;
       transition: background var(--transition), color var(--transition);
     }
     .btn-icon:hover { background: var(--color-surface-dynamic); color: var(--color-text); }
