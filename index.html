@@ -134,8 +134,6 @@
           </button>
         </div>
       </div>
-      <!-- Title bar: flex sibling of panel-body, shown only on Harmonies tab -->
-      <div id="harmony-editor-title" style="display:none; flex-shrink:0;"></div>
       <div class="panel-body" id="panel-body">
 
         <!-- Import Harmonies Modal (overlay inside panel-body) -->
@@ -181,6 +179,7 @@
 
         <!-- Tab: Harmony -->
         <div class="tab-panel" id="tab-harmony">
+          <div id="harmony-editor-title" style="display:none;"></div>
           <div class="harmony-list" id="harmony-list"></div>
           <!-- Harmony editor (only shown in Edit mode) -->
           <div class="harmony-editor" id="harmony-editor" style="display:none;"></div>
