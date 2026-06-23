@@ -124,7 +124,9 @@ function getMiniKeyShapeSVG(h) {
       }
     }
   }
-  return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" style="display:block;overflow:visible;" opacity="${opacity}">${shapeHTML}</svg>`;
+  const rot = h.keyRotation || 0;
+  const rotAttr = rot ? ` transform="rotate(${rot},${cx},${cy})"` : '';
+  return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" style="display:block;overflow:visible;" opacity="${opacity}"><g${rotAttr}>${shapeHTML}</g></svg>`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
