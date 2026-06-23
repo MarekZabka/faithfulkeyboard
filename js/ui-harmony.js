@@ -9,7 +9,8 @@
 const tooltip=document.getElementById('tooltip');
 function showTooltip(cx,cy,key) {
   document.getElementById('tt-harmony').textContent = key.harmonyName || '';
-  document.getElementById('tt-ratio').textContent = key.label;
+  // Strip octave suffix (e.g. '5/4·2^1' → '5/4') for display
+  document.getElementById('tt-ratio').textContent = key.label.split('\u00b7')[0];
   // HEJI name
   const ttName = document.getElementById('tt-name');
   if (ttName) {
@@ -781,6 +782,11 @@ function renderHarmonyEditor() {
   lblOpts.appendChild(lblTypeDiv);
   lblTypeDiv.querySelector('#he-label-type').addEventListener('change', e=>{h.labelType=e.target.value;refreshEditorDirtyState();renderSVG();markProjectDirty();});
 
+  // In all octaves
+  const allOctRow = makeCheckRow('In all octaves', 'he-label-all-oct', h.labelAllOctaves || false, false);
+  lblOpts.appendChild(allOctRow);
+  allOctRow.querySelector('#he-label-all-oct').addEventListener('change', e=>{h.labelAllOctaves=e.target.checked;refreshEditorDirtyState();renderSVG();markProjectDirty();});
+
   // Font size
   const fontDiv = makeSliderField('Font Size', 'he-font', 6, 48, 1, h.labelFontSize, v=>v);
   lblOpts.appendChild(fontDiv);
@@ -836,6 +842,11 @@ function renderHarmonyEditor() {
     </select>`;
   lbl2Opts.appendChild(lbl2TypeDiv);
   lbl2TypeDiv.querySelector('#he-label-type2').addEventListener('change', e=>{h.labelType2=e.target.value;refreshEditorDirtyState();renderSVG();markProjectDirty();});
+
+  // In all octaves 2
+  const allOct2Row = makeCheckRow('In all octaves', 'he-label-all-oct2', h.labelAllOctaves2 || false, false);
+  lbl2Opts.appendChild(allOct2Row);
+  allOct2Row.querySelector('#he-label-all-oct2').addEventListener('change', e=>{h.labelAllOctaves2=e.target.checked;refreshEditorDirtyState();renderSVG();markProjectDirty();});
 
   // Font size 2
   const font2Div = makeSliderField('Font Size', 'he-font2', 6, 48, 1, h.labelFontSize2||11, v=>v);

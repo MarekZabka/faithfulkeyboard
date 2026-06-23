@@ -541,8 +541,11 @@ function renderSVG() {
     g.appendChild(shapeEl);
 
     // Helper: append one label layer to the key group
-    function appendKeyLabel(showFlag, labelType, baseFontSize, labelColor, offsetX, offsetY) {
+    function appendKeyLabel(showFlag, allOctaves, labelType, baseFontSize, labelColor, offsetX, offsetY) {
       if (!showFlag) return;
+      // Only show on non-base octaves if allOctaves is checked
+      const isBaseOct = (key.oct === 0 || key.oct === null);
+      if (!isBaseOct && !allOctaves) return;
       const defaultKs = (h.keySize !== undefined ? h.keySize : layout.keySize) * baseZoomScale;
       const zoomRatio = ks / (defaultKs || ks);
       const fontSize = Math.max(4, (baseFontSize || 11) * 0.7 * zoomRatio);
@@ -555,7 +558,11 @@ function renderSVG() {
       const ly = (py + scaledOffY).toFixed(2);
       // Build a temporary harmony-like object for getKeyLabel
       const hProxy = Object.assign({}, h, { labelType: labelType || 'ratio' });
-      const labelContent = getKeyLabel(key, hProxy);
+      let labelContent = getKeyLabel(key, hProxy);
+      // For non-base octaves, strip the '·2^n' suffix to show the base ratio
+      if (!isBaseOct && (labelType || 'ratio') === 'ratio') {
+        labelContent = labelContent.split('\u00b7')[0];
+      }
       if (labelType === 'heji' && labelContent.includes('<')) {
         const fw = fontSize * 5;
         const fh = fontSize * 2.2;
@@ -588,9 +595,9 @@ function renderSVG() {
       }
     }
     // Primary labels
-    appendKeyLabel(h.showLabels, h.labelType, h.labelFontSize, h.labelColor, h.labelOffsetX, h.labelOffsetY);
+    appendKeyLabel(h.showLabels, h.labelAllOctaves || false, h.labelType, h.labelFontSize, h.labelColor, h.labelOffsetX, h.labelOffsetY);
     // Secondary labels
-    appendKeyLabel(h.showLabels2, h.labelType2, h.labelFontSize2, h.labelColor2, h.labelOffsetX2, h.labelOffsetY2);
+    appendKeyLabel(h.showLabels2, h.labelAllOctaves2 || false, h.labelType2, h.labelFontSize2, h.labelColor2, h.labelOffsetX2, h.labelOffsetY2);
 
     // Invisible hit area — ellipse to match key stretch
     const hitR = Math.max(ks * 0.7, 8);
