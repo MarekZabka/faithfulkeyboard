@@ -431,7 +431,7 @@ function buildProjectJSON() {
       bgColor: layout.bgColor || null
     },
     baseFreq: getBaseFreq(),
-    baseTone: (document.getElementById('base-tone') ? document.getElementById('base-tone').value : 'D'),
+    baseTone: (document.getElementById('base-tone') ? document.getElementById('base-tone').value : 'C'),
     sound: {
       waveform: document.getElementById('waveform').value,
       attack: parseFloat(document.getElementById('env-attack').value),

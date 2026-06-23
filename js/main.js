@@ -312,7 +312,22 @@ document.getElementById('change-base-toggle').addEventListener('change', e => {
   if (opts) opts.style.display = e.target.checked ? 'flex' : 'none';
 });
 
+// Standard 12-TET frequencies (A4=440Hz) for the natural tone names
+const BASE_TONE_FREQS = {
+  'C': 261.63,  // C4
+  'D': 293.66,  // D4
+  'E': 329.63,  // E4
+  'F': 349.23,  // F4
+  'G': 392.00,  // G4
+  'A': 440.00,  // A4
+  'B': 493.88   // B4
+};
+
 document.getElementById('base-tone').addEventListener('change', ()=>{
+  const tone = document.getElementById('base-tone').value;
+  if (BASE_TONE_FREQS[tone] !== undefined) {
+    document.getElementById('base-freq').value = BASE_TONE_FREQS[tone].toFixed(2);
+  }
   allKeysCache = getAllKeys();
   renderSVG();
   if (selectedHarmonyId) renderHarmonyEditor();
@@ -351,7 +366,7 @@ document.addEventListener('click', e => {
     document.getElementById('show-semitone-lines').checked = layout.showSemitoneLines;
     document.getElementById('base-freq').value = layout.savedLayoutState.baseFreq || '261.63';
     const baseToneEl = document.getElementById('base-tone');
-    if (baseToneEl) baseToneEl.value = layout.savedLayoutState.baseTone || 'D';
+    if (baseToneEl) baseToneEl.value = layout.savedLayoutState.baseTone || 'C';
     const globalOctEl = document.getElementById('global-octave-equiv');
     if (globalOctEl) globalOctEl.checked = layout.octaveEquiv;
     buildWidthControls();
