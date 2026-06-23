@@ -40,17 +40,8 @@ let harmonyEditMode = false;  // toggled by the Edit button
 
 function setHarmonyEditMode(on) {
   harmonyEditMode = on;
-  const btn = document.getElementById('btn-edit-harmony-toggle');
-  if (btn) {
-    btn.classList.toggle('active', on);
-    btn.style.background = on ? 'var(--color-primary)' : '';
-    btn.style.color = on ? '#fff' : '';
-    btn.style.borderColor = on ? 'var(--color-primary)' : '';
-  }
-  // Show New button only in edit mode
-  const newBtn = document.getElementById('btn-add-harmony');
-  if (newBtn) newBtn.style.display = on ? '' : 'none';
   renderHarmonyList();
+  renderHarmonyTitleBar();
   if (!on) {
     const ed = document.getElementById('harmony-editor');
     if (ed) ed.style.display = 'none';
@@ -121,13 +112,50 @@ function getMiniKeyShapeSVG(h) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  STICKY TITLE BAR
+// ─────────────────────────────────────────────────────────────────────────────
+function renderHarmonyTitleBar() {
+  const bar = document.getElementById('harmony-editor-title');
+  if (!bar) return;
+  const h = harmonies.find(x => x.id === selectedHarmonyId);
+  const name = h ? escHtml(h.name) : '';
+  bar.innerHTML = `
+    <span class="harmony-title-name">${name}</span>
+    <div style="flex:1;"></div>
+    <button class="btn-icon harmony-title-btn" id="btn-add-harmony" title="New harmony"
+      style="display:${harmonyEditMode ? '' : 'none'}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+    <button class="btn-icon harmony-title-btn" id="btn-edit-harmony-toggle" title="Toggle edit mode"
+      style="${harmonyEditMode ? 'background:var(--color-primary);color:#fff;border-color:var(--color-primary);' : ''}">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    </button>`;
+  // Only show when Harmony tab is active
+  const harmonyTabActive = document.getElementById('tab-harmony')?.classList.contains('active');
+  if (!harmonyTabActive) { bar.style.display = 'none'; return; }
+  bar.style.cssText = 'display:flex; padding:0.6rem 1rem; align-items:center; gap:0.5rem;';
+  // Wire buttons
+  bar.querySelector('#btn-add-harmony').addEventListener('click', () => {
+    const newH = makeHarmony({ name: `Harmony ${harmonies.length+1}`, ratios: '' });
+    harmonies.push(newH);
+    selectedHarmonyId = newH.id;
+    renderHarmonyList();
+    if (harmonyEditMode) renderHarmonyEditor();
+    applyAndDraw();
+    markProjectDirty();
+  });
+  bar.querySelector('#btn-edit-harmony-toggle').addEventListener('click', () => {
+    setHarmonyEditMode(!harmonyEditMode);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  TONE TABLE HELPER — shared by editor (edit mode) and list (view mode)
 // ─────────────────────────────────────────────────────────────────────────────
 function renderToneTable(h, container) {
   try {
     let keys = computeKeysForHarmony(h, getBaseFreq());
     if (h.octaveEquiv) keys = keys.filter(k => k.oct === 0);
-    if (!keys.length) return;
     const sep = document.createElement('hr'); sep.className='section-sep'; container.appendChild(sep);
     const lbl = document.createElement('div'); lbl.className='field-label'; lbl.style.marginBottom='0.25rem';
     lbl.textContent=`Included Tones (${keys.length})`; container.appendChild(lbl);
@@ -144,6 +172,17 @@ function renderToneTable(h, container) {
       } catch(e2) { hejiName=''; }
       const miniSvg=getMiniKeyShapeSVG(h);
       tr.innerHTML=`<td style="padding:0 2px;">${miniSvg}</td><td>${ratioDisplay}</td><td class="tone-name-cell">${hejiName}</td><td>${k.cents.toFixed(1)}</td><td>${k.freq.toFixed(2)}</td><td>${k.width!==undefined?k.width.toFixed(2):'–'}</td>`;
+      // Hover highlight matching SVG keys
+      const hid = h.id;
+      const klabel = k.label;
+      tr.addEventListener('mouseenter', () => {
+        document.querySelectorAll(`.svg-key[data-hid="${hid}"][data-label="${CSS.escape(klabel)}"]`)
+          .forEach(el => el.classList.add('key-row-hover'));
+      });
+      tr.addEventListener('mouseleave', () => {
+        document.querySelectorAll(`.svg-key[data-hid="${hid}"][data-label="${CSS.escape(klabel)}"]`)
+          .forEach(el => el.classList.remove('key-row-hover'));
+      });
       tbody.appendChild(tr);
     }
     if (keys.length>30) {
@@ -277,6 +316,7 @@ function renderHarmonyList() {
     const toneWrap = document.getElementById('harmony-list-tone-table');
     if (toneWrap) toneWrap.innerHTML = '';
   }
+  renderHarmonyTitleBar();
 }
 
 function getHarmonyRepColor(h) {
@@ -778,6 +818,62 @@ function renderHarmonyEditor() {
     refreshEditorDirtyState();renderSVG();markProjectDirty();
   });
 
+  // ── SHOW SECONDARY LABELS ──
+  const lbl2Main = makeCheckRow('Show Secondary Labels', 'he-labels2', h.showLabels2 || false, true);
+  editor.appendChild(lbl2Main);
+  const lbl2Opts = document.createElement('div');
+  lbl2Opts.style.cssText = `padding-left:1.2rem;margin-top:0.2rem;display:${h.showLabels2 ? 'flex' : 'none'};flex-direction:column;gap:0.2rem;`;
+  editor.appendChild(lbl2Opts);
+
+  // Label Type 2
+  const lbl2TypeDiv = document.createElement('div');
+  lbl2TypeDiv.className = 'field-row';
+  lbl2TypeDiv.innerHTML = `<label class="field-label sub-label">Type</label>
+    <select class="field-select" id="he-label-type2">
+      <option value="ratio" ${(h.labelType2||'ratio')==='ratio'?'selected':''}>Ratio (e.g. 5/4)</option>
+      <option value="cents" ${h.labelType2==='cents'?'selected':''}>Cents</option>
+      <option value="heji" ${h.labelType2==='heji'?'selected':''}>Tone name (HEJI)</option>
+    </select>`;
+  lbl2Opts.appendChild(lbl2TypeDiv);
+  lbl2TypeDiv.querySelector('#he-label-type2').addEventListener('change', e=>{h.labelType2=e.target.value;refreshEditorDirtyState();renderSVG();markProjectDirty();});
+
+  // Font size 2
+  const font2Div = makeSliderField('Font Size', 'he-font2', 6, 48, 1, h.labelFontSize2||11, v=>v);
+  lbl2Opts.appendChild(font2Div);
+  font2Div.querySelector('#he-font2').addEventListener('input', e=>{
+    h.labelFontSize2=parseInt(e.target.value)||11;
+    font2Div.querySelector('#he-font2-val').textContent=h.labelFontSize2;
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
+  // Label color 2
+  const currentLblColor2 = h.labelColor2 || '#ffffff';
+  const lblColorRow2 = document.createElement('div');
+  lblColorRow2.className = 'color-picker-row';
+  lblColorRow2.innerHTML = `
+    <label style="font-size:var(--text-xs);color:var(--color-text-muted);">Color</label>
+    <label class="color-swatch"><input type="color" id="he-lbl-color2" value="${currentLblColor2}"></label>
+    <span id="he-lbl-color2-hex" style="font-size:var(--text-xs);color:var(--color-text-muted);">${h.labelColor2||'auto'}</span>
+    <button id="he-lbl-color2-clear" style="font-size:var(--text-xs);padding:0.1rem 0.3rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;">Auto</button>`;
+  lbl2Opts.appendChild(lblColorRow2);
+  lblColorRow2.querySelector('#he-lbl-color2').addEventListener('input', e=>{h.labelColor2=e.target.value;lblColorRow2.querySelector('#he-lbl-color2-hex').textContent=e.target.value;refreshEditorDirtyState();renderSVG();markProjectDirty();});
+  lblColorRow2.querySelector('#he-lbl-color2-clear').addEventListener('click', ()=>{h.labelColor2='';lblColorRow2.querySelector('#he-lbl-color2-hex').textContent='auto';refreshEditorDirtyState();renderSVG();markProjectDirty();});
+
+  // Offsets 2
+  const offX2Div = makeSliderField('Offset X', 'he-offx2', -50, 50, 1, h.labelOffsetX2||0, v=>v);
+  lbl2Opts.appendChild(offX2Div);
+  offX2Div.querySelector('#he-offx2').addEventListener('input', e=>{h.labelOffsetX2=parseInt(e.target.value)||0;offX2Div.querySelector('#he-offx2-val').textContent=h.labelOffsetX2;refreshEditorDirtyState();renderSVG();markProjectDirty();});
+
+  const offY2Div = makeSliderField('Offset Y', 'he-offy2', -50, 50, 1, h.labelOffsetY2||0, v=>v);
+  lbl2Opts.appendChild(offY2Div);
+  offY2Div.querySelector('#he-offy2').addEventListener('input', e=>{h.labelOffsetY2=parseInt(e.target.value)||0;offY2Div.querySelector('#he-offy2-val').textContent=h.labelOffsetY2;refreshEditorDirtyState();renderSVG();markProjectDirty();});
+
+  lbl2Main.querySelector('#he-labels2').addEventListener('change', e=>{
+    h.showLabels2=e.target.checked;
+    lbl2Opts.style.display=h.showLabels2?'flex':'none';
+    refreshEditorDirtyState();renderSVG();markProjectDirty();
+  });
+
   // ── TONE PREVIEW TABLE ──
   renderToneTable(h, editor);
 }
@@ -787,6 +883,9 @@ function refreshEditorDirtyState() {
   if (!h) return;
   const item = document.querySelector(`.harmony-item[data-id="${h.id}"]`);
   if (item) { const nm = item.querySelector('.harmony-name'); if (nm) nm.textContent = h.name; }
+  // Keep title bar in sync when harmony is renamed
+  const titleName = document.querySelector('#harmony-editor-title .harmony-title-name');
+  if (titleName) titleName.textContent = h.name;
 }
 
 function addEditorField(parent, label, inputHTML) {

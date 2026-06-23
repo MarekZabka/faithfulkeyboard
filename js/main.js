@@ -12,6 +12,9 @@ document.querySelectorAll('.tab').forEach(tab => {
     const target = tab.dataset.tab;
     document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===target));
     document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${target}`));
+    // Show/hide harmony title bar
+    if (target === 'harmony') renderHarmonyTitleBar();
+    else { const tb = document.getElementById('harmony-editor-title'); if (tb) tb.style.display = 'none'; }
   });
 });
 
@@ -455,21 +458,8 @@ _soundSliders.forEach(({ id, valId, fmt }) => {
 });
 
 // Add harmony button
-document.getElementById('btn-add-harmony').addEventListener('click', () => {
-  const h = makeHarmony({ name: `Harmony ${harmonies.length+1}`, ratios: '' });
-  harmonies.push(h);
-  selectedHarmonyId = h.id;
-  renderHarmonyList();
-  if (harmonyEditMode) renderHarmonyEditor();
-  applyAndDraw();
-  markProjectDirty();
-});
-
-
-// Edit mode toggle
-document.getElementById('btn-edit-harmony-toggle').addEventListener('click', () => {
-  setHarmonyEditMode(!harmonyEditMode);
-});
+// Harmony New / Edit buttons live in the sticky title bar (rendered dynamically)
+// — wired via event delegation in ui-harmony.js renderHarmonyTitleBar()
 
 // Reset/Save View header buttons removed
 

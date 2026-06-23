@@ -521,57 +521,54 @@ function renderSVG() {
     }
     g.appendChild(shapeEl);
 
-    // Label — when octave equivalence is on, only show in base octave (oct===0)
-    const showLabel = h.showLabels &&
-      (h.octaveEquiv ? key.oct === 0 : true);
-    if (showLabel) {
-      const fontSize = Math.max(8, Math.min(h.labelFontSize || 11, ks * 0.5));
+    // Helper: append one label layer to the key group
+    function appendKeyLabel(showFlag, labelType, baseFontSize, labelColor, offsetX, offsetY) {
+      const shouldShow = showFlag && (h.octaveEquiv ? key.oct === 0 : true);
+      if (!shouldShow) return;
+      const defaultKs = (h.keySize !== undefined ? h.keySize : layout.keySize) * baseZoomScale;
+      const fontSize = Math.max(4, (baseFontSize || 11) * 0.7 * (ks / (defaultKs || ks)));
       const defaultLblColor = isActive ? '#1a1a1a' : 'rgba(255,255,255,0.92)';
-      const lblColor = isActive ? '#1a1a1a' : (h.labelColor && h.labelColor !== '' ? h.labelColor : defaultLblColor);
-      const lx = (px + (h.labelOffsetX||0)).toFixed(2);
-      const ly = (py + (h.labelOffsetY||0)).toFixed(2);
-      const lbl = svgEl2('text', {
-        x: lx, y: ly,
-        'text-anchor': 'middle', 'dominant-baseline': 'middle',
-        fill: lblColor,
-        'font-size': fontSize,
-        'font-family': cs.getPropertyValue('--font-body').trim(),
-        'font-weight': '600',
-        'pointer-events': 'none'
-      });
-      // Counter-rotate label so it always reads upright
-      if (kbRot !== 0) {
-        lbl.setAttribute('transform', `rotate(${-kbRot},${lx},${ly})`);
-      }
-      const labelContent = getKeyLabel(key, h);
-      if (h.labelType === 'heji' && labelContent.includes('<')) {
-        // HEJI label is HTML — use foreignObject to embed it in SVG
-        lbl.remove(); // don't use the text element
-        const fsize = fontSize;
-        const fw = fsize * 5;  // estimated width
-        const fh = fsize * 2.2;
+      const lblColor = isActive ? '#1a1a1a' : (labelColor && labelColor !== '' ? labelColor : defaultLblColor);
+      const lx = (px + (offsetX||0)).toFixed(2);
+      const ly = (py + (offsetY||0)).toFixed(2);
+      // Build a temporary harmony-like object for getKeyLabel
+      const hProxy = Object.assign({}, h, { labelType: labelType || 'ratio' });
+      const labelContent = getKeyLabel(key, hProxy);
+      if (labelType === 'heji' && labelContent.includes('<')) {
+        const fw = fontSize * 5;
+        const fh = fontSize * 2.2;
         const fo = svgEl2('foreignObject', {
           x: (parseFloat(lx) - fw/2).toFixed(1),
           y: (parseFloat(ly) - fh/2).toFixed(1),
           width: fw.toFixed(1), height: fh.toFixed(1),
           'pointer-events': 'none'
         });
-        if (kbRot !== 0) {
-          fo.setAttribute('transform', `rotate(${-kbRot},${lx},${ly})`);
-        }
+        if (kbRot !== 0) fo.setAttribute('transform', `rotate(${-kbRot},${lx},${ly})`);
         const div = document.createElementNS('http://www.w3.org/1999/xhtml', 'div');
         div.style.cssText = `display:flex;align-items:center;justify-content:center;`
-          + `width:100%;height:100%;font-size:${fsize}px;color:${lblColor};`
+          + `width:100%;height:100%;font-size:${fontSize}px;color:${lblColor};`
           + `font-family:${cs.getPropertyValue('--font-body').trim()};font-weight:600;`
           + `overflow:visible;pointer-events:none;`;
         div.innerHTML = labelContent;
         fo.appendChild(div);
         g.appendChild(fo);
       } else {
+        const lbl = svgEl2('text', {
+          x: lx, y: ly,
+          'text-anchor': 'middle', 'dominant-baseline': 'middle',
+          fill: lblColor, 'font-size': fontSize,
+          'font-family': cs.getPropertyValue('--font-body').trim(),
+          'font-weight': '600', 'pointer-events': 'none'
+        });
+        if (kbRot !== 0) lbl.setAttribute('transform', `rotate(${-kbRot},${lx},${ly})`);
         lbl.textContent = labelContent;
         g.appendChild(lbl);
       }
     }
+    // Primary labels
+    appendKeyLabel(h.showLabels, h.labelType, h.labelFontSize, h.labelColor, h.labelOffsetX, h.labelOffsetY);
+    // Secondary labels
+    appendKeyLabel(h.showLabels2, h.labelType2, h.labelFontSize2, h.labelColor2, h.labelOffsetX2, h.labelOffsetY2);
 
     // Invisible hit area — ellipse to match key stretch
     const hitR = Math.max(ks * 0.7, 8);

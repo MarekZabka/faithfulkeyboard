@@ -61,6 +61,12 @@ function makeHarmony(overrides = {}) {
     labelOffsetY: overrides.labelOffsetY || 0,
     labelColor: overrides.labelColor || '',
     labelType: overrides.labelType || 'ratio', // 'ratio' or 'heji'
+    showLabels2: overrides.showLabels2 !== undefined ? overrides.showLabels2 : false,
+    labelFontSize2: overrides.labelFontSize2 || 11,
+    labelOffsetX2: overrides.labelOffsetX2 || 0,
+    labelOffsetY2: overrides.labelOffsetY2 || 0,
+    labelColor2: overrides.labelColor2 || '',
+    labelType2: overrides.labelType2 || 'ratio',
     toneMode: overrides.toneMode || 'ratios', // 'ratios' | 'primepowers' | 'vectors'
     keySize: overrides.keySize !== undefined ? overrides.keySize : 120,
     keyShape: overrides.keyShape || 'round',
@@ -97,6 +103,10 @@ function snapshotHarmony(h) {
     labelOffsetX: h.labelOffsetX, labelOffsetY: h.labelOffsetY,
     labelColor: h.labelColor || '',
     labelType: h.labelType || 'ratio',
+    showLabels2: h.showLabels2 !== undefined ? h.showLabels2 : false,
+    labelFontSize2: h.labelFontSize2 || 11,
+    labelOffsetX2: h.labelOffsetX2 || 0, labelOffsetY2: h.labelOffsetY2 || 0,
+    labelColor2: h.labelColor2 || '', labelType2: h.labelType2 || 'ratio',
     toneMode: h.toneMode || 'ratios',
     keySize: h.keySize !== undefined ? h.keySize : 120,
     keyShape: h.keyShape, keyRotation: h.keyRotation,
