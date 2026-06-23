@@ -501,8 +501,10 @@ function renderSVG() {
     const h = key.harmony;
     const ks = getEffectiveKeySize(h);
     const {px: px0, py: py0} = logicalToPixel(key.x_logical, key.y_logical);
-    const px = px0 + (h.keyOffsetX || 0);
-    const py = py0 + (h.keyOffsetY || 0);
+    const defaultKsForOffset = (h.keySize !== undefined ? h.keySize : layout.keySize) * baseZoomScale;
+    const keyOffZoom = ks / (defaultKsForOffset || ks);
+    const px = px0 + (h.keyOffsetX || 0) * keyOffZoom;
+    const py = py0 + (h.keyOffsetY || 0) * keyOffZoom;
     const isActive = activeKeyIds.has(key.label+'_'+key.harmonyId);
     const color = isActive ? activeColor : getKeyColor(key, h, keys);
     const defaultStroke = cs.getPropertyValue('--color-key-stroke').trim();
@@ -540,14 +542,17 @@ function renderSVG() {
 
     // Helper: append one label layer to the key group
     function appendKeyLabel(showFlag, labelType, baseFontSize, labelColor, offsetX, offsetY) {
-      const shouldShow = showFlag && (h.octaveEquiv ? key.oct === 0 : true);
-      if (!shouldShow) return;
+      if (!showFlag) return;
       const defaultKs = (h.keySize !== undefined ? h.keySize : layout.keySize) * baseZoomScale;
-      const fontSize = Math.max(4, (baseFontSize || 11) * 0.7 * (ks / (defaultKs || ks)));
+      const zoomRatio = ks / (defaultKs || ks);
+      const fontSize = Math.max(4, (baseFontSize || 11) * 0.7 * zoomRatio);
       const defaultLblColor = isActive ? '#1a1a1a' : 'rgba(255,255,255,0.92)';
       const lblColor = isActive ? '#1a1a1a' : (labelColor && labelColor !== '' ? labelColor : defaultLblColor);
-      const lx = (px + (offsetX||0)).toFixed(2);
-      const ly = (py + (offsetY||0)).toFixed(2);
+      // Scale offsets proportionally with zoom so they stay relative to key size
+      const scaledOffX = (offsetX || 0) * zoomRatio;
+      const scaledOffY = (offsetY || 0) * zoomRatio;
+      const lx = (px + scaledOffX).toFixed(2);
+      const ly = (py + scaledOffY).toFixed(2);
       // Build a temporary harmony-like object for getKeyLabel
       const hProxy = Object.assign({}, h, { labelType: labelType || 'ratio' });
       const labelContent = getKeyLabel(key, hProxy);
