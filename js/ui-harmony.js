@@ -133,11 +133,17 @@ function getMiniKeyShapeSVG(h) {
 function renderHarmonyTitleBar() {
   const bar = document.getElementById('harmony-editor-title');
   if (!bar) return;
+  // Only show when Harmony tab is active
+  const harmonyTabActive = document.getElementById('tab-harmony')?.classList.contains('active');
+  if (!harmonyTabActive) { bar.style.display = 'none'; return; }
+
   const h = harmonies.find(x => x.id === selectedHarmonyId);
   const name = h ? escHtml(h.name) : '';
   bar.innerHTML = `
-    <span class="harmony-title-name">${name}</span>
-    <div style="flex:1;"></div>
+    <div class="harmony-title-picker" id="harmony-title-picker">
+      <span class="harmony-title-name">${name}</span>
+      <svg class="harmony-title-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
     <button class="btn-icon harmony-title-btn" id="btn-add-harmony" title="New harmony"
       style="display:${harmonyEditMode ? '' : 'none'}">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -146,11 +152,62 @@ function renderHarmonyTitleBar() {
       style="${harmonyEditMode ? 'background:var(--color-primary);color:#fff;border-color:var(--color-primary);' : ''}">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
     </button>`;
-  // Only show when Harmony tab is active
-  const harmonyTabActive = document.getElementById('tab-harmony')?.classList.contains('active');
-  if (!harmonyTabActive) { bar.style.display = 'none'; return; }
-  bar.style.cssText = 'display:flex; padding:0.6rem 1rem; align-items:center; gap:0.5rem;';
-  // Wire buttons
+  bar.style.cssText = 'display:flex; padding:0.6rem 1rem; align-items:center; gap:0.5rem; position:relative;';
+
+  // Dropdown open/close
+  const picker = bar.querySelector('#harmony-title-picker');
+  const chevron = picker.querySelector('.harmony-title-chevron');
+  let dropdownEl = null;
+
+  function closeDropdown() {
+    if (dropdownEl) { dropdownEl.remove(); dropdownEl = null; }
+    chevron.classList.remove('open');
+    document.removeEventListener('click', onOutsideClick, true);
+  }
+
+  function onOutsideClick(e) {
+    if (!bar.contains(e.target)) closeDropdown();
+  }
+
+  function openDropdown() {
+    if (dropdownEl) { closeDropdown(); return; }
+    chevron.classList.add('open');
+    dropdownEl = document.createElement('div');
+    dropdownEl.className = 'harmony-title-dropdown';
+    for (const hh of harmonies) {
+      const item = document.createElement('div');
+      item.className = 'harmony-title-dropdown-item' + (hh.id === selectedHarmonyId ? ' active' : '');
+      item.innerHTML = getMiniKeyShapeSVG(hh) + `<span>${escHtml(hh.name)}</span>`;
+      item.addEventListener('click', e => {
+        e.stopPropagation();
+        closeDropdown();
+        if (hh.id === selectedHarmonyId) return;
+        selectedHarmonyId = hh.id;
+        // Update title bar name without scrolling
+        renderHarmonyTitleBar();
+        // Re-render list selection highlight
+        document.querySelectorAll('.harmony-item').forEach(el => {
+          el.classList.toggle('selected', el.dataset.id === hh.id);
+        });
+        // Re-render editor in place (panel scroll position preserved)
+        if (harmonyEditMode) renderHarmonyEditor();
+        else {
+          // Refresh tone table for non-edit mode
+          const toneWrap = document.getElementById('harmony-list-tone-table');
+          if (toneWrap) { toneWrap.innerHTML = ''; renderToneTable(hh, toneWrap); }
+        }
+        applyAndDraw();
+      });
+      dropdownEl.appendChild(item);
+    }
+    bar.appendChild(dropdownEl);
+    // Dismiss on outside click
+    setTimeout(() => document.addEventListener('click', onOutsideClick, true), 0);
+  }
+
+  picker.addEventListener('click', e => { e.stopPropagation(); openDropdown(); });
+
+  // Wire action buttons
   bar.querySelector('#btn-add-harmony').addEventListener('click', () => {
     const newH = makeHarmony({ name: `Harmony ${harmonies.length+1}`, ratios: '' });
     harmonies.push(newH);
