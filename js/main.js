@@ -133,6 +133,9 @@ document.getElementById('custom-basis-input').addEventListener('change', () => {
   layout.customBasis = basis;
   layout.customBasisLabels = labels;
   layout.savedWidths = [...layout.widths];
+  // Expand scopes so buildWidthControls doesn't clamp the new weights
+  if (!layout.widthScopes) layout.widthScopes = new Array(6).fill(5);
+  layout.widthScopes = layout.widths.map((w,i) => Math.max(layout.widthScopes[i]||5, Math.ceil(Math.abs(w))+1));
   buildWidthControls();
   applyAndDraw();
 });

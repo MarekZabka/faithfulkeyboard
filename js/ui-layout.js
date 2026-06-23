@@ -156,9 +156,12 @@ function buildWidthControls() {
 
   for (let i=0; i<6; i++) {
     const val = layout.widths[i] !== undefined ? layout.widths[i] : 0;
+    // Expand scope if current value exceeds it — don't silently clamp stored widths
+    if (Math.abs(val) > (layout.widthScopes[i] || 5)) {
+      layout.widthScopes[i] = Math.ceil(Math.abs(val)) + 1;
+    }
     const scope = layout.widthScopes[i] !== undefined ? layout.widthScopes[i] : 5;
     const clampedVal = Math.max(-scope, Math.min(scope, val));
-    if (clampedVal !== val) layout.widths[i] = clampedVal;
     const lbl = labels[i] || `b${i+1}`;
 
     const row = document.createElement('div');
