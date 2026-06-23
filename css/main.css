@@ -589,11 +589,11 @@
 /* ── Panel header: tabs only (actions are in the top-bar) ── */
 .panel-header-merged {
   display: flex; flex-direction: column;
-  border-bottom: 1px solid var(--color-divider);
   flex-shrink: 0; user-select: none;
 }
 #panel-tabs {
-  padding: 0 0.3rem; border-bottom: none; margin-bottom: 0;
+  padding: 0 0.3rem; margin-bottom: 0;
+  border-bottom: 1px solid var(--color-divider);
   overflow: visible; flex-wrap: nowrap;
   flex-shrink: 0;
 }
