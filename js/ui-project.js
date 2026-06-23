@@ -194,7 +194,11 @@ function _parseExpToken(s) {
 // Parse a vector string "(e2, e3, e5, ...)" → exps array
 function parseVectorStr(str) {
   str = str.trim();
-  if (str.startsWith('(') && str.endsWith(')')) str = str.slice(1,-1);
+  // Only treat as a vector if it's bracket-wrapped or contains a comma
+  // (avoids misinterpreting ratio strings like '3/2' as vectors)
+  const hasBrackets = (str.startsWith('(') && str.endsWith(')')) || (str.startsWith('[') && str.endsWith(']'));
+  if (!hasBrackets && !str.includes(',')) return null;
+  if (hasBrackets) str = str.slice(1,-1);
   const parts = str.split(',').map(s=>_parseExpToken(s));
   if (parts.some(isNaN)) return null;
   const exps = [0,0,0,0,0,0];
