@@ -130,7 +130,10 @@ function renderHarmonyTitleBar() {
       style="${harmonyEditMode ? 'background:var(--color-primary);color:#fff;border-color:var(--color-primary);' : ''}">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
     </button>`;
-  bar.style.display = 'flex';
+  // Only show when Harmony tab is active
+  const harmonyTabActive = document.getElementById('tab-harmony')?.classList.contains('active');
+  bar.style.display = harmonyTabActive ? 'flex' : 'none';
+  if (!harmonyTabActive) return;
   // Wire buttons
   bar.querySelector('#btn-add-harmony').addEventListener('click', () => {
     const newH = makeHarmony({ name: `Harmony ${harmonies.length+1}`, ratios: '' });
