@@ -398,13 +398,9 @@
     .project-name-input { font-family: var(--font-display), sans-serif; font-weight: 600; }
 
     .harmony-editor-title {
-      position: sticky;
-      top: 0;
-      z-index: 10;
       background: var(--color-surface);
-      border-bottom: 1px solid var(--color-divider);
+      border-bottom: 1px solid var(--color-border);
       padding: 0.5rem 0.75rem;
-      margin: -0.5rem -0.75rem 0.75rem; /* negative top/sides cancel panel-body padding for flush edge */
       display: flex; align-items: center; gap: 0.5rem;
     }
     .harmony-title-name {
