@@ -475,13 +475,13 @@ function renderHarmonyEditor() {
         <option value="vectors" ${toneMode==='vectors'?'selected':''}>Vectors</option>
       </select>
     </div>
-    <textarea class="field-input" id="he-ratios" rows="3" placeholder="${toneMode==='vectors'
-      ? 'Enter vectors e.g.:\n(-1,1,0,0,0,0)  ← 3/2\n(-2,0,1,0,0,0)  ← 5/4'
-      : 'Enter frequency ratios e.g.:\n1, 9/8, 5/4, 11/8, 3/2, 13/8, 7/4'}"
-    >${escHtml(h.ratios)}</textarea>
-    <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.2rem;">
-      <button id="he-simplify-btn" style="font-size:var(--text-xs);padding:0.15rem 0.5rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;">Simplify</button>
-      <button id="he-transpose-btn" style="font-size:var(--text-xs);padding:0.15rem 0.5rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;" title="Transpose all tones">Transpose</button>
+    <textarea class="field-input" id="he-ratios" rows="3">${escHtml(h.ratios)}</textarea>
+    <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;flex-wrap:wrap;">
+      <button id="he-multiply-btn" class="btn-sm" title="Multiply each tone by each tone in an input harmony (Cartesian product). With a single interval, acts as transposition.">Multiply</button>
+      <button id="he-invert-btn" class="btn-sm" title="Invert each tone: a/b → b/a (ratios), or negate each vector component">Invert</button>
+      <button id="he-reduce-btn" class="btn-sm" title="Reduce to one octave: fold all tones into the 1–2 range, removing duplicates">Reduce</button>
+      <div style="flex:1;"></div>
+      <button id="he-simplify-btn" class="btn-sm" title="Toggle between simplified form and original">Simplify</button>
     </div>
   `;
   editor.appendChild(tonesSection);
@@ -491,33 +491,55 @@ function renderHarmonyEditor() {
   const ratiosTA = tonesSection.querySelector('#he-ratios');
   const modeSelect = tonesSection.querySelector('#he-tone-mode');
 
+  function resetSimplify() { _originalRatios = null; simplifyBtn.textContent = 'Simplify'; simplifyBtn.style.background=''; simplifyBtn.style.color=''; simplifyBtn.style.borderColor=''; }
+
   simplifyBtn.addEventListener('click', () => {
     if (simplifyBtn.textContent === 'Simplify') {
       _originalRatios = ratiosTA.value;
       ratiosTA.value = simplifyRatioList(ratiosTA.value, h.toneMode || 'ratios');
       h.ratios = ratiosTA.value;
       simplifyBtn.textContent = 'Original';
+      simplifyBtn.style.background = 'var(--color-primary)';
+      simplifyBtn.style.color = '#fff';
+      simplifyBtn.style.borderColor = 'var(--color-primary)';
     } else {
       if (_originalRatios !== null) { ratiosTA.value = _originalRatios; h.ratios = _originalRatios; }
-      simplifyBtn.textContent = 'Simplify';
-      _originalRatios = null;
+      resetSimplify();
     }
     refreshEditorDirtyState(); applyAndDraw();
   });
 
-  tonesSection.querySelector('#he-transpose-btn').addEventListener('click', () => {
+  tonesSection.querySelector('#he-multiply-btn').addEventListener('click', () => {
     const tm = h.toneMode || 'ratios';
-    const prompt_text = tm === 'ratios' ? 'Enter transpose interval (ratio, e.g. 3/2 or 2/1):' : 'Enter transpose vector (e.g. (1,0) for octave):';
-    const intervalStr = prompt(prompt_text, tm === 'ratios' ? '2/1' : '(1,0)');
-    if (!intervalStr) return;
-    transposeHarmony(h, intervalStr.trim(), tm);
+    const placeholder = tm === 'ratios' ? '3/2, 5/4' : '(0,1,0,0,0,0), (-1,0,1,0,0,0)';
+    const msg = tm === 'ratios'
+      ? 'Enter one or more ratios (comma-separated).\n\nEach tone in the harmony will be multiplied by each entry here. With a single interval, this acts as a transposition.\n\nExample: 3/2, 5/4'
+      : 'Enter one or more vectors (comma-separated).\n\nEach tone vector will be added to each input vector. With a single vector, this acts as a transposition.\n\nExample: (0,1,0,0,0,0)';
+    const inputStr = prompt(msg, placeholder);
+    if (!inputStr) return;
+    multiplyHarmony(h, inputStr.trim(), tm);
     ratiosTA.value = h.ratios;
+    resetSimplify();
+    refreshEditorDirtyState(); applyAndDraw(); markProjectDirty();
+  });
+
+  tonesSection.querySelector('#he-invert-btn').addEventListener('click', () => {
+    invertHarmony(h);
+    ratiosTA.value = h.ratios;
+    resetSimplify();
+    refreshEditorDirtyState(); applyAndDraw(); markProjectDirty();
+  });
+
+  tonesSection.querySelector('#he-reduce-btn').addEventListener('click', () => {
+    reduceToOctave(h);
+    ratiosTA.value = h.ratios;
+    resetSimplify();
     refreshEditorDirtyState(); applyAndDraw(); markProjectDirty();
   });
 
   ratiosTA.addEventListener('input', e => {
     h.ratios = e.target.value;
-    if (_originalRatios !== null) { _originalRatios = null; simplifyBtn.textContent = 'Simplify'; }
+    if (_originalRatios !== null) resetSimplify();
     refreshEditorDirtyState(); applyAndDraw();
   });
 
@@ -529,7 +551,7 @@ function renderHarmonyEditor() {
       modeSelect.value = oldMode; return;
     }
     h.toneMode = newMode; h.ratios = text; ratiosTA.value = text;
-    _originalRatios = null; simplifyBtn.textContent = 'Simplify';
+    resetSimplify();
     refreshEditorDirtyState(); applyAndDraw();
   });
 
