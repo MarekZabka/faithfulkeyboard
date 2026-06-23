@@ -476,6 +476,7 @@ function renderHarmonyEditor() {
       </select>
     </div>
     <textarea class="field-input" id="he-ratios" rows="3">${escHtml(h.ratios)}</textarea>
+    <div id="he-ratios-hint" style="font-size:var(--text-xs);color:var(--color-text-faint);margin-top:0.15rem;display:none;"></div>
     <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;flex-wrap:wrap;">
       <button id="he-multiply-btn" class="btn-sm" title="Multiply each tone by each tone in an input harmony (Cartesian product). With a single interval, acts as transposition.">Multiply</button>
       <button id="he-invert-btn" class="btn-sm" title="Invert each tone: a/b → b/a (ratios), or negate each vector component">Invert</button>
@@ -490,6 +491,18 @@ function renderHarmonyEditor() {
   const simplifyBtn = tonesSection.querySelector('#he-simplify-btn');
   const ratiosTA = tonesSection.querySelector('#he-ratios');
   const modeSelect = tonesSection.querySelector('#he-tone-mode');
+  const ratiosHint = tonesSection.querySelector('#he-ratios-hint');
+
+  function updateRatiosHint(mode) {
+    if (!ratiosHint) return;
+    if (ratiosTA.value.trim() === '') {
+      ratiosHint.style.display = '';
+      ratiosHint.textContent = mode === 'vectors'
+        ? 'e.g. (-1,1,0,0,0,0) for 3/2, (-2,0,1,0,0,0) for 5/4'
+        : 'e.g. 1, 9/8, 5/4, 11/8, 3/2, 13/8, 7/4';
+    } else { ratiosHint.style.display = 'none'; }
+  }
+  updateRatiosHint(h.toneMode || 'ratios');
 
   function resetSimplify() { _originalRatios = null; simplifyBtn.textContent = 'Simplify'; simplifyBtn.style.background=''; simplifyBtn.style.color=''; simplifyBtn.style.borderColor=''; }
 
@@ -540,6 +553,7 @@ function renderHarmonyEditor() {
   ratiosTA.addEventListener('input', e => {
     h.ratios = e.target.value;
     if (_originalRatios !== null) resetSimplify();
+    updateRatiosHint(h.toneMode || 'ratios');
     refreshEditorDirtyState(); applyAndDraw();
   });
 
@@ -552,6 +566,7 @@ function renderHarmonyEditor() {
     }
     h.toneMode = newMode; h.ratios = text; ratiosTA.value = text;
     resetSimplify();
+    updateRatiosHint(newMode);
     refreshEditorDirtyState(); applyAndDraw();
   });
 
