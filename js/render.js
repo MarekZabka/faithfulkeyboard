@@ -610,9 +610,9 @@ function renderSVG() {
       }
     }
     // Primary labels
-    appendKeyLabel(h.showLabels, h.labelAllOctaves || false, h.labelType, h.labelFontSize, h.labelColor, h.labelOffsetX, h.labelOffsetY);
+    appendKeyLabel(h.showLabels && !layout.hideLabels, h.labelAllOctaves || false, h.labelType, h.labelFontSize, h.labelColor, h.labelOffsetX, h.labelOffsetY);
     // Secondary labels
-    appendKeyLabel(h.showLabels2, h.labelAllOctaves2 || false, h.labelType2, h.labelFontSize2, h.labelColor2, h.labelOffsetX2, h.labelOffsetY2);
+    appendKeyLabel(h.showLabels2 && !layout.hideLabels2, h.labelAllOctaves2 || false, h.labelType2, h.labelFontSize2, h.labelColor2, h.labelOffsetX2, h.labelOffsetY2);
 
     // Invisible hit area — ellipse to match key stretch
     const hitR = Math.max(ks * 0.7, 8);
