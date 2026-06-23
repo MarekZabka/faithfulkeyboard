@@ -318,6 +318,153 @@ function transposeHarmony(h, intervalStr, toneMode) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  INVERT HARMONY
+// ─────────────────────────────────────────────────────────────────────────────
+function invertHarmony(h) {
+  const toneMode = h.toneMode || 'ratios';
+  try {
+    if (toneMode === 'ratios') {
+      const parts = h.ratios.split(',').map(s=>s.trim()).filter(Boolean);
+      h.ratios = parts.map(p => {
+        const r = evalRationalExpr(p.replace(/\s+/g,''));
+        if (!r || r.isFloat) return p;
+        return _formatRat({num: r.den, den: r.num});
+      }).join(', ');
+    } else if (toneMode === 'vectors') {
+      const parts = splitToneList(h.ratios);
+      h.ratios = parts.map(p => {
+        const v = parseVectorStr(p);
+        if (!v) return p;
+        const neg = v.map(e => -e);
+        let lastNz = 1; for(let i=neg.length-1;i>=0;i--){if(neg[i]!==0){lastNz=i;break;}}
+        return '(' + neg.slice(0, Math.max(2, lastNz+1)+1).join(', ') + ')';
+      }).join(', ');
+    } else {
+      const parts = h.ratios.split(',').map(s=>s.trim()).filter(Boolean);
+      h.ratios = parts.map(p => {
+        const exps = parsePrimePowersToExps(p);
+        if (!exps) return p;
+        return expsToString(exps.map(e=>-e), 'primepowers');
+      }).join(', ');
+    }
+  } catch(e) { alert('Invert error: ' + e.message); }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  REDUCE TO OCTAVE
+// ─────────────────────────────────────────────────────────────────────────────
+function reduceToOctave(h) {
+  const toneMode = h.toneMode || 'ratios';
+  try {
+    const seen = new Set();
+    if (toneMode === 'ratios') {
+      const parts = h.ratios.split(',').map(s=>s.trim()).filter(Boolean);
+      const out = [];
+      for (const p of parts) {
+        const r = evalRationalExpr(p.replace(/\s+/g,''));
+        if (!r || r.isFloat) { if (!seen.has(p)) { seen.add(p); out.push(p); } continue; }
+        // Reduce: multiply/divide by 2 until 1 <= n/d < 2
+        let {num, den} = r;
+        while (num * 2 <= den) { num *= 2; }    // below 1 → multiply by 2
+        while (num >= den * 2) { den *= 2; }    // >= 2 → divide by 2
+        const g = gcd(num, den); num /= g; den /= g;
+        const str = _formatRat({num, den});
+        if (!seen.has(str)) { seen.add(str); out.push(str); }
+      }
+      h.ratios = out.join(', ');
+    } else if (toneMode === 'vectors') {
+      const parts = splitToneList(h.ratios);
+      const out = [];
+      for (const p of parts) {
+        const v = parseVectorStr(p);
+        if (!v) { if (!seen.has(p)) { seen.add(p); out.push(p); } continue; }
+        // Reduce octave: adjust v[0] (exponent of 2) so that 2^v[0] * product(primes) is in [1,2)
+        // Compute cents of non-octave part
+        const cents_rest = v.slice(1).reduce((s,e,i) => s + e * 1200 * Math.log2(PRIMES_LIST[i+1]), 0);
+        const octaves_needed = -Math.floor(cents_rest / 1200);
+        const reduced = [...v]; reduced[0] += octaves_needed;
+        let lastNz = 1; for(let i=reduced.length-1;i>=0;i--){if(reduced[i]!==0){lastNz=i;break;}}
+        const str = '(' + reduced.slice(0, Math.max(2, lastNz+1)+1).join(', ') + ')';
+        if (!seen.has(str)) { seen.add(str); out.push(str); }
+      }
+      h.ratios = out.join(', ');
+    } else {
+      const parts = h.ratios.split(',').map(s=>s.trim()).filter(Boolean);
+      const out = [];
+      for (const p of parts) {
+        const exps = parsePrimePowersToExps(p);
+        if (!exps) { if (!seen.has(p)) { seen.add(p); out.push(p); } continue; }
+        const cents_rest = exps.slice(1).reduce((s,e,i) => s + e * 1200 * Math.log2(PRIMES_LIST[i+1]), 0);
+        const octaves_needed = -Math.floor(cents_rest / 1200);
+        const reduced = [...exps]; reduced[0] += octaves_needed;
+        const str = expsToString(reduced, 'primepowers');
+        if (!seen.has(str)) { seen.add(str); out.push(str); }
+      }
+      h.ratios = out.join(', ');
+    }
+  } catch(e) { alert('Reduce error: ' + e.message); }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  MULTIPLY HARMONY (cartesian product with input harmony)
+// ─────────────────────────────────────────────────────────────────────────────
+function multiplyHarmony(h, inputStr, toneMode) {
+  toneMode = toneMode || h.toneMode || 'ratios';
+  try {
+    if (toneMode === 'ratios') {
+      const currentParts = h.ratios.split(',').map(s=>s.trim()).filter(Boolean);
+      const inputParts = inputStr.split(',').map(s=>s.trim()).filter(Boolean);
+      const seen = new Set();
+      const out = [];
+      for (const a of currentParts) {
+        for (const b of inputParts) {
+          const ra = evalRationalExpr(a.replace(/\s+/g,''));
+          const rb = evalRationalExpr(b.replace(/\s+/g,''));
+          if (!ra || ra.isFloat || !rb || rb.isFloat) continue;
+          const mul = _ratMul(ra, rb);
+          const str = _formatRat(mul);
+          if (!seen.has(str)) { seen.add(str); out.push(str); }
+        }
+      }
+      if (out.length) h.ratios = out.join(', ');
+    } else if (toneMode === 'vectors') {
+      const currentParts = splitToneList(h.ratios);
+      const inputParts = splitToneList(inputStr);
+      const seen = new Set();
+      const out = [];
+      for (const a of currentParts) {
+        for (const b of inputParts) {
+          const va = parseVectorStr(a);
+          const vb = parseVectorStr(b);
+          if (!va || !vb) continue;
+          const res = va.map((e,i) => e + (vb[i]||0));
+          let lastNz = 1; for(let i=res.length-1;i>=0;i--){if(res[i]!==0){lastNz=i;break;}}
+          const str = '(' + res.slice(0, Math.max(2, lastNz+1)+1).join(', ') + ')';
+          if (!seen.has(str)) { seen.add(str); out.push(str); }
+        }
+      }
+      if (out.length) h.ratios = out.join(', ');
+    } else {
+      const currentParts = h.ratios.split(',').map(s=>s.trim()).filter(Boolean);
+      const inputParts = inputStr.split(',').map(s=>s.trim()).filter(Boolean);
+      const seen = new Set();
+      const out = [];
+      for (const a of currentParts) {
+        for (const b of inputParts) {
+          const ea = parsePrimePowersToExps(a);
+          const eb = parsePrimePowersToExps(b);
+          if (!ea || !eb) continue;
+          const res = ea.map((e,i) => e + (eb[i]||0));
+          const str = expsToString(res, 'primepowers');
+          if (!seen.has(str)) { seen.add(str); out.push(str); }
+        }
+      }
+      if (out.length) h.ratios = out.join(', ');
+    }
+  } catch(e) { alert('Multiply error: ' + e.message); }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  PROJECT NAME
 // ─────────────────────────────────────────────────────────────────────────────
 let projectName = 'My Project';
