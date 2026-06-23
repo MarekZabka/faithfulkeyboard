@@ -132,8 +132,8 @@ function renderHarmonyTitleBar() {
     </button>`;
   // Only show when Harmony tab is active
   const harmonyTabActive = document.getElementById('tab-harmony')?.classList.contains('active');
-  bar.style.display = harmonyTabActive ? 'flex' : 'none';
-  if (!harmonyTabActive) return;
+  if (!harmonyTabActive) { bar.style.display = 'none'; return; }
+  bar.style.cssText = 'display:flex; padding:0.6rem 1rem; align-items:center; gap:0.5rem;';
   // Wire buttons
   bar.querySelector('#btn-add-harmony').addEventListener('click', () => {
     const newH = makeHarmony({ name: `Harmony ${harmonies.length+1}`, ratios: '' });

@@ -12,9 +12,9 @@ document.querySelectorAll('.tab').forEach(tab => {
     const target = tab.dataset.tab;
     document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===target));
     document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id===`tab-${target}`));
-    // Show harmony title bar only on Harmonies tab
-    const titleBar = document.getElementById('harmony-editor-title');
-    if (titleBar) titleBar.style.display = target === 'harmony' ? 'flex' : 'none';
+    // Show/hide harmony title bar
+    if (target === 'harmony') renderHarmonyTitleBar();
+    else { const tb = document.getElementById('harmony-editor-title'); if (tb) tb.style.display = 'none'; }
   });
 });
 
