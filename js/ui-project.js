@@ -328,7 +328,7 @@ function invertHarmony(h) {
       h.ratios = parts.map(p => {
         const r = evalRationalExpr(p.replace(/\s+/g,''));
         if (!r || r.isFloat) return p;
-        return _formatRat({num: r.den, den: r.num});
+        return _formatRat({n: r.d, d: r.n});
       }).join(', ');
     } else if (toneMode === 'vectors') {
       const parts = splitToneList(h.ratios);
@@ -364,11 +364,11 @@ function reduceToOctave(h) {
         const r = evalRationalExpr(p.replace(/\s+/g,''));
         if (!r || r.isFloat) { if (!seen.has(p)) { seen.add(p); out.push(p); } continue; }
         // Reduce: multiply/divide by 2 until 1 <= n/d < 2
-        let {num, den} = r;
-        while (num * 2 <= den) { num *= 2; }    // below 1 → multiply by 2
-        while (num >= den * 2) { den *= 2; }    // >= 2 → divide by 2
-        const g = gcd(num, den); num /= g; den /= g;
-        const str = _formatRat({num, den});
+        let n = r.n, d = r.d;
+        while (n > 0 && n * 2 <= d) { n *= 2; }    // below 1 → multiply by 2
+        while (n >= d * 2) { d *= 2; }              // >= 2 → divide by 2
+        const g = gcd(n, d); n /= g; d /= g;
+        const str = _formatRat({n, d});
         if (!seen.has(str)) { seen.add(str); out.push(str); }
       }
       h.ratios = out.join(', ');
