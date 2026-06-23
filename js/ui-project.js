@@ -430,7 +430,10 @@ function buildProjectJSON() {
       minorWidthInterval: layout.minorWidthInterval || 1,
       minorWidthColor: layout.minorWidthColor || '#aaaaaa',
       minorWidthStroke: layout.minorWidthStroke || 0.5,
-      bgColor: layout.bgColor || null
+      bgColor: layout.bgColor || null,
+      hideLabels: !!layout.hideLabels,
+      hideLabels2: !!layout.hideLabels2,
+      hideConnections: !!layout.hideConnections
     },
     baseFreq: getBaseFreq(),
     baseTone: (document.getElementById('base-tone') ? document.getElementById('base-tone').value : 'C'),
@@ -650,6 +653,9 @@ function importProject(jsonStr) {
       layout.minorWidthColor = project.layout.minorWidthColor || '#aaaaaa';
       layout.minorWidthStroke = project.layout.minorWidthStroke !== undefined ? project.layout.minorWidthStroke : 0.5;
       layout.bgColor = project.layout.bgColor || null;
+      layout.hideLabels = !!project.layout.hideLabels;
+      layout.hideLabels2 = !!project.layout.hideLabels2;
+      layout.hideConnections = !!project.layout.hideConnections;
     }
     if (project.baseFreq) document.getElementById('base-freq').value = project.baseFreq;
     if (project.baseTone) { const el = document.getElementById('base-tone'); if (el) el.value = project.baseTone; }
@@ -690,6 +696,10 @@ function importProject(jsonStr) {
     const mnwlCb = document.getElementById('show-minor-width-lines');
     if (mnwlCb) { mnwlCb.checked = !!layout.showMinorWidthLines; const d = document.getElementById('minor-width-line-opts'); if(d) d.style.display = mnwlCb.checked ? 'flex' : 'none'; }
     if (layout.bgColor) { const bgEl = document.getElementById('bg-color'); if(bgEl) bgEl.value = layout.bgColor; }
+    ['hide-labels','hide-labels2','hide-connections'].forEach((id, i) => {
+      const prop = ['hideLabels','hideLabels2','hideConnections'][i];
+      const el = document.getElementById(id); if (el) el.checked = !!layout[prop];
+    });
     document.getElementById('keyboard-rotation').value = layout.keyboardRotation;
     document.getElementById('keyboard-rotation-num').value = layout.keyboardRotation;
     const globalOctEl = document.getElementById('global-octave-equiv');

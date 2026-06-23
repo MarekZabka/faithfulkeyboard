@@ -270,6 +270,9 @@ function applyZoom(newZoomFactor) {
   wireLayoutColor('minor-width-color', 'minorWidthColor');
   wireLayoutNum('minor-width-interval', 'minorWidthInterval');
   wireLayoutNum('minor-width-stroke', 'minorWidthStroke');
+  wireLayoutCheck('hide-labels', 'hideLabels');
+  wireLayoutCheck('hide-labels2', 'hideLabels2');
+  wireLayoutCheck('hide-connections', 'hideConnections');
 
   // octave-line-opts visibility
   const octCb = document.getElementById('show-octave-lines');

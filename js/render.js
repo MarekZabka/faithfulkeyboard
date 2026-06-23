@@ -436,6 +436,7 @@ function renderSVG() {
   for (const harm of harmonies) {
     if (!harm.visible) continue;
     if (harm.connectTones === false) continue;
+    if (layout.hideConnections) continue;
     const harmKeys = keys.filter(k => k.harmonyId === harm.id);
     if (harmKeys.length < 2) continue;
     // Sort by x_logical (cents)
