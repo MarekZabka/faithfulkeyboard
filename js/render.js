@@ -436,6 +436,7 @@ function renderSVG() {
   for (const harm of harmonies) {
     if (!harm.visible) continue;
     if (harm.connectTones === false) continue;
+    if (layout.hideConnections) continue;
     const harmKeys = keys.filter(k => k.harmonyId === harm.id);
     if (harmKeys.length < 2) continue;
     // Sort by x_logical (cents)
@@ -583,9 +584,9 @@ function renderSVG() {
       }
     }
     // Primary labels
-    appendKeyLabel(h.showLabels, h.labelType, h.labelFontSize, h.labelColor, h.labelOffsetX, h.labelOffsetY);
+    appendKeyLabel(h.showLabels && !layout.hideLabels, h.labelType, h.labelFontSize, h.labelColor, h.labelOffsetX, h.labelOffsetY);
     // Secondary labels
-    appendKeyLabel(h.showLabels2, h.labelType2, h.labelFontSize2, h.labelColor2, h.labelOffsetX2, h.labelOffsetY2);
+    appendKeyLabel(h.showLabels2 && !layout.hideLabels2, h.labelType2, h.labelFontSize2, h.labelColor2, h.labelOffsetX2, h.labelOffsetY2);
 
     // Invisible hit area — ellipse to match key stretch
     const hitR = Math.max(ks * 0.7, 8);
