@@ -59,11 +59,11 @@ function syncScales() {
 
 function resetView(useAutoCompute) {
   // If we have a saved view and aren't forced to auto-compute, restore it
-  if (layout.savedView && !useAutoCompute) {
+  if (layout.savedView && !useAutoCompute && layout.savedView.baseScaleY) {
     const sv = layout.savedView;
     // Restore base scales and zoom factor
     baseScaleX = sv.baseScaleX || baseScaleX;
-    baseScaleY = sv.baseScaleY || baseScaleY;
+    baseScaleY = sv.baseScaleY;
     zoomFactor = sv.zoomFactor !== undefined ? sv.zoomFactor : 1;
     viewState.panX = sv.panX !== undefined ? sv.panX : viewState.panX;
     viewState.panY = sv.panY !== undefined ? sv.panY : viewState.panY;

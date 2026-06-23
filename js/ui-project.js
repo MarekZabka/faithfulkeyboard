@@ -482,8 +482,8 @@ function newProject() {
   buildWidthControls();
   renderHarmonyList();
   renderHarmonyEditor();
-  allKeysCache = [];
-  renderSVG();
+  allKeysCache = getAllKeys();
+  resetView(true); // force auto-compute so baseScaleY is correct for new project
   markProjectSaved();
 }
 
