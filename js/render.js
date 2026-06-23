@@ -55,12 +55,16 @@ function pixelToLogical(px, py) {
 function syncScales() {
   viewState.scaleX = baseScaleX * zoomFactor * (layout.viewStretchX || 1);
   viewState.scaleY = baseScaleY * zoomFactor * (layout.viewStretchY || 1);
-  console.log('[syncScales] baseScaleY='+baseScaleY.toFixed(4)+' stretchY='+(layout.viewStretchY||1)+' scaleY='+viewState.scaleY.toFixed(4), new Error().stack.split('\n')[2].trim());
 }
 
 function resetView(useAutoCompute) {
   // If we have a saved view and aren't forced to auto-compute, restore it
-  if (layout.savedView && !useAutoCompute && layout.savedView.baseScaleY) {
+  // Sanity-check savedView: if baseScaleY is wildly off from baseScaleX*100
+  // (e.g. saved when formula was broken), discard and auto-compute instead.
+  const sv0 = layout.savedView;
+  const svOk = sv0 && sv0.baseScaleY && sv0.baseScaleX &&
+    Math.abs(sv0.baseScaleY / (sv0.baseScaleX * 100) - 1) < 10; // within 10x
+  if (svOk && !useAutoCompute) {
     const sv = layout.savedView;
     // Restore base scales and zoom factor
     baseScaleX = sv.baseScaleX || baseScaleX;
@@ -76,7 +80,19 @@ function resetView(useAutoCompute) {
     return;
   }
   const keys = allKeysCache;
-  if (!keys.length) return;
+  if (!keys.length) {
+    // No keys yet — reset to neutral defaults and render empty stage
+    baseScaleX = 0.125; baseScaleY = baseScaleX * 100; zoomFactor = 1;
+    baseZoomScale = baseScaleX;
+    layout.viewStretchX = layout.viewStretchX || 1;
+    layout.viewStretchY = layout.viewStretchY || 1;
+    syncScales();
+    const wrap = svgEl.parentElement;
+    viewState.panX = wrap.clientWidth / 2;
+    viewState.panY = wrap.clientHeight / 2;
+    renderSVG();
+    return;
+  }
   const xs = keys.map(k=>k.x_logical);
   const ys = keys.map(k=>k.y_logical);
   const minX=Math.min(...xs), maxX=Math.max(...xs);
@@ -90,7 +106,6 @@ function resetView(useAutoCompute) {
   // Y scale: 1 width unit = 100 cents visually (same pixel density as 100¢ on X).
   // viewStretchY slider lets the user adjust this ratio manually.
   baseScaleY = baseScaleX * 100;
-  console.log('[resetView] cw='+cw+' ch='+ch+' rangeX='+rangeX.toFixed(1)+' baseScaleX='+baseScaleX.toFixed(4)+' baseScaleY='+baseScaleY.toFixed(4)+' stretchY='+(layout.viewStretchY||1));
   zoomFactor = 1;
   baseZoomScale = baseScaleX; // record default-fit scale for key size flooring
   layout.viewStretchX = layout.viewStretchX || 1;
