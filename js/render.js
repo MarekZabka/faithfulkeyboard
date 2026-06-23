@@ -55,6 +55,7 @@ function pixelToLogical(px, py) {
 function syncScales() {
   viewState.scaleX = baseScaleX * zoomFactor * (layout.viewStretchX || 1);
   viewState.scaleY = baseScaleY * zoomFactor * (layout.viewStretchY || 1);
+  console.log('[syncScales] baseScaleY='+baseScaleY.toFixed(4)+' stretchY='+(layout.viewStretchY||1)+' scaleY='+viewState.scaleY.toFixed(4), new Error().stack.split('\n')[2].trim());
 }
 
 function resetView(useAutoCompute) {
