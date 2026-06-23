@@ -559,9 +559,23 @@ function renderSVG() {
       // Build a temporary harmony-like object for getKeyLabel
       const hProxy = Object.assign({}, h, { labelType: labelType || 'ratio' });
       let labelContent = getKeyLabel(key, hProxy);
-      // For non-base octaves, strip the '·2^n' suffix to show the base ratio
-      if (!isBaseOct && (labelType || 'ratio') === 'ratio') {
-        labelContent = labelContent.split('\u00b7')[0];
+      // For non-base octaves with ratio labels, compute the actual ratio (e.g. 9/8·2^1 → 9/4)
+      if (!isBaseOct && key.oct && (labelType || 'ratio') === 'ratio') {
+        const parts = labelContent.split('\u00b7');
+        const baseLabel = parts[0]; // e.g. '9/8' or '3'
+        const slashIdx = baseLabel.indexOf('/');
+        let num = slashIdx >= 0 ? parseInt(baseLabel) : parseInt(baseLabel);
+        let den = slashIdx >= 0 ? parseInt(baseLabel.slice(slashIdx + 1)) : 1;
+        if (!isNaN(num) && !isNaN(den) && den > 0) {
+          // Multiply by 2^oct: shift num up or den down
+          if (key.oct > 0) { num = num * Math.pow(2, key.oct); }
+          else { den = den * Math.pow(2, -key.oct); }
+          const g = gcd(Math.abs(num), Math.abs(den));
+          num = num / g; den = den / g;
+          labelContent = den === 1 ? `${num}` : `${num}/${den}`;
+        } else {
+          labelContent = baseLabel; // fallback: just show base
+        }
       }
       if (labelType === 'heji' && labelContent.includes('<')) {
         const fw = fontSize * 5;

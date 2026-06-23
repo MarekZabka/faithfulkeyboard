@@ -9,8 +9,23 @@
 const tooltip=document.getElementById('tooltip');
 function showTooltip(cx,cy,key) {
   document.getElementById('tt-harmony').textContent = key.harmonyName || '';
-  // Strip octave suffix (e.g. '5/4·2^1' → '5/4') for display
-  document.getElementById('tt-ratio').textContent = key.label.split('\u00b7')[0];
+  // Compute actual ratio for octave copies (e.g. '9/8·2^1' → '9/4')
+  let ttRatio = key.label;
+  if (key.oct && key.oct !== 0) {
+    const parts = key.label.split('\u00b7');
+    const baseLabel = parts[0];
+    const slashIdx = baseLabel.indexOf('/');
+    let num = parseInt(baseLabel);
+    let den = slashIdx >= 0 ? parseInt(baseLabel.slice(slashIdx + 1)) : 1;
+    if (!isNaN(num) && !isNaN(den) && den > 0) {
+      if (key.oct > 0) { num = num * Math.pow(2, key.oct); }
+      else { den = den * Math.pow(2, -key.oct); }
+      const g = (function gcdLocal(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;})(num, den);
+      num = num/g; den = den/g;
+      ttRatio = den === 1 ? `${num}` : `${num}/${den}`;
+    } else { ttRatio = baseLabel; }
+  }
+  document.getElementById('tt-ratio').textContent = ttRatio;
   // HEJI name
   const ttName = document.getElementById('tt-name');
   if (ttName) {
