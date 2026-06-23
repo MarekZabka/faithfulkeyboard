@@ -146,7 +146,7 @@ function renderHarmonyTitleBar() {
       <span class="harmony-title-name">${name}</span>
       <svg class="harmony-title-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-    <button class="btn-icon harmony-title-btn" id="btn-add-harmony" title="New harmony"
+    <button class="btn-icon harmony-title-btn" id="btn-add-harmony" title="Add harmony"
       style="display:${harmonyEditMode ? '' : 'none'}">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </button>
@@ -475,7 +475,10 @@ function renderHarmonyEditor() {
         <option value="vectors" ${toneMode==='vectors'?'selected':''}>Vectors</option>
       </select>
     </div>
-    <textarea class="field-input" id="he-ratios" rows="3">${escHtml(h.ratios)}</textarea>
+    <textarea class="field-input" id="he-ratios" rows="3" placeholder="${toneMode==='vectors'
+      ? 'Enter vectors e.g.:\n(-1,1,0,0,0,0)  ← 3/2\n(-2,0,1,0,0,0)  ← 5/4'
+      : 'Enter frequency ratios e.g.:\n1, 9/8, 5/4, 11/8, 3/2, 13/8, 7/4'}"
+    >${escHtml(h.ratios)}</textarea>
     <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.2rem;">
       <button id="he-simplify-btn" style="font-size:var(--text-xs);padding:0.15rem 0.5rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;">Simplify</button>
       <button id="he-transpose-btn" style="font-size:var(--text-xs);padding:0.15rem 0.5rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface-dynamic);cursor:pointer;" title="Transpose all tones">Transpose</button>
