@@ -86,9 +86,14 @@ function resetView(useAutoCompute) {
   const rangeX=(maxX-minX)||1200;
   // X scale: fit the cents range across the stage width
   baseScaleX = Math.max(0.1, Math.min(8, (cw-2*padX)/rangeX));
-  // Y scale: 1 width unit = 100 cents visually (same pixel density as 100¢ on X).
-  // This makes ViewStretch 1.0/1.0 the natural default — no manual stretch needed.
-  baseScaleY = baseScaleX * 100;
+  // Y scale: fit the width range across the stage height (with padding).
+  // Use the same proportional padding as X so the layout looks balanced.
+  // If all keys have the same width (rangeY=0), fall back to baseScaleX*100.
+  const padY = 80;
+  const rangeY = (maxY - minY) || 0;
+  baseScaleY = rangeY > 0
+    ? Math.max(0.1, Math.min(200, (ch - 2*padY) / rangeY))
+    : baseScaleX * 100;
   zoomFactor = 1;
   baseZoomScale = baseScaleX; // record default-fit scale for key size flooring
   layout.viewStretchX = layout.viewStretchX || 1;
