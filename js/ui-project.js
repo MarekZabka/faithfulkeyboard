@@ -431,7 +431,7 @@ function buildProjectJSON() {
       bgColor: layout.bgColor || null
     },
     baseFreq: getBaseFreq(),
-    baseTone: (document.getElementById('base-tone') ? document.getElementById('base-tone').value : 'D'),
+    baseTone: (document.getElementById('base-tone') ? document.getElementById('base-tone').value : 'C'),
     sound: {
       waveform: document.getElementById('waveform').value,
       attack: parseFloat(document.getElementById('env-attack').value),
@@ -482,8 +482,8 @@ function newProject() {
   buildWidthControls();
   renderHarmonyList();
   renderHarmonyEditor();
-  allKeysCache = [];
-  renderSVG();
+  allKeysCache = getAllKeys();
+  resetView(true); // force auto-compute so baseScaleY is correct for new project
   markProjectSaved();
 }
 

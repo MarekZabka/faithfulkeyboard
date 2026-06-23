@@ -234,22 +234,20 @@
             </div>
             <div id="change-base-opts" style="display:none;padding-left:1.2rem;margin-top:0.3rem;display:none;flex-direction:column;gap:0.3rem;">
               <div class="field-row">
-                <label class="field-label" for="base-freq">Base Frequency (Hz)</label>
-                <input class="field-input" type="number" id="base-freq" value="261.63" step="0.01" min="20" max="2000">
-                <span class="field-hint">Frequency for 1/1. Default: C4 = 261.63 Hz</span>
-              </div>
-              <div class="field-row" style="margin-top:0.3rem;">
                 <label class="field-label" for="base-tone">Base Tone</label>
                 <select class="field-select" id="base-tone">
                   <option value="A">A</option>
                   <option value="B">B</option>
-                  <option value="C">C</option>
-                  <option value="D" selected>D</option>
+                  <option value="C" selected>C</option>
+                  <option value="D">D</option>
                   <option value="E">E</option>
                   <option value="F">F</option>
                   <option value="G">G</option>
                 </select>
-                <span class="field-hint">Tone label for 1/1. Default: D</span>
+              </div>
+              <div class="field-row" style="margin-top:0.3rem;">
+                <label class="field-label" for="base-freq">Base Frequency (Hz)</label>
+                <input class="field-input" type="number" id="base-freq" value="261.63" step="0.01" min="20" max="2000">
               </div>
             </div>
           </div>

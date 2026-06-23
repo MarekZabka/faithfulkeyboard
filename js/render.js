@@ -59,11 +59,16 @@ function syncScales() {
 
 function resetView(useAutoCompute) {
   // If we have a saved view and aren't forced to auto-compute, restore it
-  if (layout.savedView && !useAutoCompute) {
+  // Sanity-check savedView: if baseScaleY is wildly off from baseScaleX*100
+  // (e.g. saved when formula was broken), discard and auto-compute instead.
+  const sv0 = layout.savedView;
+  const svOk = sv0 && sv0.baseScaleY && sv0.baseScaleX &&
+    Math.abs(sv0.baseScaleY / (sv0.baseScaleX * 100) - 1) < 10; // within 10x
+  if (svOk && !useAutoCompute) {
     const sv = layout.savedView;
     // Restore base scales and zoom factor
     baseScaleX = sv.baseScaleX || baseScaleX;
-    baseScaleY = sv.baseScaleY || baseScaleY;
+    baseScaleY = sv.baseScaleY;
     zoomFactor = sv.zoomFactor !== undefined ? sv.zoomFactor : 1;
     viewState.panX = sv.panX !== undefined ? sv.panX : viewState.panX;
     viewState.panY = sv.panY !== undefined ? sv.panY : viewState.panY;
@@ -75,7 +80,19 @@ function resetView(useAutoCompute) {
     return;
   }
   const keys = allKeysCache;
-  if (!keys.length) return;
+  if (!keys.length) {
+    // No keys yet — reset to neutral defaults and render empty stage
+    baseScaleX = 0.125; baseScaleY = baseScaleX * 100; zoomFactor = 1;
+    baseZoomScale = baseScaleX;
+    layout.viewStretchX = layout.viewStretchX || 1;
+    layout.viewStretchY = layout.viewStretchY || 1;
+    syncScales();
+    const wrap = svgEl.parentElement;
+    viewState.panX = wrap.clientWidth / 2;
+    viewState.panY = wrap.clientHeight / 2;
+    renderSVG();
+    return;
+  }
   const xs = keys.map(k=>k.x_logical);
   const ys = keys.map(k=>k.y_logical);
   const minX=Math.min(...xs), maxX=Math.max(...xs);
@@ -87,7 +104,7 @@ function resetView(useAutoCompute) {
   // X scale: fit the cents range across the stage width
   baseScaleX = Math.max(0.1, Math.min(8, (cw-2*padX)/rangeX));
   // Y scale: 1 width unit = 100 cents visually (same pixel density as 100¢ on X).
-  // This makes ViewStretch 1.0/1.0 the natural default — no manual stretch needed.
+  // viewStretchY slider lets the user adjust this ratio manually.
   baseScaleY = baseScaleX * 100;
   zoomFactor = 1;
   baseZoomScale = baseScaleX; // record default-fit scale for key size flooring
