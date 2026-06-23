@@ -146,7 +146,7 @@ function renderHarmonyTitleBar() {
       <span class="harmony-title-name">${name}</span>
       <svg class="harmony-title-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-    <button class="btn-icon harmony-title-btn" id="btn-add-harmony" title="New harmony"
+    <button class="btn-icon harmony-title-btn" id="btn-add-harmony" title="Add harmony"
       style="display:${harmonyEditMode ? '' : 'none'}">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </button>
@@ -475,7 +475,7 @@ function renderHarmonyEditor() {
         <option value="vectors" ${toneMode==='vectors'?'selected':''}>Vectors</option>
       </select>
     </div>
-    <textarea class="field-input" id="he-ratios" rows="3">${escHtml(h.ratios)}</textarea>
+    <textarea class="field-input" id="he-ratios" rows="3" placeholder="${toneMode==='vectors' ? 'e.g. (-1,1,0,0,0,0) for 3/2, (-2,0,1,0,0,0) for 5/4' : 'e.g. 1, 9/8, 5/4, 11/8, 3/2, 13/8, 7/4'}">${escHtml(h.ratios)}</textarea>
     <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;flex-wrap:wrap;">
       <button id="he-multiply-btn" class="btn-sm" title="Multiply each tone by each tone in an input harmony (Cartesian product). With a single interval, acts as transposition.">Multiply</button>
       <button id="he-invert-btn" class="btn-sm" title="Invert each tone: a/b → b/a (ratios), or negate each vector component">Invert</button>
@@ -490,6 +490,11 @@ function renderHarmonyEditor() {
   const simplifyBtn = tonesSection.querySelector('#he-simplify-btn');
   const ratiosTA = tonesSection.querySelector('#he-ratios');
   const modeSelect = tonesSection.querySelector('#he-tone-mode');
+  function updateRatiosPlaceholder(mode) {
+    ratiosTA.placeholder = mode === 'vectors'
+      ? 'e.g. (-1,1,0,0,0,0) for 3/2, (-2,0,1,0,0,0) for 5/4'
+      : 'e.g. 1, 9/8, 5/4, 11/8, 3/2, 13/8, 7/4';
+  }
 
   function resetSimplify() { _originalRatios = null; simplifyBtn.textContent = 'Simplify'; simplifyBtn.style.background=''; simplifyBtn.style.color=''; simplifyBtn.style.borderColor=''; }
 
@@ -552,6 +557,7 @@ function renderHarmonyEditor() {
     }
     h.toneMode = newMode; h.ratios = text; ratiosTA.value = text;
     resetSimplify();
+    updateRatiosPlaceholder(newMode);
     refreshEditorDirtyState(); applyAndDraw();
   });
 

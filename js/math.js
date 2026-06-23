@@ -35,13 +35,12 @@ function ratioVal(r) { return r.num/r.den; }
 function ratioToCents(r) { return 1200*Math.log2(ratioVal(r)); }
 
 function reduceOctave(r) {
-  let v=ratioVal(r), num=r.num, den=r.den;
-  while(v>=2){num/=2;v/=2;}
-  while(v<1){num*=2;v*=2;}
-  const factor=den;
-  let n=Math.round(num*factor), d=Math.round(den*factor);
-  const g=gcd(Math.abs(n),Math.abs(d));
-  return {num:n/g, den:d/g};
+  let num=r.num, den=r.den;
+  // Divide/multiply as integers to avoid floating-point rounding
+  while(num >= den*2) { den*=2; }  // ratio >= 2: multiply denominator by 2
+  while(num*2 <= den) { num*=2; }  // ratio < 1: multiply numerator by 2
+  const g=gcd(Math.abs(num),Math.abs(den));
+  return {num:num/g, den:den/g};
 }
 
 const PRIMES=[2,3,5,7,11,13];
