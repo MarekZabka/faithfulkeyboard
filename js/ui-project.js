@@ -624,8 +624,10 @@ function newProject() {
   projectDescription = '';
   currentFileHandle = null;
   layout.coordSystem = 'reduced';
-  layout.widths = [0, 2.0, 4.5, 4.0, 3.5, 1.6];
+  layout.widths = [1, 1, 1, 1, 1, 1];
   layout.savedWidths = [...layout.widths];
+  layout.showSemitoneLines = true;
+  layout.showMinorWidthLines = true;
   layout.keyboardRotation = 0;
   layout.viewStretchX = 1.0; layout.viewStretchY = 1.0;
   layout.savedView = null;
@@ -635,11 +637,23 @@ function newProject() {
   document.getElementById('header-project-name').textContent = projectName;
   const descEl = document.getElementById('project-description');
   if (descEl) descEl.value = '';
+  // Sync UI checkboxes for display options
+  const sslCb = document.getElementById('show-semitone-lines');
+  if (sslCb) { sslCb.checked = true; const d = document.getElementById('semitone-line-opts'); if(d) d.style.display='flex'; }
+  const mnwlCb = document.getElementById('show-minor-width-lines');
+  if (mnwlCb) { mnwlCb.checked = true; const d = document.getElementById('minor-width-line-opts'); if(d) d.style.display='flex'; }
   buildWidthControls();
+  // Start with one blank harmony and edit mode on
+  const h1 = makeHarmony({ name: 'Harmony 1', ratios: '' });
+  harmonies = [h1];
+  selectedHarmonyId = h1.id;
+  // Switch to Harmonies tab
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'harmony'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-harmony'));
   renderHarmonyList();
-  renderHarmonyEditor();
+  setHarmonyEditMode(true);
   allKeysCache = getAllKeys();
-  resetView(true); // force auto-compute so baseScaleY is correct for new project
+  resetView(true);
   markProjectSaved();
 }
 
