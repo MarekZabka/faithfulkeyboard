@@ -636,10 +636,17 @@ function newProject() {
   const descEl = document.getElementById('project-description');
   if (descEl) descEl.value = '';
   buildWidthControls();
+  // Start with one blank harmony and edit mode on
+  const h1 = makeHarmony({ name: 'Harmony 1', ratios: '' });
+  harmonies = [h1];
+  selectedHarmonyId = h1.id;
+  // Switch to Harmonies tab
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'harmony'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-harmony'));
   renderHarmonyList();
-  renderHarmonyEditor();
+  setHarmonyEditMode(true);
   allKeysCache = getAllKeys();
-  resetView(true); // force auto-compute so baseScaleY is correct for new project
+  resetView(true);
   markProjectSaved();
 }
 

@@ -64,7 +64,7 @@ function makeHarmony(overrides = {}) {
     labelOffsetX: overrides.labelOffsetX || 0,
     labelOffsetY: overrides.labelOffsetY || 0,
     labelColor: overrides.labelColor !== undefined ? overrides.labelColor : '#000000',
-    labelType: overrides.labelType || 'ratio', // 'ratio' or 'heji'
+    labelType: overrides.labelType || 'heji', // 'ratio' or 'heji'
     showLabels2: overrides.showLabels2 !== undefined ? overrides.showLabels2 : false,
     labelAllOctaves2: overrides.labelAllOctaves2 !== undefined ? overrides.labelAllOctaves2 : false,
     labelFontSize2: overrides.labelFontSize2 || 11,
@@ -83,7 +83,7 @@ function makeHarmony(overrides = {}) {
     keyBulge: overrides.keyBulge !== undefined ? overrides.keyBulge : 0.2,
     keyStrokeWidth: overrides.keyStrokeWidth !== undefined ? overrides.keyStrokeWidth : 1,
     colorMode: overrides.colorMode || 'uniform',
-    uniformColor: overrides.uniformColor || '#6490c4',
+    uniformColor: overrides.uniformColor !== undefined ? overrides.uniformColor : '#ffffff',
     edgeColor: overrides.edgeColor !== undefined ? overrides.edgeColor : '#000000',
     opacity: overrides.opacity !== undefined ? overrides.opacity : 1.0,
     keyOffsetX: overrides.keyOffsetX !== undefined ? overrides.keyOffsetX : 0,
