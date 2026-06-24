@@ -146,15 +146,23 @@ function renderHarmonyTitleBar() {
       <span class="harmony-title-name">${name}</span>
       <svg class="harmony-title-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
-    <button class="btn-icon harmony-title-btn" id="btn-add-harmony" title="Add harmony"
-      style="display:${harmonyEditMode ? '' : 'none'}">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </button>
-    <button class="btn-icon harmony-title-btn" id="btn-edit-harmony-toggle" title="Toggle edit mode"
-      style="${harmonyEditMode ? 'background:var(--color-primary);color:#fff;border-color:var(--color-primary);' : ''}">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-    </button>`;
-  bar.style.cssText = 'display:flex; padding:0.6rem 1rem; align-items:center; gap:0.5rem; position:relative;';
+    <div style="display:flex;gap:0.2rem;flex-shrink:0;">
+      <button class="btn-icon harmony-title-btn" id="btn-show-all-harmonies" title="Show all harmonies">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <button class="btn-icon harmony-title-btn" id="btn-hide-all-harmonies" title="Hide all harmonies">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>
+      <button class="btn-icon harmony-title-btn" id="btn-add-harmony" title="Add harmony"
+        style="display:${harmonyEditMode ? '' : 'none'}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="btn-icon harmony-title-btn" id="btn-edit-harmony-toggle" title="Toggle edit mode"
+        style="${harmonyEditMode ? 'background:var(--color-primary);color:#fff;border-color:var(--color-primary);' : ''}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </button>
+    </div>`;
+  bar.style.cssText = 'display:flex; padding:0.6rem 1rem; align-items:center; gap:0.4rem; position:relative;';
 
   // Dropdown open/close
   const picker = bar.querySelector('#harmony-title-picker');
@@ -210,6 +218,20 @@ function renderHarmonyTitleBar() {
   picker.addEventListener('click', e => { e.stopPropagation(); openDropdown(); });
 
   // Wire action buttons
+  bar.querySelector('#btn-show-all-harmonies').addEventListener('click', () => {
+    harmonies.forEach(h => { h.visible = true; });
+    renderHarmonyList();
+    applyAndDraw();
+    markProjectDirty();
+  });
+
+  bar.querySelector('#btn-hide-all-harmonies').addEventListener('click', () => {
+    harmonies.forEach(h => { h.visible = false; });
+    renderHarmonyList();
+    applyAndDraw();
+    markProjectDirty();
+  });
+
   bar.querySelector('#btn-add-harmony').addEventListener('click', () => {
     const newH = makeHarmony({ name: `Harmony ${harmonies.length+1}`, ratios: '' });
     harmonies.push(newH);
