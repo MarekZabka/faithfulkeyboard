@@ -54,7 +54,7 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   await page.locator('[data-setting="toneLabels.show"]').check();
   for (const type of ['schritt','wechsel']) {
     const title = type === 'schritt' ? 'Schritt' : 'Wechsel';
-    for (const section of ['Label','Shape','Style','Rotation','Stretch','Offset']) {
+    for (const section of ['Label','Shape','Style','Geometry']) {
       await page.locator('#tf-options summary').filter({hasText:new RegExp(`^${title} ${section}$`)}).click();
     }
     const values = {labelFontSize:'16',labelColor:'#112233',keySize:'140',uniformColor:'#e5d7a8',

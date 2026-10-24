@@ -5,6 +5,12 @@ const Transformer = (() => {
   const shapeFields = ['keySize','keyShape','keyRotation','keyStretchX','keyStretchY',
     'keyRounding','keyEdge','keyBulge','keyStrokeWidth','uniformColor','edgeColor',
     'opacity','keyOffsetX','keyOffsetY','labelFontSize','labelColor'];
+  const syncGroups = {
+    label: ['labelFontSize','labelColor'],
+    shape: ['keyShape','keySize','uniformColor','edgeColor','keyStrokeWidth','opacity'],
+    style: ['keyRounding','keyEdge','keyBulge'],
+    geometry: ['keyRotation','keyStretchX','keyStretchY','keyOffsetX','keyOffsetY']
+  };
   const icons = {
     save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
     reset: '<path d="M3 11a9 9 0 1 1 2.6 6.4M3 4v7h7"/>',
@@ -35,19 +41,20 @@ const Transformer = (() => {
   function defaults(h) {
     return {
       version: 1,
-      circle: {size: 300, edgeWidth: 1.2, edgeColor: '#888888', rotation: 0},
+      circle: {size: 300, edgeWidth: 6, edgeColor: '#888888', rotation: 0},
       toneLabels: {show: h.showLabels !== false, type: h.labelType || 'ratio',
         fontSize: h.labelFontSize || 10, color: h.labelColor || '#000000',
         offsetX: h.labelOffsetX || 0, offsetY: h.labelOffsetY || 0},
       showSchritts: true, flipSchritts: false, secondarySize: 300,
       showCollapses: false, collapses: {edgeWidth: 1.5, edgeColor: '#b34b4b'},
-      ...inherited(h), expanded: [], panelOpen: true
+      ...inherited(h), wechselSync: {label:false,shape:false,style:false,geometry:false},
+      expanded: [], panelOpen: true
     };
   }
   function hydrate(h) {
     const base = defaults(h), saved = h.transformer || {};
     const result = {...base, ...clone(saved)};
-    ['circle','toneLabels','collapses','schritt','wechsel'].forEach(k => {
+    ['circle','toneLabels','collapses','schritt','wechsel','wechselSync'].forEach(k => {
       result[k] = {...base[k], ...(saved[k] || {})};
     });
     if (!Array.isArray(result.expanded)) result.expanded = [];
@@ -57,8 +64,38 @@ const Transformer = (() => {
   function set(path, value) {
     const keys = path.split('.'), last = keys.pop();
     keys.reduce((o,k) => o[k], state.draft.config)[last] = value;
+    if (path.startsWith('schritt.')) {
+      syncWechsel();
+      refreshFields();
+    }
     if (/size|Size|rotation|Rotation|Stretch|Offset|showSchritts|flipSchritts/.test(path)) state.viewport = null;
     updateDirty(); draw();
+  }
+  function syncWechsel(group, force = false) {
+    const config = state.draft.config, inverse = inherited(config.schritt).wechsel;
+    Object.entries(syncGroups).forEach(([name, fields]) => {
+      if (group && name !== group) return;
+      if (!force && !config.wechselSync[name]) return;
+      fields.forEach(k => { config.wechsel[k] = inverse[k]; });
+    });
+  }
+  function refreshFields() {
+    dialog.querySelectorAll('[data-setting]').forEach(input => {
+      const value = get(input.dataset.setting);
+      if (input.type === 'checkbox') input.checked = !!value;
+      else input.value = value;
+    });
+    dialog.querySelectorAll('[data-slider]').forEach(input => {
+      input.value = get(input.dataset.slider);
+    });
+    dialog.querySelectorAll('[data-sync-fields]').forEach(fields => {
+      fields.disabled = !!get(`wechselSync.${fields.dataset.syncFields}`);
+    });
+    dialog.querySelectorAll('[data-sync-toggle]').forEach(button => {
+      const on = !!get(`wechselSync.${button.dataset.syncToggle}`);
+      button.setAttribute('aria-pressed', String(on));
+      button.classList.toggle('active', on);
+    });
   }
   function updateDirty() {
     const dirty = JSON.stringify(state.draft) !== JSON.stringify(state.saved);
@@ -76,6 +113,31 @@ const Transformer = (() => {
     return el;
   }
   function field(parent, label, path, type = 'number', options = {}) {
+    if (type === 'number') {
+      const wrap = document.createElement('div'); wrap.className = 'field-row tf-slider';
+      const title = document.createElement('label'); title.className = 'field-label sub-label';
+      title.textContent = label;
+      const row = document.createElement('div'); row.className = 'tf-slider-controls';
+      const range = document.createElement('input'); range.type = 'range'; range.className = 'range-sm';
+      range.id = `tf-slider-${path.replace(/\./g,'-')}`; title.htmlFor = range.id;
+      range.dataset.slider = path;
+      const number = document.createElement('input'); number.type = 'number'; number.className = 'field-input tf-slider-value';
+      number.dataset.setting = path; number.setAttribute('aria-label', `${label} value`);
+      ['min','max','step'].forEach(k => {
+        if (options[k] !== undefined) { range[k] = options[k]; number[k] = options[k]; }
+      });
+      range.value = number.value = get(path);
+      range.addEventListener('input', () => {
+        number.value = range.value; set(path, range.valueAsNumber);
+      });
+      number.addEventListener('input', () => {
+        if (!Number.isFinite(number.valueAsNumber)) return;
+        const value = Math.max(options.min ?? -Infinity, Math.min(options.max ?? Infinity,number.valueAsNumber));
+        if(value!==number.valueAsNumber) number.value=value;
+        range.value = value; set(path,value);
+      });
+      row.append(range,number); wrap.append(title,row); parent.appendChild(wrap); return number;
+    }
     const wrap = document.createElement('label'); wrap.className = 'tf-field';
     const title = document.createElement('span'); title.textContent = label; wrap.appendChild(title);
     let input;
@@ -103,10 +165,40 @@ const Transformer = (() => {
     });
     wrap.appendChild(input); parent.appendChild(wrap); return input;
   }
-  function section(parent, name, open = false) {
+  function section(parent, name, open = false, syncGroup = null) {
     const el = document.createElement('details'); el.open = open; el.className = 'tf-section';
-    const summary = document.createElement('summary'); summary.textContent = name; el.appendChild(summary);
+    const summary = document.createElement('summary'); summary.className = 'editor-section-header';
+    const title = document.createElement('span'); title.className = 'section-title'; title.textContent = name; summary.appendChild(title);
+    summary.insertAdjacentHTML('beforeend','<svg class="section-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>');
+    el.appendChild(summary);
     const body = document.createElement('div'); body.className = 'tf-section-body'; el.appendChild(body);
+    if (syncGroup) {
+      const actions = document.createElement('span'); actions.className = 'tf-sync-actions';
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'tf-section-action';
+      button.dataset.syncToggle = syncGroup;
+      button.title = `Keep ${name} in sync with Schritt (inverse colors, rotation and offsets)`;
+      button.setAttribute('aria-label', `Sync ${name} with Schritt`);
+      button.setAttribute('aria-pressed',String(!!get(`wechselSync.${syncGroup}`)));
+      button.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 .2l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7-.2l-3 3a5 5 0 0 0 7 7l2-2"/></svg>';
+      button.addEventListener('click',e=>{
+        e.preventDefault(); e.stopPropagation();
+        state.draft.config.wechselSync[syncGroup] = !get(`wechselSync.${syncGroup}`);
+        syncWechsel(syncGroup); refreshFields(); updateDirty(); draw();
+      });
+      const reset = document.createElement('button'); reset.type='button'; reset.className='tf-section-action';
+      reset.dataset.syncReset = syncGroup;
+      reset.title=`Reset ${name} from current Schritt values`;
+      reset.setAttribute('aria-label',`Reset ${name} from Schritt`);
+      reset.innerHTML=icon('reset');
+      reset.addEventListener('click',e=>{
+        e.preventDefault(); e.stopPropagation();
+        syncWechsel(syncGroup,true); refreshFields(); updateDirty(); draw();
+      });
+      actions.append(button,reset); summary.insertBefore(actions,summary.lastChild);
+      const fields=document.createElement('fieldset'); fields.className='tf-sync-fields';
+      fields.dataset.syncFields=syncGroup; fields.disabled=!!get(`wechselSync.${syncGroup}`);
+      body.appendChild(fields); parent.appendChild(el); return fields;
+    }
     parent.appendChild(el); return body;
   }
   function conditional(parent, name, path, build) {
@@ -118,10 +210,11 @@ const Transformer = (() => {
     build(body); parent.appendChild(wrap);
   }
   function pointControls(parent, label, key) {
-    let body = section(parent, `${label} Label`);
+    const group = name => key === 'wechsel' ? name : null;
+    let body = section(parent, `${label} Label`,false,group('label'));
     field(body, 'Font Size', `${key}.labelFontSize`, 'number', {min: 4, max: 72, step: 1});
     field(body, 'Color', `${key}.labelColor`, 'color');
-    body = section(parent, `${label} Shape`);
+    body = section(parent, `${label} Shape`,false,group('shape'));
     field(body, 'Shape', `${key}.keyShape`, 'select', {values: [
       ['round','Round'],['hex','Hexagon'],['diamond','Diamond'],['rect','Rectangle'],
       ['triangle','Triangle'],['square','Square'],['pentagon','Pentagon'],['octagon','Octagon']]});
@@ -130,18 +223,16 @@ const Transformer = (() => {
     field(body, 'Edge Width', `${key}.keyStrokeWidth`, 'number', {min: 0, max: 20, step: 0.5});
     field(body, 'Edge Color', `${key}.edgeColor`, 'color');
     field(body, 'Opacity', `${key}.opacity`, 'number', {min: 0, max: 1, step: 0.05});
-    body = section(parent, `${label} Style`);
+    body = section(parent, `${label} Style`,false,group('style'));
     field(body, 'Rounding', `${key}.keyRounding`, 'number', {min: 0, max: 1, step: 0.05});
     field(body, 'Edge Form', `${key}.keyEdge`, 'select', {values: [['straight','Straight'],['convex','Convex'],['concave','Concave']]});
     field(body, 'Bulge Amount', `${key}.keyBulge`, 'number', {min: 0, max: 1, step: 0.05});
-    body = section(parent, `${label} Rotation`);
+    body = section(parent, `${label} Geometry`,false,group('geometry'));
     field(body, 'Rotation', `${key}.keyRotation`, 'number', {min: -360, max: 360, step: 1});
-    body = section(parent, `${label} Stretch`);
-    field(body, 'X', `${key}.keyStretchX`, 'number', {min: 0.1, max: 5, step: 0.05});
-    field(body, 'Y', `${key}.keyStretchY`, 'number', {min: 0.1, max: 5, step: 0.05});
-    body = section(parent, `${label} Offset`);
-    field(body, 'X', `${key}.keyOffsetX`, 'number', {min: -200, max: 200, step: 1});
-    field(body, 'Y', `${key}.keyOffsetY`, 'number', {min: -200, max: 200, step: 1});
+    field(body, 'Stretch X', `${key}.keyStretchX`, 'number', {min: 0.1, max: 5, step: 0.05});
+    field(body, 'Stretch Y', `${key}.keyStretchY`, 'number', {min: 0.1, max: 5, step: 0.05});
+    field(body, 'Offset X', `${key}.keyOffsetX`, 'number', {min: -200, max: 200, step: 1});
+    field(body, 'Offset Y', `${key}.keyOffsetY`, 'number', {min: -200, max: 200, step: 1});
   }
   function controls() {
     const panel = dialog.querySelector('#tf-options'); panel.innerHTML = '';
@@ -223,6 +314,7 @@ const Transformer = (() => {
       field(b, 'Edge Color', 'collapses.edgeColor', 'color');
     });
     pointControls(panel, 'Schritt', 'schritt'); pointControls(panel, 'Wechsel', 'wechsel');
+    refreshFields();
   }
   function displayLabel(parent, x, y, text, size, color, html = false) {
     if (html && text.includes('<')) {
@@ -239,16 +331,22 @@ const Transformer = (() => {
     if (!state) return;
     dialog.querySelector('#tf-point-menu').hidden = true;
     const diagram = dialog.querySelector('#tf-diagram'), config = state.draft.config;
+    clearHighlight();
+    dialog.querySelector('#tf-panel').hidden = !config.panelOpen;
+    dialog.querySelector('#tf-show-panel').hidden = config.panelOpen;
+    dialog.querySelector('#tf-collapse').hidden = !config.panelOpen;
     let tones;
     try { tones = TransformerMath.parse(state.draft.ratios, state.draft.toneMode); }
-    catch (e) { diagram.replaceChildren(); message(e.message, true); state.nodes = []; return; }
+    catch (e) { diagram.replaceChildren(); message(e.message, true); state.nodes = []; state.scenes=[]; return; }
     state.tones = tones;
     const scenes = [], nodeMap = new Map();
     function visit(path, parent, origin) {
       const scene = TransformerMath.neighborhood(tones, parent, origin, config);
+      scene.path=path; scene.id=JSON.stringify(path); scene.depth=path.length;
       scenes.push(scene);
       scene.nodes.forEach(n => {
         n.path = n.origin ? path : [...path, n.slot]; n.id = JSON.stringify(n.path);
+        n.depth=path.length; n.scene=scene.id;
         // Secondary origins are the already-drawn point where that neighborhood was opened.
         if (!n.origin || !path.length) nodeMap.set(n.id, n);
       });
@@ -263,23 +361,44 @@ const Transformer = (() => {
     try { visit([], TransformerMath.identity(tones.length), [0, 0]); }
     catch (e) { message(e.message, true); return; }
     const nodes = [...nodeMap.values()]; state.nodes = nodes;
+    state.scenes=scenes;
     diagram.replaceChildren();
     const circlesLayer = svg('g', {'data-layer':'circles'}, diagram);
     const lineLayer = svg('g', {'data-layer':'collapses'}, diagram);
     const labelLayer = svg('g', {'data-layer':'tone-labels'}, diagram);
     const pointLayer = svg('g', {'data-layer':'points'}, diagram);
     const bounds = [];
-    scenes.forEach(scene => scene.circles.forEach(c => {
+    scenes.forEach(scene => scene.circles.forEach((c, index) => {
       const [x, y] = c.center;
+      const toneIndex=index % tones.length;
+      const members=scene.nodes.filter(n=>{
+        if(n.slot==='origin') return !c.secondary;
+        const [kind,i,j]=n.slot.split(':');
+        if(kind==='w') return !c.secondary && (+i===toneIndex || +j===toneIndex);
+        return +i===toneIndex && !!c.secondary===!!config.flipSchritts;
+      }).map(n=>n.id);
       bounds.push([x - c.radius, y - c.radius], [x + c.radius, y + c.radius]);
-      svg('circle', {cx: x, cy: y, r: c.radius, fill:'none', stroke:config.circle.edgeColor,
-        'stroke-width':config.circle.edgeWidth, 'stroke-dasharray':c.secondary ? '6 4' : '',
-        opacity:c.secondary ? 0.4 : 0.65}, circlesLayer);
+      const circle=svg('circle', {cx: x, cy: y, r: c.radius, fill:'none', stroke:config.circle.edgeColor,
+        class:'tf-circle tf-visual','data-scene':scene.id,'data-depth':scene.depth,'data-tone-index':toneIndex,
+        'stroke-width':config.circle.edgeWidth * Math.pow(.6,scene.depth), 'stroke-dasharray':c.secondary ? '6 4' : '',
+        opacity:(c.secondary ? 0.4 : 0.65) * Math.pow(.78,scene.depth)}, circlesLayer);
+      const highlight=()=>highlightTone(circle,members,scene.id,toneIndex);
+      circle.addEventListener('pointerenter',highlight);
+      circle.addEventListener('pointerleave',clearHighlight);
       if (!c.secondary && config.toneLabels.show) {
         const t = c.tone, opts = config.toneLabels;
         const label = getKeyLabel({label:t.display, cents:t.log * 1200, _exps:t.v}, {labelType:opts.type});
-        displayLabel(labelLayer, x + opts.offsetX, y + opts.offsetY, `${t.letter} = ${label}`,
+        const toneGroup=svg('g',{class:'tf-tone-label tf-visual','data-scene':scene.id,'data-tone-index':toneIndex,
+          'data-depth':scene.depth,opacity:Math.pow(.85,scene.depth),tabindex:0,role:'img',
+          'aria-label':`Tone ${t.letter}: ${t.display}`},labelLayer);
+        svg('rect',{x:x+opts.offsetX-opts.fontSize*5,y:y+opts.offsetY-opts.fontSize*1.5,
+          width:opts.fontSize*10,height:opts.fontSize*3,fill:'transparent'},toneGroup);
+        displayLabel(toneGroup, x + opts.offsetX, y + opts.offsetY, `${t.letter} = ${label}`,
           opts.fontSize * 2, opts.color, opts.type === 'heji');
+        toneGroup.addEventListener('pointerenter',highlight);
+        toneGroup.addEventListener('pointerleave',clearHighlight);
+        toneGroup.addEventListener('focus',highlight);
+        toneGroup.addEventListener('blur',clearHighlight);
       }
     }));
     if (config.showCollapses) {
@@ -293,6 +412,7 @@ const Transformer = (() => {
         // A spanning set keeps large collapsed groups readable without quadratic lines.
         for (let i = 1; i < group.length; i++) svg('line', {
           x1:group[0].point[0], y1:group[0].point[1], x2:group[i].point[0], y2:group[i].point[1],
+          class:'tf-visual','data-from':group[0].id,'data-to':group[i].id,
           stroke:config.collapses.edgeColor, 'stroke-width':config.collapses.edgeWidth, opacity:0.65,
           'pointer-events':'none'}, lineLayer);
       });
@@ -301,10 +421,11 @@ const Transformer = (() => {
       const style = n.op.inverted ? config.wechsel : config.schritt;
       const [x,y] = [n.point[0] + (style.keyOffsetX || 0), n.point[1] + (style.keyOffsetY || 0)];
       // Keyboard keySize is in cents-like units; map it to the prototype's diagram scale.
-      const markerSize = style.keySize * 0.25;
+      const markerSize = style.keySize * 0.25 * Math.pow(.85,n.depth);
       const extent = markerSize * Math.max(style.keyStretchX, style.keyStretchY) + 40;
       bounds.push([x - extent, y - extent], [x + extent, y + extent]);
-      const group = svg('g', {'class':'tf-point', 'data-node':n.id, 'data-monomial':TransformerMath.monomial(n.op),
+      const group = svg('g', {'class':'tf-point tf-visual', 'data-node':n.id, 'data-monomial':TransformerMath.monomial(n.op),
+        'data-op':TransformerMath.opKey(n.op),'data-scene':n.scene,'data-depth':n.depth,opacity:Math.pow(.78,n.depth),
         role:'button', tabindex:'0', 'aria-label':`${n.op.inverted ? 'Wechsel' : 'Schritt'} ${TransformerMath.monomial(n.op)}`}, pointLayer);
       svg('title', {}, group).textContent = `${n.op.inverted ? 'Wechsel' : 'Schritt'} ${TransformerMath.monomial(n.op)} · click for actions`;
       const geometry = buildKeyPath(x, y, markerSize, style, false);
@@ -318,6 +439,10 @@ const Transformer = (() => {
       displayLabel(group, x, y, label, style.labelFontSize * 2, style.labelColor);
       const show = e => { e.stopPropagation(); pointMenu(n, e); };
       group.addEventListener('click', show);
+      group.addEventListener('pointerenter',()=>highlightNeighborhood(n));
+      group.addEventListener('pointerleave',clearHighlight);
+      group.addEventListener('focus',()=>highlightNeighborhood(n));
+      group.addEventListener('blur',clearHighlight);
       group.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(e); } });
     });
     if (!state.viewport) {
@@ -329,8 +454,56 @@ const Transformer = (() => {
     }
     diagram.setAttribute('viewBox', state.viewport.join(' '));
     message(`${tones.length} tones · ${scenes.length} neighborhood${scenes.length === 1 ? '' : 's'} · ${nodes.length} transformations`);
-    dialog.querySelector('#tf-panel').hidden = !config.panelOpen;
-    dialog.querySelector('#tf-show-panel').hidden = config.panelOpen;
+  }
+  function clearHighlight() {
+    if(!dialog) return;
+    const diagram=dialog.querySelector('#tf-diagram');
+    diagram.classList.remove('tf-has-highlight');
+    diagram.querySelectorAll('.tf-emphasized').forEach(e=>e.classList.remove('tf-emphasized'));
+    diagram.querySelector('[data-layer="hover-preview"]')?.remove();
+  }
+  function emphasizeNodes(ids) {
+    dialog.querySelectorAll('.tf-point').forEach(e=>{
+      if(ids.has(e.dataset.node)) e.classList.add('tf-emphasized');
+    });
+    dialog.querySelectorAll('[data-layer="collapses"] line').forEach(e=>{
+      if(ids.has(e.dataset.from) && ids.has(e.dataset.to)) e.classList.add('tf-emphasized');
+    });
+  }
+  function highlightTone(circle,members,sceneId,toneIndex) {
+    clearHighlight();
+    const diagram=dialog.querySelector('#tf-diagram'); diagram.classList.add('tf-has-highlight');
+    circle.classList.add('tf-emphasized');
+    diagram.querySelectorAll('.tf-tone-label').forEach(e=>{
+      if(e.dataset.scene===sceneId && +e.dataset.toneIndex===toneIndex) e.classList.add('tf-emphasized');
+    });
+    emphasizeNodes(new Set(members));
+  }
+  function highlightNeighborhood(node) {
+    clearHighlight();
+    const diagram=dialog.querySelector('#tf-diagram'); diagram.classList.add('tf-has-highlight');
+    const scene=state.scenes.find(s=>s.id===node.id);
+    if(scene) {
+      diagram.querySelectorAll('[data-scene]').forEach(e=>{
+        if(e.dataset.scene===scene.id) e.classList.add('tf-emphasized');
+      });
+      emphasizeNodes(new Set(scene.nodes.map(n=>n.id)));
+      return;
+    }
+    // Temporary preview for a neighborhood not yet expanded. It never changes saved state.
+    const preview=TransformerMath.neighborhood(state.tones,node.op,node.point,state.draft.config);
+    const overlay=svg('g',{'data-layer':'hover-preview','pointer-events':'none'},diagram);
+    preview.circles.forEach(c=>svg('circle',{cx:c.center[0],cy:c.center[1],r:c.radius,fill:'none',
+      stroke:'#b48b32','stroke-width':3,opacity:.8},overlay));
+    const ops=new Set();
+    preview.nodes.forEach(n=>{
+      ops.add(TransformerMath.opKey(n.op));
+      svg('circle',{cx:n.point[0],cy:n.point[1],r:8,fill:'#f3deb0',stroke:'#a07725',
+        'stroke-width':2,opacity:.9},overlay);
+    });
+    diagram.querySelectorAll('.tf-point').forEach(e=>{
+      if(e.dataset.node===node.id || ops.has(e.dataset.op)) e.classList.add('tf-emphasized');
+    });
   }
   function pointMenu(node, event) {
     const menu = dialog.querySelector('#tf-point-menu'); menu.replaceChildren();
@@ -387,8 +560,53 @@ const Transformer = (() => {
   function close() {
     if (JSON.stringify(state.draft) !== JSON.stringify(state.saved) &&
       !confirm('Discard unsaved Transformer changes?')) return;
+    state.windowCleanup?.();
     dialog.close(); dialog.remove(); dialog = null; state = null;
     previousFocus?.focus();
+  }
+  function setupWindowManipulation() {
+    let action=null;
+    const toolbar=dialog.querySelector('.tf-toolbar');
+    function position(rect) {
+      const width=Math.min(rect.width,window.innerWidth),height=Math.min(rect.height,window.innerHeight);
+      const x=Math.max(0,Math.min(rect.left,window.innerWidth-width));
+      const y=Math.max(0,Math.min(rect.top,window.innerHeight-height));
+      dialog.classList.add('tf-positioned');
+      Object.assign(dialog.style,{margin:'0',left:`${x}px`,top:`${y}px`,right:'auto',bottom:'auto',
+        width:`${width}px`,height:`${height}px`});
+    }
+    function start(e,type,target) {
+      if(e.button!==0) return;
+      e.preventDefault(); e.stopPropagation();
+      const rect=dialog.getBoundingClientRect();
+      position(rect); action={type,rect,x:e.clientX,y:e.clientY};
+      target.setPointerCapture(e.pointerId);
+      dialog.querySelector('#tf-point-menu').hidden=true;
+    }
+    function move(e) {
+      if(!action) return;
+      const {rect,type}=action,dx=e.clientX-action.x,dy=e.clientY-action.y;
+      const next={left:rect.left,top:rect.top,width:rect.width,height:rect.height};
+      if(type==='move') {next.left+=dx;next.top+=dy;}
+      else {
+        if(type.includes('e')) next.width=Math.max(Math.min(560,window.innerWidth),Math.min(rect.width+dx,window.innerWidth-rect.left));
+        if(type.includes('s')) next.height=Math.max(Math.min(360,window.innerHeight),Math.min(rect.height+dy,window.innerHeight-rect.top));
+      }
+      position(next);
+    }
+    function end() {action=null;}
+    toolbar.addEventListener('pointerdown',e=>{
+      if(e.target.closest('button,input,select,a')) return;
+      start(e,'move',toolbar);
+    });
+    [toolbar,...dialog.querySelectorAll('.tf-resize')].forEach(el=>{
+      if(el!==toolbar) el.addEventListener('pointerdown',e=>start(e,el.dataset.axis,el));
+      el.addEventListener('pointermove',move); el.addEventListener('pointerup',end);
+      el.addEventListener('pointercancel',end); el.addEventListener('lostpointercapture',end);
+    });
+    const onResize=()=>{if(dialog?.classList.contains('tf-positioned'))position(dialog.getBoundingClientRect());};
+    window.addEventListener('resize',onResize);
+    state.windowCleanup=()=>window.removeEventListener('resize',onResize);
   }
   function open(h) {
     if (!h.octaveEquiv) return;
@@ -396,6 +614,8 @@ const Transformer = (() => {
     previousFocus = document.activeElement;
     const draft = {name:h.name, ratios:h.ratios, toneMode:h.toneMode || 'ratios', config:hydrate(h)};
     state = {source:h, draft, saved:clone(draft), viewport:null, nodes:[]};
+    syncWechsel();
+    state.saved=clone(state.draft);
     dialog = document.createElement('dialog'); dialog.id = 'transformer-modal'; dialog.className = 'tf-modal';
     dialog.setAttribute('aria-labelledby','tf-title');
     dialog.innerHTML = `<div class="tf-shell">
@@ -406,10 +626,11 @@ const Transformer = (() => {
           <button type="button" class="btn-icon" id="tf-reset" title="Reset to last saved" aria-label="Reset to last saved">${icon('reset')}</button>
           <button type="button" class="btn-icon" id="tf-reset-style" title="Reset harmony-inherited styles" aria-label="Reset style">${icon('style')}</button>
         </div>
-        <button type="button" class="btn-icon" id="tf-show-panel" title="Show configuration panel" aria-label="Show configuration panel" hidden>${icon('panel')}</button>
         <button type="button" class="btn-icon" id="tf-close" title="Close transformer" aria-label="Close transformer">${icon('close')}</button>
       </header>
       <div class="tf-content">
+        <button type="button" class="btn-icon tf-config-toggle" id="tf-show-panel" title="Show configuration panel" aria-label="Show configuration panel" hidden>${document.querySelector('#btn-toggle-config')?.innerHTML || icon('panel')}</button>
+        <button type="button" class="btn-icon tf-config-toggle" id="tf-collapse" title="Hide configuration panel" aria-label="Hide configuration panel">${document.querySelector('#panel-toggle')?.innerHTML || icon('collapse')}</button>
         <main class="tf-stage">
           <svg id="tf-diagram" aria-label="Neighborhood of harmony"></svg>
           <div id="tf-point-menu" class="tf-point-menu" hidden></div>
@@ -419,12 +640,14 @@ const Transformer = (() => {
           </div>
         </main>
         <aside class="tf-panel" id="tf-panel" aria-label="Transformer configuration">
-          <div class="tf-panel-heading"><strong>Transformer options</strong>
-          <button type="button" class="btn-icon" id="tf-collapse" title="Collapse panel" aria-label="Collapse panel">${icon('collapse')}</button></div>
+          <div class="tf-panel-heading"><strong>Transformer options</strong></div>
           <div id="tf-options"></div>
         </aside>
       </div>
       <footer id="tf-status" role="status"></footer>
+      <div class="tf-resize tf-resize-e" data-axis="e" aria-hidden="true"></div>
+      <div class="tf-resize tf-resize-s" data-axis="s" aria-hidden="true"></div>
+      <div class="tf-resize tf-resize-se" data-axis="se" aria-hidden="true"></div>
     </div>`;
     document.body.appendChild(dialog);
     dialog.querySelector('#tf-save').addEventListener('click',save);
@@ -443,6 +666,7 @@ const Transformer = (() => {
     dialog.querySelector('#tf-reset-style').addEventListener('click',()=>{
       Object.assign(state.draft.config,inherited(state.source));
       state.draft.config.toneLabels = defaults(state.source).toneLabels;
+      syncWechsel();
       controls(); updateDirty(); draw();
     });
     dialog.querySelector('#tf-collapse').addEventListener('click',()=>set('panelOpen',false));
@@ -452,6 +676,7 @@ const Transformer = (() => {
     stage.addEventListener('click',e=>{if(!e.target.closest('.tf-point-menu') && !e.target.closest('.tf-point')) dialog.querySelector('#tf-point-menu').hidden=true;});
     diagram.addEventListener('wheel',e=>{
       if (!state.viewport) return; e.preventDefault();
+      clearHighlight();
       const [x,y,w,h] = state.viewport, factor = e.deltaY > 0 ? 1.12 : 1/1.12;
       if (w * factor < 30 || w * factor > 100000) return;
       const pt = diagram.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
@@ -461,7 +686,8 @@ const Transformer = (() => {
     },{passive:false});
     let drag=null;
     diagram.addEventListener('pointerdown',e=>{
-      if (e.target.closest('.tf-point') || e.button !== 0) return;
+      if (e.target.closest('.tf-point') || e.button !== 0 || !state.viewport) return;
+      clearHighlight();
       const m = diagram.getScreenCTM(); if(!m) return;
       drag={x:e.clientX,y:e.clientY,v:state.viewport.slice(),sx:m.a,sy:m.d};
       diagram.setPointerCapture(e.pointerId);
@@ -473,7 +699,7 @@ const Transformer = (() => {
     });
     diagram.addEventListener('pointerup',()=>{drag=null;});
     diagram.addEventListener('pointercancel',()=>{drag=null;});
-    controls(); dialog.showModal(); updateDirty(); draw();
+    controls(); dialog.showModal(); setupWindowManipulation(); updateDirty(); draw();
   }
   return {open};
 })();

@@ -13,6 +13,29 @@ or independently expand/hide its neighborhood. Hiding a neighborhood removes its
 descendants too. The root neighborhood remains visible. Image harmonies inherit
 source harmony options and the applicable Schritt/Wechsel marker style.
 
+## Window and controls
+
+Drag the top bar to move the modal. Drag its right edge, bottom edge or bottom-right
+corner to resize it. The modal stays within the viewport. Narrow windows show the
+configuration panel over the diagram rather than squeezing the diagram.
+The circular Show/Hide configuration controls share one top-right position and use
+the same icons as the keyboard. Numeric controls pair keyboard-style sliders with
+fine-value inputs. Section headings remain collapsible.
+
+Schritt Geometry and Wechsel Geometry each contain Rotation, Stretch X/Y and
+Offset X/Y. Each Wechsel section has a chain-button Sync toggle and a one-time
+Reset button. Sync disables manual edits in that section and follows its matching
+Schritt section live. Reset copies its current derived values without enabling
+Sync. Colors are inverted, rotation is shifted 180 degrees and offsets are negated;
+all other values are copied unchanged. Sync settings persist per harmony.
+
+Circle outlines default to width 6. Each nested neighborhood uses 60% of its
+parent's outline width, 78% of its opacity and 85% of its point size. Label font
+sizes stay unchanged. Hover or focus a point to emphasize its neighborhood;
+unexpanded neighborhoods appear as temporary, noninteractive previews which
+are not saved. Hover or focus a tone label to highlight its circle and the
+transformation points belonging to that circle. Circle outlines also support hover.
+
 ## Algebra and coordinates
 
 Schritt `q` maps a tone `x` to `qx`; Wechsel `q` maps `x` to `q/x`.
@@ -56,4 +79,5 @@ With a static server running and Playwright available:
 
 ```sh
 node tests/transformer-ui.test.cjs http://127.0.0.1:8766
+node tests/transformer-refinements.test.cjs http://127.0.0.1:8766
 ```
