@@ -445,6 +445,7 @@ document.addEventListener('click', e => {
 document.getElementById('global-octave-equiv').addEventListener('change', e => {
   layout.octaveEquiv = e.target.checked;
   harmonies.forEach(h => { h.octaveEquiv = layout.octaveEquiv; });
+  renderHarmonyList();
   applyAndDraw();
   markProjectDirty();
   updateLayoutDirtyIndicator();

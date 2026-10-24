@@ -92,6 +92,7 @@ function makeHarmony(overrides = {}) {
     connectStyle: overrides.connectStyle || 'curve',
     connectColor: overrides.connectColor || '#888888',
     connectWidth: overrides.connectWidth !== undefined ? overrides.connectWidth : 2,
+    transformer: overrides.transformer ? JSON.parse(JSON.stringify(overrides.transformer)) : null,
     // edit state (null = no unsaved changes)
     editState: null,
     // saved snapshot
@@ -104,6 +105,7 @@ function makeHarmony(overrides = {}) {
 function snapshotHarmony(h) {
   return {
     name: h.name, ratios: h.ratios, octaveEquiv: h.octaveEquiv,
+    transformer: h.transformer ? JSON.parse(JSON.stringify(h.transformer)) : null,
     showLabels: h.showLabels, labelAllOctaves: h.labelAllOctaves || false,
     labelFontSize: h.labelFontSize,
     labelOffsetX: h.labelOffsetX, labelOffsetY: h.labelOffsetY,

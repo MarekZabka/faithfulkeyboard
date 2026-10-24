@@ -528,6 +528,7 @@ function buildProjectJSON() {
     projectDescription: projectDescription,
     harmonies: harmonies.map(h => ({
       id: h.id, name: h.name, visible: h.visible,
+      transformer: h.transformer ? JSON.parse(JSON.stringify(h.transformer)) : null,
       ratios: h.ratios, octaveEquiv: h.octaveEquiv,
       showLabels: h.showLabels, labelAllOctaves: h.labelAllOctaves || false,
       labelFontSize: h.labelFontSize,

@@ -332,6 +332,15 @@ function renderHarmonyList() {
       applyAndDraw();
     });
     item.appendChild(visBtn);
+    if (harmonyEditMode && h.octaveEquiv) {
+      const transformBtn = document.createElement('button');
+      transformBtn.className = 'harmony-vis-toggle';
+      transformBtn.title = 'Transform';
+      transformBtn.setAttribute('aria-label', `Transform ${h.name}`);
+      transformBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>';
+      transformBtn.addEventListener('click', e => { e.stopPropagation(); Transformer.open(h); });
+      item.appendChild(transformBtn);
+    }
 
     // Clone + Delete icon buttons — only in Edit mode
     if (harmonyEditMode) {
