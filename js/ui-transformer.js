@@ -2,11 +2,13 @@
 const Transformer = (() => {
   const clone = x => JSON.parse(JSON.stringify(x));
   let state = null, dialog = null, previousFocus = null;
+  let hoverLeaveTimer = null;
+  const hoverTimers = new Set();
   const shapeFields = ['keySize','keyShape','keyRotation','keyStretchX','keyStretchY',
     'keyRounding','keyEdge','keyBulge','keyStrokeWidth','uniformColor','edgeColor',
     'opacity','keyOffsetX','keyOffsetY','labelFontSize','labelColor'];
   const syncGroups = {
-    label: ['labelFontSize','labelColor'],
+    label: ['labelFontSize','labelColor','hideDerivedLabels'],
     shape: ['keyShape','keySize','uniformColor','edgeColor','keyStrokeWidth','opacity'],
     style: ['keyRounding','keyEdge','keyBulge'],
     geometry: ['keyRotation','keyStretchX','keyStretchY','keyOffsetX','keyOffsetY']
@@ -30,6 +32,7 @@ const Transformer = (() => {
     s.keySize = h.keySize ?? 120; s.uniformColor = h.uniformColor || '#ffffff';
     s.edgeColor = h.edgeColor || '#000000'; s.labelColor = h.labelColor || '#000000';
     s.labelFontSize = h.labelFontSize || 10;
+    s.hideDerivedLabels = h.hideDerivedLabels ?? false;
     const w = clone(s);
     w.uniformColor = inverseColor(s.uniformColor, '#ffffff');
     w.edgeColor = inverseColor(s.edgeColor, '#000000');
@@ -44,11 +47,12 @@ const Transformer = (() => {
       circle: {size: 300, edgeWidth: 6, edgeColor: '#888888', rotation: 0},
       toneLabels: {show: h.showLabels !== false, type: h.labelType || 'ratio',
         fontSize: h.labelFontSize || 10, color: h.labelColor || '#000000',
-        offsetX: h.labelOffsetX || 0, offsetY: h.labelOffsetY || 0},
+        offsetX: h.labelOffsetX || 0, offsetY: h.labelOffsetY || 0,
+        hideDerived:false, showLetter:true},
       showSchritts: true, flipSchritts: false, secondarySize: 300,
-      showCollapses: false, collapses: {edgeWidth: 1.5, edgeColor: '#b34b4b'},
-      ...inherited(h), wechselSync: {label:false,shape:false,style:false,geometry:false},
-      expanded: [], panelOpen: true
+      showCollapses: false, collapses: {edgeWidth: 4, edgeColor: '#b34b4b',hideDerived:true},
+      ...inherited(h), wechselSync: {label:true,shape:true,style:true,geometry:true},
+      expanded: [], panelOpen: true, viewport:[-700,-700,1400,1400]
     };
   }
   function hydrate(h) {
@@ -58,6 +62,9 @@ const Transformer = (() => {
       result[k] = {...base[k], ...(saved[k] || {})};
     });
     if (!Array.isArray(result.expanded)) result.expanded = [];
+    if(!Array.isArray(result.viewport) || result.viewport.length!==4 ||
+      !result.viewport.every(Number.isFinite) || result.viewport[2]<=0 || result.viewport[3]<=0)
+      result.viewport=base.viewport.slice();
     return result;
   }
   function get(path) { return path.split('.').reduce((o,k) => o[k], state.draft.config); }
@@ -68,8 +75,13 @@ const Transformer = (() => {
       syncWechsel();
       refreshFields();
     }
-    if (/size|Size|rotation|Rotation|Stretch|Offset|showSchritts|flipSchritts/.test(path)) state.viewport = null;
     updateDirty(); draw();
+  }
+  function setViewport(viewport) {
+    state.viewport=viewport.slice();
+    state.draft.config.viewport=viewport.slice();
+    dialog.querySelector('#tf-diagram').setAttribute('viewBox',viewport.join(' '));
+    updateDirty();
   }
   function syncWechsel(group, force = false) {
     const config = state.draft.config, inverse = inherited(config.schritt).wechsel;
@@ -176,7 +188,7 @@ const Transformer = (() => {
       const actions = document.createElement('span'); actions.className = 'tf-sync-actions';
       const button = document.createElement('button'); button.type = 'button'; button.className = 'tf-section-action';
       button.dataset.syncToggle = syncGroup;
-      button.title = `Keep ${name} in sync with Schritt (inverse colors, rotation and offsets)`;
+      button.title = 'Keep in sync with Schritt';
       button.setAttribute('aria-label', `Sync ${name} with Schritt`);
       button.setAttribute('aria-pressed',String(!!get(`wechselSync.${syncGroup}`)));
       button.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 .2l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7-.2l-3 3a5 5 0 0 0 7 7l2-2"/></svg>';
@@ -187,7 +199,7 @@ const Transformer = (() => {
       });
       const reset = document.createElement('button'); reset.type='button'; reset.className='tf-section-action';
       reset.dataset.syncReset = syncGroup;
-      reset.title=`Reset ${name} from current Schritt values`;
+      reset.title='Copy from Schritt';
       reset.setAttribute('aria-label',`Reset ${name} from Schritt`);
       reset.innerHTML=icon('reset');
       reset.addEventListener('click',e=>{
@@ -204,6 +216,8 @@ const Transformer = (() => {
   function conditional(parent, name, path, build) {
     const wrap = document.createElement('section'); wrap.className = 'tf-section';
     const checkbox = field(wrap, name, path, 'checkbox');
+    checkbox.parentElement.classList.add('editor-section-header');
+    checkbox.parentElement.querySelector('span').className='section-title';
     const body = document.createElement('div'); body.className = 'tf-section-body';
     body.hidden = !get(path); wrap.appendChild(body);
     checkbox.addEventListener('change', () => { body.hidden = !checkbox.checked; });
@@ -214,6 +228,7 @@ const Transformer = (() => {
     let body = section(parent, `${label} Label`,false,group('label'));
     field(body, 'Font Size', `${key}.labelFontSize`, 'number', {min: 4, max: 72, step: 1});
     field(body, 'Color', `${key}.labelColor`, 'color');
+    field(body, 'Hide from derived', `${key}.hideDerivedLabels`, 'checkbox');
     body = section(parent, `${label} Shape`,false,group('shape'));
     field(body, 'Shape', `${key}.keyShape`, 'select', {values: [
       ['round','Round'],['hex','Hexagon'],['diamond','Diamond'],['rect','Rectangle'],
@@ -261,7 +276,7 @@ const Transformer = (() => {
     function resetSimplify() { original = null; simplify.textContent = 'Simplify'; simplify.classList.remove('active'); }
     function changed() {
       state.draft.ratios = ta.value; state.draft.config.expanded = [];
-      state.viewport = null; updateDirty(); draw();
+      updateDirty(); draw();
     }
     ta.addEventListener('input', () => { resetSimplify(); changed(); });
     mode.addEventListener('change', () => {
@@ -299,6 +314,8 @@ const Transformer = (() => {
     field(body, 'Edge Color', 'circle.edgeColor', 'color');
     field(body, 'Rotation', 'circle.rotation', 'number', {min: -360, max: 360, step: 1});
     conditional(panel, 'Show Tone Labels', 'toneLabels.show', b => {
+      field(b, 'Show letter', 'toneLabels.showLetter', 'checkbox');
+      field(b, 'Hide from derived', 'toneLabels.hideDerived', 'checkbox');
       field(b, 'Type', 'toneLabels.type', 'select', {values: [['ratio','Ratio'],['cents','Cents'],['heji','Tone name (HEJI)']]});
       field(b, 'Font Size', 'toneLabels.fontSize', 'number', {min: 4, max: 72, step: 1});
       field(b, 'Color', 'toneLabels.color', 'color');
@@ -306,10 +323,13 @@ const Transformer = (() => {
       field(b, 'Offset Y', 'toneLabels.offsetY', 'number', {min: -200, max: 200, step: 1});
     });
     conditional(panel, 'Show Nontrivial Schritts', 'showSchritts', b => {
-      field(b, 'Flip Schritts', 'flipSchritts', 'checkbox');
-      field(b, 'Secondary Circle Size', 'secondarySize', 'number', {min: 10, max: 2000, step: 10});
+      const flip=field(b, 'Flip Schritts', 'flipSchritts', 'checkbox');
+      const secondary=field(b, 'Secondary Circle Size', 'secondarySize', 'number', {min: 10, max: 2000, step: 10}).closest('.field-row');
+      secondary.hidden=!get('flipSchritts');
+      flip.addEventListener('change',()=>{secondary.hidden=!flip.checked;});
     });
     conditional(panel, 'Show Collapses', 'showCollapses', b => {
+      field(b, 'Hide from derived', 'collapses.hideDerived', 'checkbox');
       field(b, 'Edge Width', 'collapses.edgeWidth', 'number', {min: 0, max: 20, step: 0.5});
       field(b, 'Edge Color', 'collapses.edgeColor', 'color');
     });
@@ -384,8 +404,8 @@ const Transformer = (() => {
         opacity:(c.secondary ? 0.4 : 0.65) * Math.pow(.78,scene.depth)}, circlesLayer);
       const highlight=()=>highlightTone(circle,members,scene.id,toneIndex);
       circle.addEventListener('pointerenter',highlight);
-      circle.addEventListener('pointerleave',clearHighlight);
-      if (!c.secondary && config.toneLabels.show) {
+      circle.addEventListener('pointerleave',leaveHighlight);
+      if (!c.secondary && config.toneLabels.show && !(scene.depth && config.toneLabels.hideDerived)) {
         const t = c.tone, opts = config.toneLabels;
         const label = getKeyLabel({label:t.display, cents:t.log * 1200, _exps:t.v}, {labelType:opts.type});
         const toneGroup=svg('g',{class:'tf-tone-label tf-visual','data-scene':scene.id,'data-tone-index':toneIndex,
@@ -393,28 +413,37 @@ const Transformer = (() => {
           'aria-label':`Tone ${t.letter}: ${t.display}`},labelLayer);
         svg('rect',{x:x+opts.offsetX-opts.fontSize*5,y:y+opts.offsetY-opts.fontSize*1.5,
           width:opts.fontSize*10,height:opts.fontSize*3,fill:'transparent'},toneGroup);
-        displayLabel(toneGroup, x + opts.offsetX, y + opts.offsetY, `${t.letter} = ${label}`,
+        displayLabel(toneGroup, x + opts.offsetX, y + opts.offsetY, `${opts.showLetter ? t.letter+' = ' : ''}${label}`,
           opts.fontSize * 2, opts.color, opts.type === 'heji');
         toneGroup.addEventListener('pointerenter',highlight);
-        toneGroup.addEventListener('pointerleave',clearHighlight);
+        toneGroup.addEventListener('pointerleave',leaveHighlight);
         toneGroup.addEventListener('focus',highlight);
-        toneGroup.addEventListener('blur',clearHighlight);
+        toneGroup.addEventListener('blur',leaveHighlight);
       }
     }));
     if (config.showCollapses) {
       const groups = new Map();
       nodes.forEach(n => {
+        if(config.collapses.hideDerived && n.depth>0) return;
         const k = TransformerMath.imageKey(tones, n.op);
         if (!groups.has(k)) groups.set(k, []);
         groups.get(k).push(n);
       });
       groups.forEach(group => {
-        // A spanning set keeps large collapsed groups readable without quadratic lines.
-        for (let i = 1; i < group.length; i++) svg('line', {
-          x1:group[0].point[0], y1:group[0].point[1], x2:group[i].point[0], y2:group[i].point[1],
-          class:'tf-visual','data-from':group[0].id,'data-to':group[i].id,
-          stroke:config.collapses.edgeColor, 'stroke-width':config.collapses.edgeWidth, opacity:0.65,
-          'pointer-events':'none'}, lineLayer);
+        function link(a,b,kind) {
+          svg('line',{
+            x1:a.point[0],y1:a.point[1],x2:b.point[0],y2:b.point[1],
+            class:'tf-visual','data-from':a.id,'data-to':b.id,'data-kind':kind,
+            'data-depth':Math.max(a.depth,b.depth),
+            stroke:config.collapses.edgeColor,'stroke-width':config.collapses.edgeWidth*(kind==='ww'?1:.5),
+            'stroke-dasharray':kind==='sw'?'8 6':'',opacity:.65,'pointer-events':'none'
+          },lineLayer);
+        }
+        // Connected same-kind spanning sets plus one mixed bridge remain linear in group size.
+        const w=group.filter(n=>n.op.inverted),s=group.filter(n=>!n.op.inverted);
+        for(let i=1;i<w.length;i++) link(w[0],w[i],'ww');
+        for(let i=1;i<s.length;i++) link(s[0],s[i],'ss');
+        if(w.length && s.length) link(s[0],w[0],'sw');
       });
     }
     nodes.sort((a,b) => Number(a.op.inverted) - Number(b.op.inverted)).forEach(n => {
@@ -436,31 +465,68 @@ const Transformer = (() => {
       Object.entries({fill:style.uniformColor, stroke:style.edgeColor, 'stroke-width':style.keyStrokeWidth, opacity:style.opacity}).forEach(([k,v]) => shape.setAttribute(k,v));
       const superscripts = '⁰¹²³⁴⁵⁶⁷⁸⁹';
       const label = TransformerMath.monomial(n.op).replace(/\^(\d+)/g, (_, n) => [...n].map(d => superscripts[d]).join(''));
-      displayLabel(group, x, y, label, style.labelFontSize * 2, style.labelColor);
+      if(!(n.depth && style.hideDerivedLabels))
+        displayLabel(group, x, y, label, style.labelFontSize * 2, style.labelColor);
       const show = e => { e.stopPropagation(); pointMenu(n, e); };
       group.addEventListener('click', show);
       group.addEventListener('pointerenter',()=>highlightNeighborhood(n));
-      group.addEventListener('pointerleave',clearHighlight);
+      group.addEventListener('pointerleave',leaveHighlight);
       group.addEventListener('focus',()=>highlightNeighborhood(n));
-      group.addEventListener('blur',clearHighlight);
+      group.addEventListener('blur',leaveHighlight);
       group.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(e); } });
     });
-    if (!state.viewport) {
+    if (state.fitRequested) {
       const margin = 40;
       const minX = Math.min(...bounds.map(p=>p[0])) - margin, minY = Math.min(...bounds.map(p=>p[1])) - margin;
       const width = Math.max(100, Math.max(...bounds.map(p=>p[0])) - minX + margin);
       const height = Math.max(100, Math.max(...bounds.map(p=>p[1])) - minY + margin);
-      state.viewport = [minX, minY, width, height];
+      state.fitRequested=false;
+      setViewport([minX, minY, width, height]);
     }
     diagram.setAttribute('viewBox', state.viewport.join(' '));
     message(`${tones.length} tones · ${scenes.length} neighborhood${scenes.length === 1 ? '' : 's'} · ${nodes.length} transformations`);
   }
   function clearHighlight() {
     if(!dialog) return;
+    clearTimeout(hoverLeaveTimer); hoverLeaveTimer=null;
+    hoverTimers.forEach(clearTimeout); hoverTimers.clear();
     const diagram=dialog.querySelector('#tf-diagram');
     diagram.classList.remove('tf-has-highlight');
     diagram.querySelectorAll('.tf-emphasized').forEach(e=>e.classList.remove('tf-emphasized'));
-    diagram.querySelector('[data-layer="hover-preview"]')?.remove();
+    diagram.querySelectorAll('.tf-hover-layer').forEach(e=>e.remove());
+  }
+  function fadeHighlight() {
+    const diagram=dialog?.querySelector('#tf-diagram'); if(!diagram) return;
+    diagram.classList.remove('tf-has-highlight');
+    diagram.querySelectorAll('.tf-emphasized').forEach(e=>e.classList.remove('tf-emphasized'));
+    diagram.querySelectorAll('.tf-hover-layer.tf-hover-visible').forEach(layer=>{
+      layer.classList.remove('tf-hover-visible');
+      const timer=setTimeout(()=>{layer.remove();hoverTimers.delete(timer);},400);
+      hoverTimers.add(timer);
+    });
+  }
+  function leaveHighlight() {
+    clearTimeout(hoverLeaveTimer);
+    hoverLeaveTimer=setTimeout(()=>{hoverLeaveTimer=null;fadeHighlight();},180);
+  }
+  function hoverLayer(preview=false) {
+    clearTimeout(hoverLeaveTimer); hoverLeaveTimer=null;
+    fadeHighlight();
+    const diagram=dialog.querySelector('#tf-diagram');
+    const layer=svg('g',{class:'tf-hover-layer','data-layer':preview?'hover-preview':'hover-highlight',
+      'pointer-events':'none'});
+    diagram.insertBefore(layer,diagram.firstChild);
+    return layer;
+  }
+  function revealHighlight(layer) {
+    // Establish the transparent initial style before starting the CSS transition.
+    layer.getBoundingClientRect();
+    layer.classList.add('tf-hover-visible');
+  }
+  function highlightCircle(layer,circle) {
+    svg('circle',{cx:circle.getAttribute('cx'),cy:circle.getAttribute('cy'),r:circle.getAttribute('r'),
+      fill:'none',stroke:'#b48b32','stroke-width':Number(circle.getAttribute('stroke-width'))+4,
+      'stroke-dasharray':circle.getAttribute('stroke-dasharray')||'',opacity:.7},layer);
   }
   function emphasizeNodes(ids) {
     dialog.querySelectorAll('.tf-point').forEach(e=>{
@@ -471,28 +537,34 @@ const Transformer = (() => {
     });
   }
   function highlightTone(circle,members,sceneId,toneIndex) {
-    clearHighlight();
+    const layer=hoverLayer();
+    highlightCircle(layer,circle);
     const diagram=dialog.querySelector('#tf-diagram'); diagram.classList.add('tf-has-highlight');
     circle.classList.add('tf-emphasized');
     diagram.querySelectorAll('.tf-tone-label').forEach(e=>{
       if(e.dataset.scene===sceneId && +e.dataset.toneIndex===toneIndex) e.classList.add('tf-emphasized');
     });
     emphasizeNodes(new Set(members));
+    revealHighlight(layer);
   }
   function highlightNeighborhood(node) {
-    clearHighlight();
+    const layer=hoverLayer(!state.scenes.some(s=>s.id===node.id));
     const diagram=dialog.querySelector('#tf-diagram'); diagram.classList.add('tf-has-highlight');
     const scene=state.scenes.find(s=>s.id===node.id);
     if(scene) {
       diagram.querySelectorAll('[data-scene]').forEach(e=>{
         if(e.dataset.scene===scene.id) e.classList.add('tf-emphasized');
       });
+      diagram.querySelectorAll('.tf-circle').forEach(circle=>{
+        if(circle.dataset.scene===scene.id) highlightCircle(layer,circle);
+      });
       emphasizeNodes(new Set(scene.nodes.map(n=>n.id)));
+      revealHighlight(layer);
       return;
     }
     // Temporary preview for a neighborhood not yet expanded. It never changes saved state.
     const preview=TransformerMath.neighborhood(state.tones,node.op,node.point,state.draft.config);
-    const overlay=svg('g',{'data-layer':'hover-preview','pointer-events':'none'},diagram);
+    const overlay=layer;
     preview.circles.forEach(c=>svg('circle',{cx:c.center[0],cy:c.center[1],r:c.radius,fill:'none',
       stroke:'#b48b32','stroke-width':3,opacity:.8},overlay));
     const ops=new Set();
@@ -504,6 +576,7 @@ const Transformer = (() => {
     diagram.querySelectorAll('.tf-point').forEach(e=>{
       if(e.dataset.node===node.id || ops.has(e.dataset.op)) e.classList.add('tf-emphasized');
     });
+    revealHighlight(layer);
   }
   function pointMenu(node, event) {
     const menu = dialog.querySelector('#tf-point-menu'); menu.replaceChildren();
@@ -538,7 +611,7 @@ const Transformer = (() => {
         }
         state.draft.config.expanded.push(path);
       }
-      state.viewport = null; updateDirty(); draw();
+      updateDirty(); draw();
     });
     menu.appendChild(toggle); menu.hidden = false;
     const rect = dialog.querySelector('.tf-stage').getBoundingClientRect();
@@ -561,6 +634,7 @@ const Transformer = (() => {
     if (JSON.stringify(state.draft) !== JSON.stringify(state.saved) &&
       !confirm('Discard unsaved Transformer changes?')) return;
     state.windowCleanup?.();
+    clearHighlight();
     dialog.close(); dialog.remove(); dialog = null; state = null;
     previousFocus?.focus();
   }
@@ -613,7 +687,7 @@ const Transformer = (() => {
     if (dialog) return;
     previousFocus = document.activeElement;
     const draft = {name:h.name, ratios:h.ratios, toneMode:h.toneMode || 'ratios', config:hydrate(h)};
-    state = {source:h, draft, saved:clone(draft), viewport:null, nodes:[]};
+    state = {source:h, draft, saved:clone(draft), viewport:clone(draft.config.viewport), nodes:[]};
     syncWechsel();
     state.saved=clone(state.draft);
     dialog = document.createElement('dialog'); dialog.id = 'transformer-modal'; dialog.className = 'tf-modal';
@@ -661,17 +735,21 @@ const Transformer = (() => {
       }
     });
     dialog.querySelector('#tf-reset').addEventListener('click',()=>{
-      state.draft = clone(state.saved); state.viewport = null; controls(); updateDirty(); draw();
+      state.draft = clone(state.saved); state.viewport = clone(state.draft.config.viewport); controls(); updateDirty(); draw();
     });
     dialog.querySelector('#tf-reset-style').addEventListener('click',()=>{
-      Object.assign(state.draft.config,inherited(state.source));
-      state.draft.config.toneLabels = defaults(state.source).toneLabels;
+      const fresh=inherited(state.source);
+      for(const kind of ['schritt','wechsel'])
+        shapeFields.forEach(k=>{state.draft.config[kind][k]=fresh[kind][k];});
+      const old=state.draft.config.toneLabels;
+      state.draft.config.toneLabels = {...defaults(state.source).toneLabels,
+        hideDerived:old.hideDerived,showLetter:old.showLetter};
       syncWechsel();
       controls(); updateDirty(); draw();
     });
     dialog.querySelector('#tf-collapse').addEventListener('click',()=>set('panelOpen',false));
     dialog.querySelector('#tf-show-panel').addEventListener('click',()=>set('panelOpen',true));
-    dialog.querySelector('#tf-fit').addEventListener('click',()=>{state.viewport=null; draw();});
+    dialog.querySelector('#tf-fit').addEventListener('click',()=>{state.fitRequested=true; draw();});
     const stage = dialog.querySelector('.tf-stage'), diagram = dialog.querySelector('#tf-diagram');
     stage.addEventListener('click',e=>{if(!e.target.closest('.tf-point-menu') && !e.target.closest('.tf-point')) dialog.querySelector('#tf-point-menu').hidden=true;});
     diagram.addEventListener('wheel',e=>{
@@ -681,8 +759,7 @@ const Transformer = (() => {
       if (w * factor < 30 || w * factor > 100000) return;
       const pt = diagram.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
       const p = pt.matrixTransform(diagram.getScreenCTM().inverse());
-      state.viewport=[p.x-(p.x-x)*factor,p.y-(p.y-y)*factor,w*factor,h*factor];
-      diagram.setAttribute('viewBox',state.viewport.join(' '));
+      setViewport([p.x-(p.x-x)*factor,p.y-(p.y-y)*factor,w*factor,h*factor]);
     },{passive:false});
     let drag=null;
     diagram.addEventListener('pointerdown',e=>{
@@ -694,8 +771,7 @@ const Transformer = (() => {
     });
     diagram.addEventListener('pointermove',e=>{
       if(!drag) return;
-      state.viewport=[drag.v[0]-(e.clientX-drag.x)/drag.sx,drag.v[1]-(e.clientY-drag.y)/drag.sy,...drag.v.slice(2)];
-      diagram.setAttribute('viewBox',state.viewport.join(' '));
+      setViewport([drag.v[0]-(e.clientX-drag.x)/drag.sx,drag.v[1]-(e.clientY-drag.y)/drag.sy,...drag.v.slice(2)]);
     });
     diagram.addEventListener('pointerup',()=>{drag=null;});
     diagram.addEventListener('pointercancel',()=>{drag=null;});

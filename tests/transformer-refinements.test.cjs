@@ -56,7 +56,6 @@ async function run(page,url='http://127.0.0.1:8766') {
   const expected={labelColor:'#edcba9',uniformColor:'#543210',edgeColor:'#efdfcf',
     keyRotation:'-150',keyOffsetX:'-12',keyOffsetY:'9'};
   for(const [group,values] of Object.entries(groups)) {
-    await page.locator(`[data-sync-toggle="${group}"]`).click();
     assert.equal(await page.locator(`[data-sync-toggle="${group}"]`).getAttribute('aria-pressed'),'true');
     for(const [prop,value] of Object.entries(values)) {
       const control=input(`schritt.${prop}`);
@@ -87,8 +86,10 @@ async function run(page,url='http://127.0.0.1:8766') {
 
   await page.locator('.tf-point[data-monomial="bc"]').click();
   await page.getByRole('button',{name:'Show neighborhood',exact:true}).click();
+  await page.locator('#tf-fit').click();
   await page.locator('.tf-point[data-monomial="b^2c/a"]').click();
   await page.getByRole('button',{name:'Show neighborhood',exact:true}).click();
+  await page.locator('#tf-fit').click();
   for(const [depth,width] of [[0,6],[1,3.6],[2,2.16]]) {
     const circle=page.locator(`.tf-circle[data-depth="${depth}"]`).first();
     assert.ok(Math.abs(Number(await circle.getAttribute('stroke-width'))-width)<1e-8);
@@ -101,13 +102,14 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.equal(await page.locator('.tf-point.tf-emphasized').count(),13);
   const count=await page.locator('.tf-point').count();
   await page.locator('.tf-point[data-monomial="a/b"]').first().hover();
-  assert.equal(await page.locator('[data-layer="hover-preview"] > circle').count(),16);
+  assert.equal(await page.locator('[data-layer="hover-preview"].tf-hover-visible > circle').count(),16);
   assert.equal(await page.locator('.tf-point').count(),count);
   await page.locator('.tf-tone-label[data-depth="0"][data-tone-index="0"]').hover();
-  assert.equal(await page.locator('[data-layer="hover-preview"]').count(),0);
+  await page.locator('[data-layer="hover-preview"]').waitFor({state:'detached'});
   assert.equal(await page.locator('.tf-circle.tf-emphasized').count(),1);
   assert.equal(await page.locator('.tf-point.tf-emphasized').count(),6);
   await page.locator('#tf-title').hover();
+  await page.waitForFunction(()=>!document.querySelector('.tf-emphasized'));
   assert.equal(await page.locator('.tf-emphasized').count(),0);
   // Invalid tones must not strand either floating configuration toggle.
   await page.locator('#tf-tones').fill('invalid');

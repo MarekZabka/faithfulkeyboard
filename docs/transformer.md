@@ -22,12 +22,31 @@ The circular Show/Hide configuration controls share one top-right position and u
 the same icons as the keyboard. Numeric controls pair keyboard-style sliders with
 fine-value inputs. Section headings remain collapsible.
 
+The view never automatically fits when tones, options or expanded neighborhoods
+change. Fit is an explicit action. Zoom and pan are stored as the SVG viewport in
+the Transformer configuration; Save transformer and then save the project to
+preserve them. Reset to last saved restores the saved viewport as well.
+
 Schritt Geometry and Wechsel Geometry each contain Rotation, Stretch X/Y and
 Offset X/Y. Each Wechsel section has a chain-button Sync toggle and a one-time
 Reset button. Sync disables manual edits in that section and follows its matching
 Schritt section live. Reset copies its current derived values without enabling
 Sync. Colors are inverted, rotation is shifted 180 degrees and offsets are negated;
-all other values are copied unchanged. Sync settings persist per harmony.
+all other values are copied unchanged. Sync defaults ON for new Transformers;
+existing saved choices are preserved. Tooltips are "Keep in sync with Schritt"
+and "Copy from Schritt". Sync settings persist per harmony.
+
+Show Tone Labels, Schritt Label and Wechsel Label each include Hide from derived
+(OFF by default). When enabled, the corresponding labels are omitted from nested
+neighborhoods, but primary-neighborhood labels remain visible. Show letter defaults
+ON and includes the `a = ` prefix in tone labels; turning it off leaves only the
+tone value/name. Secondary Circle Size is available only with Flip Schritts enabled.
+
+Collapse outlines default to width 4. Wechsel-Wechsel lines use the full width,
+Schritt-Schritt lines use half width, and mixed lines use half width with dashes.
+Same-kind spanning sets plus a mixed bridge keep each collapse group connected
+without quadratic growth. Hide from derived defaults ON for collapses; turning it
+off includes links involving nested-neighborhood points.
 
 Circle outlines default to width 6. Each nested neighborhood uses 60% of its
 parent's outline width, 78% of its opacity and 85% of its point size. Label font
@@ -35,6 +54,9 @@ sizes stay unchanged. Hover or focus a point to emphasize its neighborhood;
 unexpanded neighborhoods appear as temporary, noninteractive previews which
 are not saved. Hover or focus a tone label to highlight its circle and the
 transformation points belonging to that circle. Circle outlines also support hover.
+Highlight/preview geometry is behind the main diagram. Hover enters over 350 ms,
+then waits 180 ms after leaving before fading out over 350 ms. Reduced-motion
+preferences disable the fades.
 
 ## Algebra and coordinates
 
@@ -58,7 +80,8 @@ units; label sizes use a factor of two. Zoom applies to the whole SVG diagram.
 ## Persistence and limits
 
 The additive `harmony.transformer` field contains circle options, tone labels,
-Schritt/Wechsel graphics, collapse options, panel visibility and expanded paths.
+Schritt/Wechsel graphics, collapse options, panel visibility, expanded paths and
+the zoom/pan viewport.
 Older project files without the field use harmony-derived defaults. Reset style
 resets inherited marker and label settings, without changing circle settings or
 neighborhood visibility.
@@ -80,4 +103,5 @@ With a static server running and Playwright available:
 ```sh
 node tests/transformer-ui.test.cjs http://127.0.0.1:8766
 node tests/transformer-refinements.test.cjs http://127.0.0.1:8766
+node tests/transformer-view-labels.test.cjs http://127.0.0.1:8766
 ```

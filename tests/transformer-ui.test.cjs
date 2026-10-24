@@ -29,10 +29,12 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   assert.notEqual(await page.evaluate(()=>harmonies[0].name),'Triangle QA');
   await page.locator('.tf-point[data-monomial="bc"]').click();
   await page.getByRole('button',{name:'Show neighborhood',exact:true}).click();
+  await page.locator('#tf-fit').click();
   assert.equal(await page.locator('.tf-point').count(),25);
   assert.equal(await page.locator('.tf-point[data-monomial="b^2c/a"]').count(),1);
   await page.locator('.tf-point[data-monomial="b^2c/a"]').click();
   await page.getByRole('button',{name:'Show neighborhood',exact:true}).click();
+  await page.locator('#tf-fit').click();
   assert.equal(await page.locator('.tf-point').count(),37);
   await page.locator('.tf-point[data-monomial="bc"]').first().click();
   await page.getByRole('button',{name:'Hide neighborhood',exact:true}).click();
@@ -54,6 +56,10 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   await page.locator('[data-setting="toneLabels.show"]').check();
   for (const type of ['schritt','wechsel']) {
     const title = type === 'schritt' ? 'Schritt' : 'Wechsel';
+    if(type==='wechsel') {
+      for(const group of ['label','shape','style','geometry'])
+        await page.locator(`[data-sync-toggle="${group}"]`).click();
+    }
     for (const section of ['Label','Shape','Style','Geometry']) {
       await page.locator('#tf-options summary').filter({hasText:new RegExp(`^${title} ${section}$`)}).click();
     }
