@@ -676,4 +676,29 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
 
   initProjectName();
   initProjectDescription();
+  for(const [check,body] of [['change-base-toggle','change-base-opts'],
+    ['show-octave-lines','octave-line-opts'],['show-semitone-lines','semitone-line-opts'],
+    ['show-major-width-lines','major-width-line-opts'],['show-minor-width-lines','minor-width-line-opts']]) {
+    makeIndependentSection(document.getElementById(check)?.parentElement,document.getElementById(body));
+  }
+  for(const selector of ['#coord-select','#width-controls','#bg-color']) {
+    const group=document.querySelector(selector)?.closest('.field-row');
+    const title=group?.querySelector(':scope > .field-label');if(!title) continue;
+    const header=document.createElement('div');header.innerHTML='<span class="section-title"></span>';
+    header.firstChild.textContent=title.textContent;title.replaceWith(header);
+    const body=document.createElement('div');
+    [...group.children].filter(el=>el!==header).forEach(el=>body.appendChild(el));
+    group.appendChild(body);makeIndependentSection(header,body);
+  }
+  for(const title of [...document.querySelectorAll('#tab-sound > .sound-section-label')]) {
+    const body=document.createElement('div');
+    let next=title.nextElementSibling;
+    while(next && !next.classList.contains('sound-section-label') && !next.querySelector('#btn-test-sound')) {
+      const following=next.nextElementSibling;body.appendChild(next);next=following;
+    }
+    title.insertAdjacentElement('afterend',body);
+    const text=title.textContent;title.replaceChildren();
+    const span=document.createElement('span');span.className='section-title';span.textContent=text;title.appendChild(span);
+    makeIndependentSection(title,body);
+  }
 })();

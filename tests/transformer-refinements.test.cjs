@@ -42,6 +42,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.ok(Math.abs(after.y-before.y-45)<2);
 
   await page.locator('#tf-tones').fill('1, 5/4, 3/2');
+  await page.locator('[data-tf-tab="design"]').click();
   for(const prefix of ['Schritt','Wechsel']) {
     for(const name of ['Label','Shape','Style','Geometry'])
       await page.locator('summary').filter({hasText:new RegExp(`^${prefix} ${name}$`)}).click();
@@ -85,10 +86,12 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.equal(await input('wechsel.keyRotation').isDisabled(),true);
 
   await page.locator('.tf-point[data-monomial="bc"]').click();
-  await page.getByRole('button',{name:'Show neighborhood',exact:true}).click();
+  await page.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
+  await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   await page.locator('#tf-fit').click();
   await page.locator('.tf-point[data-monomial="b^2c/a"]').click();
-  await page.getByRole('button',{name:'Show neighborhood',exact:true}).click();
+  await page.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
+  await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   await page.locator('#tf-fit').click();
   for(const [depth,width] of [[0,6],[1,3.6],[2,2.16]]) {
     const circle=page.locator(`.tf-circle[data-depth="${depth}"]`).first();
@@ -102,7 +105,8 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.equal(await page.locator('.tf-point.tf-emphasized').count(),13);
   const count=await page.locator('.tf-point').count();
   await page.locator('.tf-point[data-monomial="a/b"]').first().hover();
-  assert.equal(await page.locator('[data-layer="hover-preview"].tf-hover-visible > circle').count(),16);
+  assert.equal(await page.locator('[data-layer="hover-preview"].tf-hover-visible > circle').count(),3);
+  assert.equal(await page.locator('[data-layer="hover-preview"].tf-hover-visible .tf-preview-point').count(),13);
   assert.equal(await page.locator('.tf-point').count(),count);
   await page.locator('.tf-tone-label[data-depth="0"][data-tone-index="0"]').hover();
   await page.locator('[data-layer="hover-preview"]').waitFor({state:'detached'});
@@ -112,6 +116,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.waitForFunction(()=>!document.querySelector('.tf-emphasized'));
   assert.equal(await page.locator('.tf-emphasized').count(),0);
   // Invalid tones must not strand either floating configuration toggle.
+  await page.locator('[data-tf-tab="harmony"]').click();
   await page.locator('#tf-tones').fill('invalid');
   await page.locator('#tf-collapse').click();
   assert.equal(await page.locator('#tf-panel').isVisible(),false);

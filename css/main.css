@@ -684,3 +684,11 @@
 .color-pair-item {
   display: flex; align-items: center; gap: 0.3rem;
 }
+.independent-section { border-top:1px solid var(--color-divider);padding:.35rem 0; }
+.independent-section > summary { list-style:none;gap:.5rem; }
+.independent-section > summary::-webkit-details-marker { display:none; }
+.independent-section[open] > summary .section-chevron { transform:rotate(90deg); }
+.independent-section[open] > .independent-section-body { display:flex !important;flex-direction:column;gap:.3rem; }
+.independent-section:not([open]) > .independent-section-body { display:none !important; }
+.transported-harmony { border-left:3px solid var(--color-primary); }
+.transport-badge { color:var(--color-primary);font-size:var(--text-xs);padding:0 .15rem; }

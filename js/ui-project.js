@@ -529,6 +529,7 @@ function buildProjectJSON() {
     harmonies: harmonies.map(h => ({
       id: h.id, name: h.name, visible: h.visible,
       transformer: h.transformer ? JSON.parse(JSON.stringify(h.transformer)) : null,
+      transport: h.transport ? JSON.parse(JSON.stringify(h.transport)) : null,
       ratios: h.ratios, octaveEquiv: h.octaveEquiv,
       showLabels: h.showLabels, labelAllOctaves: h.labelAllOctaves || false,
       labelFontSize: h.labelFontSize,
@@ -896,6 +897,7 @@ document.addEventListener('click', e => {
     const modal = document.getElementById('import-harmonies-modal');
     const checkboxes = modal.querySelectorAll('input[type=checkbox]');
     const toImport = modal._importData || [];
+    const importedIds=new Map(),batch=[];
     let added = 0;
     checkboxes.forEach(cb => {
       if (cb.checked) {
@@ -903,12 +905,22 @@ document.addEventListener('click', e => {
         const hData = toImport[idx];
         if (hData) {
           const newH = makeHarmony(hData);
-          newH.savedState = snapshotHarmony(newH);
+          importedIds.set(hData.id,newH.id);batch.push(newH);
           harmonies.push(newH);
           added++;
         }
       }
     });
+    let detached=0;
+    batch.forEach(h=>{
+      if(h.transport) {
+        const sourceId=importedIds.get(h.transport.sourceId);
+        if(sourceId) h.transport.sourceId=sourceId;
+        else {h.transport=null;detached++;}
+      }
+      h.savedState=snapshotHarmony(h);
+    });
+    if(detached) alert('Transported harmonies whose source was not selected were imported as independent harmonies.');
     modal.style.display = 'none';
     if (added > 0) {
       selectedHarmonyId = harmonies[harmonies.length-1].id;

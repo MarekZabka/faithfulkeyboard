@@ -249,7 +249,7 @@ function renderHarmonyTitleBar() {
 // ─────────────────────────────────────────────────────────────────────────────
 //  TONE TABLE HELPER — shared by editor (edit mode) and list (view mode)
 // ─────────────────────────────────────────────────────────────────────────────
-function renderToneTable(h, container) {
+function renderToneTable(h, container, hooks = {}) {
   try {
     let keys = computeKeysForHarmony(h, getBaseFreq());
     if (h.octaveEquiv) keys = keys.filter(k => k.oct === 0);
@@ -273,10 +273,12 @@ function renderToneTable(h, container) {
       const hid = h.id;
       const klabel = k.label;
       tr.addEventListener('mouseenter', () => {
+        if(hooks.onHover) { hooks.onHover(k); return; }
         document.querySelectorAll(`.svg-key[data-hid="${hid}"][data-label="${CSS.escape(klabel)}"]`)
           .forEach(el => el.classList.add('key-row-hover'));
       });
       tr.addEventListener('mouseleave', () => {
+        if(hooks.onLeave) { hooks.onLeave(); return; }
         document.querySelectorAll(`.svg-key[data-hid="${hid}"][data-label="${CSS.escape(klabel)}"]`)
           .forEach(el => el.classList.remove('key-row-hover'));
       });
@@ -297,6 +299,7 @@ function renderHarmonyList() {
   for (const h of harmonies) {
     const item = document.createElement('div');
     item.className = 'harmony-item' + (h.id===selectedHarmonyId?' selected':'');
+    if(h.transport) item.classList.add('transported-harmony');
     item.draggable = true;
     item.dataset.id = h.id;
 
@@ -317,6 +320,10 @@ function renderHarmonyList() {
     name.className = 'harmony-name';
     name.textContent = h.name;
     item.appendChild(name);
+    if(h.transport) {
+      const badge=document.createElement('span'); badge.className='transport-badge';
+      badge.textContent='↗'; badge.title='Transported from Transformer'; item.appendChild(badge);
+    }
 
     // Visibility toggle (always shown)
     const visBtn = document.createElement('button');
@@ -338,7 +345,14 @@ function renderHarmonyList() {
       transformBtn.title = 'Transform';
       transformBtn.setAttribute('aria-label', `Transform ${h.name}`);
       transformBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg>';
-      transformBtn.addEventListener('click', e => { e.stopPropagation(); Transformer.open(h); });
+      transformBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        if(h.transport) {
+          const source=harmonies.find(x=>x.id===h.transport.sourceId);
+          if(source) Transformer.open(source,{tab:'transported',transportedId:h.id});
+          else alert('The source harmony for this transported harmony is not in this project.');
+        } else Transformer.open(h);
+      });
       item.appendChild(transformBtn);
     }
 
@@ -351,6 +365,7 @@ function renderHarmonyList() {
       cloneBtn.addEventListener('click', e => {
         e.stopPropagation();
         const cloned = makeHarmony(snapshotHarmony(h));
+        cloned.transport = null;
         cloned.name = h.name + ' (Clone)';
         cloned.savedState = snapshotHarmony(cloned);
         harmonies.push(cloned);
@@ -364,13 +379,15 @@ function renderHarmonyList() {
 
       const delBtn = document.createElement('button');
       delBtn.className = 'harmony-vis-toggle';
-      delBtn.title = 'Delete';
+      delBtn.title = h.transport ? 'Withdraw from keyboard' : 'Delete';
       delBtn.style.color = 'var(--color-danger)';
       delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
       delBtn.addEventListener('click', e => {
         e.stopPropagation();
-        if (!confirm(`Delete "${h.name}"?`)) return;
-        harmonies = harmonies.filter(x => x.id !== h.id);
+        const linked=harmonies.filter(x=>x.transport?.sourceId===h.id);
+        if (!confirm(h.transport ? `Withdraw "${h.name}" from keyboard?` :
+          `Delete "${h.name}"?${linked.length ? ` This also withdraws ${linked.length} linked transported harmonies.`:''}`)) return;
+        harmonies = harmonies.filter(x => x.id !== h.id && x.transport?.sourceId!==h.id);
         selectedHarmonyId = harmonies.length ? harmonies[harmonies.length-1].id : null;
         renderHarmonyList();
         renderHarmonyEditor();
@@ -1022,7 +1039,37 @@ function renderHarmonyEditor() {
   });
 
   // ── TONE PREVIEW TABLE ──
+  if(h.transport) {
+    editor.querySelector('#he-name').readOnly=true;
+    ratiosTA.readOnly=true; modeSelect.disabled=true;
+    tonesSection.querySelectorAll('button').forEach(button=>button.remove());
+  }
+  for(const id of ['he-key-style','he-key-rotation-check','he-key-stretch','he-key-offset','he-connect-tones','he-labels','he-labels2']) {
+    const header=editor.querySelector(`#${id}`).parentElement;
+    makeIndependentSection(header,header.nextElementSibling);
+  }
+  makeIndependentSection(shapeSectionHdr,shapeSectionBody);
   renderToneTable(h, editor);
+}
+
+// Shared native disclosure. Checking a feature and expanding its settings are independent.
+function makeIndependentSection(header,body) {
+  if(!header || !body || header.parentElement?.tagName==='SUMMARY') return;
+  const details=document.createElement('details'); details.className='independent-section'; details.open=true;
+  const summary=document.createElement('summary'); summary.className='editor-section-header';
+  const label=header.querySelector('label');
+  if(label) {
+    const title=document.createElement('span');title.className='section-title';title.textContent=label.textContent;
+    header.querySelector('input')?.setAttribute('aria-label',label.textContent);
+    label.replaceWith(title);
+  }
+  header.parentElement.insertBefore(details,header);
+  summary.append(...header.childNodes);
+  summary.insertAdjacentHTML('beforeend','<svg class="section-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>');
+  body.classList.add('independent-section-body');
+  details.append(summary,body); header.remove();
+  summary.querySelectorAll('input').forEach(input=>input.addEventListener('click',e=>e.stopPropagation()));
+  return details;
 }
 
 function refreshEditorDirtyState() {

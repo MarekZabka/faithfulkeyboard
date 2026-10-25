@@ -1,0 +1,159 @@
+const assert=require('node:assert/strict');
+async function run(page,url='http://127.0.0.1:8766') {
+  const errors=[];let allowWithdraw=true;
+  page.on('pageerror',e=>errors.push(e.message));
+  page.on('dialog',d=>d.message().startsWith('Withdraw')&&!allowWithdraw?d.dismiss():d.accept());
+  await page.goto(url,{waitUntil:'domcontentloaded'});
+  await page.locator('.svg-key').first().waitFor();
+  await page.locator('[data-tab="layout"]').click();
+  const baseSection=page.locator('#change-base-toggle').locator('xpath=ancestor::details[1]');
+  assert.equal(await page.locator('#base-freq').isVisible(),true);
+  await baseSection.locator('> summary .section-title').click();
+  assert.equal(await page.locator('#base-freq').isVisible(),false);
+  await baseSection.locator('> summary .section-title').click();
+  assert.equal(await page.locator('#change-base-toggle').isChecked(),false);
+  await page.locator('[data-tab="sound"]').click();
+  const envelope=page.locator('#tab-sound > details').filter({has:page.locator('#env-attack')});
+  await envelope.locator('> summary .section-title').click();
+  assert.equal(await page.locator('#env-attack').isVisible(),false);
+  await envelope.locator('> summary .section-title').click();
+  await page.locator('[data-tab="harmony"]').click();
+  await page.locator('#btn-edit-harmony-toggle').click();
+  // Keyboard disclosures remain expandable when unchecked and do not toggle the checkbox.
+  const labels=page.locator('#he-labels');
+  await labels.uncheck();
+  const disclosure=labels.locator('xpath=ancestor::details[1]');
+  assert.equal(await page.locator('#he-label-type').isVisible(),true);
+  await disclosure.locator('> summary .section-title').click();
+  assert.equal(await page.locator('#he-label-type').isVisible(),false);
+  await disclosure.locator('> summary .section-title').click();
+  assert.equal(await labels.isChecked(),false);
+  await page.locator('[title="Transform"]').first().click();
+  assert.deepEqual(await page.locator('[data-tf-tab]').evaluateAll(es=>es.map(e=>e.title)),
+    ['Harmony','Layout','Design','Transformations','Derived neighborhoods','Transported harmonies']);
+  await page.locator('[data-tf-tab="harmony"]').focus();
+  await page.locator('[data-tf-tab="harmony"]').press('End');
+  assert.equal(await page.locator('[data-tf-tab="transported"]').getAttribute('aria-selected'),'true');
+  await page.locator('[data-tf-tab="transported"]').press('Home');
+  await page.locator('#tf-tones').fill('1, 5/4, 3/2');
+  await page.locator('#tf-name').fill('Workspace QA');
+  const point=page.locator('.tf-point[data-monomial="a/b"]');
+  const bounds=await point.boundingBox();
+  await page.locator('#tf-collapse').click();
+  assert.deepEqual(await point.boundingBox(),bounds);
+  await page.locator('#tf-show-panel').click();
+  assert.deepEqual(await point.boundingBox(),bounds);
+  await page.locator('#tf-fit').click();
+  const panelLeft=(await page.locator('#tf-panel').boundingBox()).x;
+  for(const r of await page.locator('.tf-point').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().toJSON())))
+    assert.ok(r.right<=panelLeft+1,'Manual Fit keeps points clear of the overlay panel');
+  await page.locator('[data-tf-tab="layout"]').click();
+  assert.deepEqual(await page.locator('#tf-pane-layout > details > summary .section-title').allTextContents(),
+    ['Show Nontrivial Schritts','Show Collapses','Show Tone Labels','Circle Style','Hovers']);
+  const check=page.locator('[data-setting="toneLabels.show"]');
+  await check.uncheck();
+  const section=check.locator('xpath=ancestor::details[1]');
+  assert.equal(await page.locator('[data-setting="toneLabels.type"]').isVisible(),true);
+  await section.locator('> summary .section-title').click();
+  assert.equal(await page.locator('[data-setting="toneLabels.type"]').isVisible(),false);
+  await section.locator('> summary .section-title').click();
+  assert.equal(await check.isChecked(),false);
+  await check.check();
+  // A proper, labeled preview sits below the graph without dimming any primary circles.
+  const circle=page.locator('.tf-circle[data-depth="0"]').first();
+  const opacity=await circle.evaluate(e=>getComputedStyle(e).opacity);
+  const pointOpacity=await point.evaluate(e=>getComputedStyle(e).opacity);
+  await point.hover();
+  assert.equal(await page.locator('#tf-diagram > g').first().getAttribute('data-layer'),'hover-preview');
+  assert.equal(await page.locator('.tf-hover-visible .tf-preview-point').count(),13);
+  assert.equal(await page.locator('.tf-hover-visible .tf-preview-point > text').count(),13);
+  assert.equal(await circle.evaluate(e=>getComputedStyle(e).opacity),opacity);
+  assert.equal(await point.evaluate(e=>getComputedStyle(e).opacity),pointOpacity);
+  await page.locator('[data-setting="hovers.neighborhoods"]').uncheck();
+  await point.hover();
+  assert.equal(await page.locator('.tf-hover-visible').count(),0);
+  await page.locator('[data-setting="hovers.neighborhoods"]').check();
+  await page.locator('[data-setting="showSchritts"]').uncheck();
+  assert.equal(await page.locator('.tf-point').count(),7);
+  await page.locator('[data-tf-tab="transformations"]').click();
+  assert.equal(await page.locator('#tf-pane-transformations .tf-list-item').count(),13);
+  await page.locator('[data-tf-tab="layout"]').click();
+  await page.locator('[data-setting="showSchritts"]').check();
+  await point.click();
+  const menu=page.locator('#tf-point-menu');
+  assert.equal(await menu.locator('.tone-table tbody tr').count(),3);
+  await page.locator('#tf-title').hover();
+  await page.waitForFunction(()=>document.querySelector('.tf-selected')&&document.querySelector('.tf-hover-visible'));
+  await menu.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
+  assert.equal(await menu.getByRole('button',{name:'Hide derived neighborhood',exact:true}).count(),1);
+  await menu.getByRole('button',{name:'Transport to keyboard',exact:true}).click();
+  assert.equal(await page.evaluate(()=>harmonies.length),2);
+  assert.equal(await menu.getByRole('button',{name:'Withdraw from keyboard',exact:true}).count(),1);
+  allowWithdraw=false;
+  await menu.getByRole('button',{name:'Withdraw from keyboard',exact:true}).click();
+  assert.equal(await page.evaluate(()=>harmonies.length),2);
+  await menu.getByRole('button',{name:'Close actions',exact:true}).click();
+  assert.equal(await menu.isVisible(),false);
+  assert.equal(await page.locator('.tf-selected').count(),0);
+  await page.locator('[data-tf-tab="transformations"]').click();
+  assert.equal(await page.locator('#tf-pane-transformations .tf-list-item').count(),25);
+  await page.locator('#tf-pane-transformations .tf-list-item[data-monomial="bc"]').first().click();
+  assert.equal(await page.locator('#tf-pane-transformations .tone-table tbody tr').count(),3);
+  await page.locator('#tf-pane-transformations .tone-table tbody tr').first().hover();
+  assert.ok(await page.locator('.tf-hover-visible circle').count()>0);
+  await page.locator('[data-tf-tab="derived"]').click();
+  assert.equal(await page.locator('#tf-pane-derived .tf-list-item').count(),1);
+  await page.locator('#tf-pane-derived [title="Delete"]').click();
+  assert.equal(await page.locator('.tf-point').count(),13);
+  await page.locator('[data-tf-tab="transported"]').click();
+  const transported=page.locator('#tf-pane-transported .tf-list-item');
+  assert.equal(await transported.count(),1);
+  await transported.click();
+  assert.equal(await page.locator('#tf-pane-transported .tone-table tbody tr').count(),3);
+  // Persist a moved/resized window and stable diagram viewport in project JSON.
+  async function drag(selector,dx,dy) {
+    const r=await page.locator(selector).boundingBox();
+    await page.mouse.move(r.x+r.width/2,r.y+r.height/2);await page.mouse.down();
+    await page.mouse.move(r.x+r.width/2+dx,r.y+r.height/2+dy,{steps:5});await page.mouse.up();
+  }
+  await drag('.tf-resize-se',-180,-120);await drag('#tf-title',50,35);
+  const rect=await page.locator('#transformer-modal').boundingBox();
+  await page.locator('#tf-save').click();
+  const json=await page.evaluate(()=>buildProjectJSON());
+  const saved=JSON.parse(json);
+  assert.equal(saved.harmonies[1].transport.sourceId,saved.harmonies[0].id);
+  assert.equal(saved.harmonies[0].transformer.window.left,rect.x);
+  await page.locator('#tf-close').click();
+  const keyboardTransport=page.locator('#harmony-list .transported-harmony');
+  assert.equal(await keyboardTransport.count(),1);
+  await keyboardTransport.click();
+  assert.equal(await page.locator('#he-name').isEditable(),false);
+  assert.equal(await page.locator('#he-ratios').isEditable(),false);
+  for(const id of ['multiply','invert','reduce','simplify'])
+    assert.equal(await page.locator(`#he-${id}-btn`).isVisible(),false);
+  assert.equal(await page.locator('#he-color').isEnabled(),true);
+  await keyboardTransport.locator('[title="Transform"]').click();
+  assert.equal(await page.locator('[data-tf-tab="transported"]').getAttribute('aria-selected'),'true');
+  assert.deepEqual(await page.locator('#transformer-modal').boundingBox(),rect);
+  await page.locator('#tf-close').click();
+  await page.locator('#import-file').setInputFiles({name:'workspace.json',mimeType:'application/json',buffer:Buffer.from(json)});
+  await page.locator('[data-tab="harmony"]').click();
+  await page.locator('#harmony-list .transported-harmony [title="Transform"]').click();
+  assert.deepEqual(await page.locator('#transformer-modal').boundingBox(),rect);
+  assert.equal(await page.locator('#tf-pane-transported .tf-list-item').count(),1);
+  allowWithdraw=true;
+  await page.locator('#tf-pane-transported [title="Withdraw from keyboard"]').click();
+  assert.equal(await page.evaluate(()=>harmonies.length),1);
+  assert.equal(await page.locator('#tf-pane-transported .tf-list-item').count(),0);
+  assert.deepEqual(errors,[]);
+  console.log('PASS Transformer workspace tabs, no-shift panel, additive previews, selection, transport and modal persistence');
+}
+module.exports=run;
+if(require.main===module) {
+  (async()=>{
+    const {chromium}=require('playwright');
+    const browser=await chromium.launch({headless:true,channel:'chromium'});
+    try{await run(await browser.newPage({viewport:{width:1440,height:960}}),process.argv[2]);}
+    finally{await browser.close();}
+  })().catch(e=>{console.error(e);process.exitCode=1;});
+}

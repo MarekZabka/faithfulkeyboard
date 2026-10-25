@@ -26,19 +26,18 @@
 #tf-diagram { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; font-family: var(--font-body); }
 #tf-diagram:active { cursor: grabbing; }
 .tf-point { cursor: pointer; }
-.tf-point:hover > :not(text):not(title), .tf-point:focus > :not(text):not(title) { filter: drop-shadow(0 0 6px #b99d65); }
+.tf-point:hover > :not(text):not(title), .tf-point:focus > :not(text):not(title) { filter: drop-shadow(0 0 2px #b99d6580); }
 .tf-point:focus { outline: none; }
 .tf-tone-label { cursor: pointer; }
 .tf-visual { transition: opacity .35s ease, filter .35s ease; }
 .tf-hover-layer { opacity: 0; transition: opacity .35s ease; pointer-events: none; }
 .tf-hover-layer.tf-hover-visible { opacity: 1; }
-#tf-diagram.tf-has-highlight .tf-visual:not(.tf-emphasized) { opacity: .12; }
-#tf-diagram .tf-emphasized { opacity: 1; }
-#tf-diagram .tf-point.tf-emphasized { filter: drop-shadow(0 0 5px #c6a665); }
+#tf-diagram .tf-point.tf-emphasized, #tf-diagram .tf-point.tf-selected { filter: drop-shadow(0 0 3px #c6a66588); }
+.tf-hover-layer.tf-hover-visible { opacity:.4; }
 @media (prefers-reduced-motion: reduce) {
   .tf-visual, .tf-hover-layer { transition: none; }
 }
-.tf-panel { width: 350px; max-width: 48%; flex: 0 0 auto; display: flex; flex-direction: column; border-left: 1px solid var(--color-divider); min-height: 0; }
+.tf-panel { position:absolute;top:0;bottom:0;right:0;z-index:4;background:var(--color-surface);width: 370px; max-width: 48%; display: flex; flex-direction: column; border-left: 1px solid var(--color-divider); min-height: 0; }
 .tf-panel-heading { display: flex; align-items: center; gap: .5rem; min-height: 64px; padding: .75rem 4rem .75rem .75rem; font-size: var(--text-sm); flex-shrink: 0; border-bottom: 1px solid var(--color-divider); }
 .tf-config-toggle {
   position: absolute; top: 10px; right: 12px; z-index: 12;
@@ -82,6 +81,22 @@
 .tf-navigation { position: absolute; bottom: .75rem; left: .75rem; right: .75rem; display: flex; gap: .5rem; align-items: center; pointer-events: none; font-size: 12px; color: #555; }
 .tf-navigation button { pointer-events: auto; background: #faf9f6; border: 1px solid #bbb; color: #333; }
 .tf-point-menu { position: absolute; z-index: 5; width: 210px; padding: .25rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); color: var(--color-text); font-size: var(--text-sm); }
+.tf-point-menu { width:min(360px,calc(100% - 16px));max-height: min(480px,calc(100% - 16px));overflow:auto; }
+.tf-point-menu .tf-menu-close { position:absolute;top:3px;right:3px;width:26px;padding:.25rem;text-align:center; }
+.tf-menu-title { padding-right:2rem !important;position:sticky;top:-.25rem;background:var(--color-surface);z-index:1; }
+.tf-point-menu .tone-table { font-size:11px; }
+.tf-tabs { display:flex;flex-shrink:0;border-bottom:1px solid var(--color-divider);padding:0 .4rem;gap:.15rem; }
+.tf-tabs .tf-tab { flex:1;min-width:0;padding:.6rem .3rem;display:flex;justify-content:center; }
+.tf-tab-pane { display:flex;flex-direction:column;gap:.75rem; }
+.tf-collection { display:flex;flex-direction:column;gap:.3rem; }
+.tf-list-item { cursor:pointer;min-width:0;gap:.3rem; }
+.tf-list-item .harmony-name { white-space:normal;overflow-wrap:anywhere; }
+.tf-list-item .tf-list-action { flex-shrink:0;width:28px;height:28px;padding:.25rem; }
+.tf-list-item.selected { background:var(--color-primary-highlight); }
+.tf-selected-tones { padding:.25rem .1rem .65rem; }
+.tf-list-kind { font-size:var(--text-xs);color:var(--color-text-muted);margin:.5rem 0 .2rem; }
+.tf-empty { font-size:var(--text-xs);color:var(--color-text-muted);line-height:1.5; }
+.tf-section > summary input[type=checkbox] { flex-shrink:0;accent-color:var(--color-primary); }
 .tf-point-menu button { display: block; width: 100%; padding: .5rem; text-align: left; border-radius: var(--radius-sm); font-size: var(--text-xs); }
 .tf-point-menu button:hover:not(:disabled) { background: var(--color-surface-dynamic); }
 .tf-point-menu button:disabled { opacity: .5; cursor: default; }

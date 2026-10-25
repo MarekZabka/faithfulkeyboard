@@ -24,16 +24,20 @@ async function run(page,url='http://127.0.0.1:8766') {
     assert.equal(await field(p).locator('..').locator('.section-title').evaluate(e=>getComputedStyle(e).textTransform),'uppercase');
     assert.equal(await field(p).locator('..').locator('.section-title').evaluate(e=>getComputedStyle(e).fontWeight),'700');
   }
+  await page.locator('[data-tf-tab="layout"]').click();
   assert.equal(await field('secondarySize').isVisible(),false);
   await field('flipSchritts').check();
   assert.equal(await field('secondarySize').isVisible(),true);
   await field('flipSchritts').uncheck();
   assert.equal(await field('secondarySize').isVisible(),false);
+  await page.locator('[data-tf-tab="harmony"]').click();
   await page.locator('#tf-tones').fill('1, 9/8, 3/2');
+  await page.locator('[data-tf-tab="layout"]').click();
   await field('toneLabels.type').selectOption('ratio');
   await field('circle.size').fill('320');
   await page.locator('.tf-point[data-monomial="bc"]').click();
-  await page.getByRole('button',{name:'Show neighborhood',exact:true}).click();
+  await page.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
+  await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   assert.equal(await view(),initial);
   await field('toneLabels.hideDerived').check();
   assert.equal(await page.locator('.tf-tone-label').count(),3);
@@ -42,6 +46,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.ok((await page.locator('.tf-tone-label').first().textContent()).includes('a = '));
   await field('toneLabels.showLetter').uncheck();
   for(const label of await page.locator('.tf-tone-label').allTextContents()) assert.ok(!label.includes(' = '));
+  await page.locator('[data-tf-tab="design"]').click();
   await page.locator('summary').filter({hasText:/^Schritt Label$/}).click();
   await page.locator('summary').filter({hasText:/^Wechsel Label$/}).click();
   await field('schritt.hideDerivedLabels').check();
@@ -52,6 +57,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   await field('wechsel.hideDerivedLabels').uncheck();
   assert.ok(await page.locator('.tf-point[data-depth="1"][aria-label^="Wechsel"] > text').count()>0);
   assert.equal(await page.locator('.tf-point[data-depth="1"][aria-label^="Schritt"] > text').count(),0);
+  await page.locator('[data-tf-tab="layout"]').click();
   await field('showCollapses').check();
   assert.equal(await page.locator('[data-layer="collapses"] line[data-depth="1"]').count(),0);
   for(const [kind,width,dash] of [['ww','4',''],['ss','2',''],['sw','2','8 6']]) {
@@ -98,6 +104,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.equal(await page.locator('.tf-emphasized').count(),0);
   await page.locator('#tf-reset').click();
   assert.equal(await view(),panned);
+  await page.locator('[data-tf-tab="harmony"]').click();
   await page.locator('#tf-tones').fill('invalid');
   await page.locator('#tf-diagram').click();
   assert.deepEqual(errors,[]);

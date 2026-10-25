@@ -28,17 +28,21 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   await page.locator('#tf-name').fill('Triangle QA');
   assert.notEqual(await page.evaluate(()=>harmonies[0].name),'Triangle QA');
   await page.locator('.tf-point[data-monomial="bc"]').click();
-  await page.getByRole('button',{name:'Show neighborhood',exact:true}).click();
+  await page.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
+  await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   await page.locator('#tf-fit').click();
   assert.equal(await page.locator('.tf-point').count(),25);
   assert.equal(await page.locator('.tf-point[data-monomial="b^2c/a"]').count(),1);
   await page.locator('.tf-point[data-monomial="b^2c/a"]').click();
-  await page.getByRole('button',{name:'Show neighborhood',exact:true}).click();
+  await page.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
+  await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   await page.locator('#tf-fit').click();
   assert.equal(await page.locator('.tf-point').count(),37);
   await page.locator('.tf-point[data-monomial="bc"]').first().click();
-  await page.getByRole('button',{name:'Hide neighborhood',exact:true}).click();
+  await page.getByRole('button',{name:'Hide derived neighborhood',exact:true}).click();
+  await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   assert.equal(await page.locator('.tf-point').count(),13);
+  await page.locator('[data-tf-tab="layout"]').click();
   await page.locator('[data-setting="showSchritts"]').uncheck();
   assert.equal(await page.locator('.tf-point').count(),7);
   await page.locator('[data-setting="showSchritts"]').check();
@@ -54,6 +58,7 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   await page.locator('[data-setting="toneLabels.show"]').uncheck();
   assert.equal(await page.locator('[data-layer="tone-labels"] > *').count(),0);
   await page.locator('[data-setting="toneLabels.show"]').check();
+  await page.locator('[data-tf-tab="design"]').click();
   for (const type of ['schritt','wechsel']) {
     const title = type === 'schritt' ? 'Schritt' : 'Wechsel';
     if(type==='wechsel') {
@@ -74,6 +79,7 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   await page.locator('#tf-reset-style').click();
   assert.equal(await page.locator('[data-setting="secondarySize"]').inputValue(),'180');
   assert.equal(await page.locator('[data-setting="flipSchritts"]').isChecked(),true);
+  await page.locator('[data-tf-tab="harmony"]').click();
   await page.locator('#tf-mode').selectOption('vectors');
   assert.ok((await page.locator('#tf-tones').inputValue()).includes('(-2, 0, 1)'));
   await page.locator('[data-op="invert"]').click();
@@ -85,11 +91,12 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   await page.locator('[data-op="simplify"]').click();
   await page.locator('#tf-tones').fill('1, 5/4, 3/2');
   await page.locator('.tf-point[data-monomial="bc"]').click();
-  await page.getByRole('button',{name:'Show neighborhood',exact:true}).click();
+  await page.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
+  await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   await page.locator('#tf-save').click();
   assert.equal(await page.evaluate(()=>harmonies[0].name),'Triangle QA');
   await page.locator('.tf-point[data-monomial="a/b"]').first().click();
-  await page.getByRole('button',{name:'Add to keyboard',exact:true}).click();
+  await page.getByRole('button',{name:'Transport to keyboard',exact:true}).click();
   assert.equal(await page.evaluate(()=>harmonies.at(-1).name),'a/b of Triangle QA');
   assert.equal(await page.evaluate(()=>harmonies.at(-1).ratios),'1, 6/5, 8/5');
   const json = await page.evaluate(()=>buildProjectJSON());

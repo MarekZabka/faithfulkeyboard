@@ -19,8 +19,53 @@ Drag the top bar to move the modal. Drag its right edge, bottom edge or bottom-r
 corner to resize it. The modal stays within the viewport. Narrow windows show the
 configuration panel over the diagram rather than squeezing the diagram.
 The circular Show/Hide configuration controls share one top-right position and use
-the same icons as the keyboard. Numeric controls pair keyboard-style sliders with
-fine-value inputs. Section headings remain collapsible.
+the same icons as the keyboard. The configuration panel overlays the diagram;
+showing or hiding it never changes the diagram's screen position or scale.
+Numeric controls pair keyboard-style sliders with fine-value inputs. Section
+headings remain collapsible, independently of their enable checkboxes. The same
+disclosure design is used by the keyboard's harmony, layout and sound sections.
+Save transformer also saves the modal rectangle. Reopening restores its size and
+position, clamped within the current screen.
+
+## Configuration tabs and actions
+
+- Harmony: source name, tones, format and tone operations.
+- Layout: Show Nontrivial Schritts, Show Collapses, Show Tone Labels, Circle Style,
+  then Hovers. Hover neighborhoods and tone circles both default ON.
+- Design: Schritt/Wechsel label, shape, style and geometry controls.
+- Transformations: all Schritts and Wechsels from the current neighborhoods,
+  including nontrivial Schritts hidden by the layout setting. Rows have transport/
+  withdraw and show/hide-derived-neighborhood actions. Selecting a row expands
+  the shared keyboard Included Tones table directly below it.
+- Derived neighborhoods: the added neighborhoods, each with Delete. Hover
+  emphasizes that neighborhood; removing a parent also removes its descendants.
+- Transported harmonies: linked keyboard harmonies, each with Withdraw. Selecting
+  one shows Included Tones; row hover emphasizes only its transformation point.
+
+Diagram point actions are Transport to keyboard / Withdraw from keyboard and
+Show derived neighborhood / Hide derived neighborhood. The action panel has an X
+and the keyboard's shared Included Tones table. Selection remains highlighted
+until dismissed. Hovering an included tone shows its corresponding circle.
+Hover previews are behind the primary graph, use the configured Schritt/Wechsel
+shapes and labels, and never gray out or change the opacity of the primary graph.
+
+Transport links are stored on the transported harmony as `transport` metadata
+(source ID, operation, path and point). The same operation cannot be transported
+twice from the same source. Withdrawal asks for confirmation. Transporting pending
+source name/tone edits asks to save those edits first, ensuring links are valid.
+Saving a source Transformer refreshes linked names/tones while retaining any
+keyboard-specific visual edits.
+
+Transported keyboard harmonies carry a visual badge, have read-only name/tones
+and format, and omit Multiply/Invert/Reduce/Simplify. Their Transformer action
+opens the source Transformer on Transported harmonies. Cloning creates an
+independent editable harmony. Deleting a source explicitly confirms withdrawal
+of its linked harmonies. Full project imports preserve links; batch harmony
+imports remap source IDs. A partial import without the source becomes independent,
+with an explanatory alert rather than an accidental link to an unrelated source.
+Source tone-format changes also update linked harmonies. Vector-defined keyboard
+tones calculate their prime limit from their exponents rather than a missing ratio,
+so vector transport, keyboard rendering and Included Tones work without errors.
 
 The view never automatically fits when tones, options or expanded neighborhoods
 change. Fit is an explicit action. Zoom and pan are stored as the SVG viewport in
@@ -81,7 +126,7 @@ units; label sizes use a factor of two. Zoom applies to the whole SVG diagram.
 
 The additive `harmony.transformer` field contains circle options, tone labels,
 Schritt/Wechsel graphics, collapse options, panel visibility, expanded paths and
-the zoom/pan viewport.
+the zoom/pan viewport, active tab, hover options and modal rectangle.
 Older project files without the field use harmony-derived defaults. Reset style
 resets inherited marker and label settings, without changing circle settings or
 neighborhood visibility.
@@ -104,4 +149,6 @@ With a static server running and Playwright available:
 node tests/transformer-ui.test.cjs http://127.0.0.1:8766
 node tests/transformer-refinements.test.cjs http://127.0.0.1:8766
 node tests/transformer-view-labels.test.cjs http://127.0.0.1:8766
+node tests/transformer-workspace.test.cjs http://127.0.0.1:8766
+node tests/transformer-links.test.cjs http://127.0.0.1:8766
 ```
