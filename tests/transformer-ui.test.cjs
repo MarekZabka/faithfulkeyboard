@@ -57,7 +57,7 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   await page.locator('[data-setting="collapses.edgeColor"]').fill('#cc4422');
   await page.locator('[data-setting="toneLabels.type"]').selectOption('ratio');
   await page.locator('[data-setting="toneLabels.fontSize"]').fill('15');
-  await page.locator('[data-setting="toneLabels.offsetX"]').fill('8');
+  await page.locator('[data-setting="toneLabels.offset"]').fill('8');
   await page.locator('[data-setting="toneLabels.show"]').uncheck();
   assert.equal(await page.locator('[data-layer="tone-labels"] > *').count(),0);
   await page.locator('[data-setting="toneLabels.show"]').check();
@@ -79,7 +79,7 @@ async function run(page, url = 'http://127.0.0.1:8766') {
     await page.locator(`[data-setting="${type}.keyShape"]`).selectOption('triangle');
     await page.locator(`[data-setting="${type}.keyEdge"]`).selectOption('convex');
   }
-  await page.locator('#tf-reset-style').click();
+  assert.equal(await page.locator('#tf-reset-style').count(),0);
   assert.equal(await page.locator('[data-setting="secondarySize"]').inputValue(),'180');
   assert.equal(await page.locator('[data-setting="flipSchritts"]').isChecked(),true);
   await page.locator('[data-tf-tab="harmony"]').click();

@@ -17,11 +17,18 @@ source harmony options and the applicable Schritt/Wechsel marker style.
 ## Window and controls
 
 Drag the top bar to move the modal. Drag its right edge, bottom edge or bottom-right
-corner to resize it. The modal stays within the viewport. Narrow windows show the
-configuration panel over the diagram rather than squeezing the diagram.
-The circular Show/Hide configuration controls share one top-right position and use
-the same icons as the keyboard. The configuration panel overlays the diagram;
-showing or hiding it never changes the diagram's screen position or scale.
+corner to resize it. The modal stays within the viewport. Both modules use the same
+true split between canvas and configuration, matching the [live Keyboard](https://www.faithfulkeyboard.com).
+Closing configuration gives the canvas the full width. The shared split helper
+keeps toolbar and body panel widths aligned and removes stale inline resize widths.
+Save/Reset sit at the left of the configuration toolbar, with Collapse at the right.
+On the canvas toolbar, Transformer has its intersecting-circle brand, the source
+harmony name in the center, and view-lock/theme controls. The gear returns when
+configuration is hidden. Close remains at the far right of the active toolbar.
+There is no inherited-style-reset pencil button.
+Showing/hiding configuration crops or expands the visible world extent without
+changing the diagram's screen position or pixel scale. Lock blocks pan/zoom/Fit,
+and Theme uses the application's theme control.
 Numeric controls pair keyboard-style sliders with fine-value inputs. Section
 headings remain collapsible, independently of their enable checkboxes. The same
 disclosure design is used by the keyboard's harmony, layout and sound sections.
@@ -37,20 +44,19 @@ position, clamped within the current screen.
 - Transformations: only primary Schritts and Wechsels from the neighborhood of 1,
   including nontrivial Schritts hidden by the layout setting. Rows have Pin/Unpin
   followed by Transport/Withdraw. Each toggle retains its icon and uses a filled
-  active-button style. Included Tones appears after the full list, not inside a row.
+  active-button style. Selecting a row shows Included Tones immediately below it.
 - Pinned neighborhoods: independent pins, each with Unpin. Hover emphasizes that
-  neighborhood. Selected details contain its full transformation list, whose
-  actions can pin further neighborhoods. Neighborhood miniatures overlap two
-  copies of their transformation shape.
+  neighborhood. There are no transformation details below the list. Neighborhood
+  miniatures overlap two copies of their transformation shape.
 - Transported harmonies: linked keyboard harmonies, each with Withdraw. Selecting
-  one shows Included Tones after the full list; row hover emphasizes only its transformation point.
+  one shows Included Tones immediately below it; row hover emphasizes only its transformation point.
 
-These list tabs share the Keyboard's fixed selected-name bar and picker above
-the scrollable list/details area. The list can scroll away while its selected
-name remains visible. Active tab text appears next to the icon in the tab itself.
+Transformer list tabs have no separate selected-name bar. Active tab text appears
+next to the icon in the tab itself, and each tab is only as wide as its content.
 
 Diagram point actions are Pin/Unpin neighborhood and Transport/Withdraw from keyboard,
-with the same leading icons as their tabs. The action panel has an X
+with left-aligned labels and the same leading icons as their tabs. For the identity
+Schritt 1, both actions are omitted. The action panel has an X
 and the keyboard's shared Included Tones table. Selection remains highlighted
 until dismissed. The action panel also closes on an outside click. Hovering an
 included tone shows its corresponding circle with a light beige fill.
@@ -81,9 +87,12 @@ tones calculate their prime limit from their exponents rather than a missing rat
 so vector transport, keyboard rendering and Included Tones work without errors.
 
 The view never automatically fits when tones, options or expanded neighborhoods
-change. Fit is an explicit action. Zoom and pan are stored as the SVG viewport in
+change. Fit is an explicit action. Zoom/pan are stored as a pixel-scale camera plus
+a backward-compatible SVG viewport in
 the Transformer configuration; Save transformer and then save the project to
 preserve them. Reset to last saved restores the saved viewport as well.
+Canvas resizes update the visible extent rather than moving the camera. Tiny SVG
+matrix rounding differences do not count as unsaved edits.
 
 Schritt Geometry and Wechsel Geometry each contain Rotation, Stretch X/Y and
 Offset X/Y. Each Wechsel section has a chain-button Sync toggle and a one-time
@@ -99,12 +108,19 @@ Show Tone Labels, Schritt Label and Wechsel Label each include Hide from pinned
 neighborhoods, but primary-neighborhood labels remain visible. Show letter defaults
 ON and includes the `a = ` prefix in tone labels; turning it off leaves only the
 tone value/name. Secondary Circle Size is available only with Flip Schritts enabled.
+Tone label controls are Type, Font Size, radial Offset, Show letter, Hide from
+pinned, followed by the retained Color control. Positive Offset moves labels away
+from that neighborhood's own center; negative Offset moves inward, clamped at its
+center. Legacy Cartesian label offsets are no longer applied.
 
 Collapse outlines default to width 4. Wechsel-Wechsel lines use the full width,
 Schritt-Schritt lines use half width, and mixed lines use half width with dashes.
 Same-kind spanning sets plus a mixed bridge keep each collapse group connected
 without quadratic growth. Hide from pinned defaults ON for collapses; turning it
 off includes links involving nested-neighborhood points.
+Collapse controls are Edge Width, Edge Color, Hide weak collapses (OFF by default),
+and Hide from pinned. Hide weak collapses removes only dashed mixed
+Schritt-Wechsel links; the two solid link types remain.
 
 Circle outlines default to width 6. Each nested neighborhood uses 60% of its
 parent's outline width, 78% of its opacity and 85% of its point size. Label font
@@ -140,9 +156,9 @@ units; label sizes use a factor of two. Zoom applies to the whole SVG diagram.
 The additive `harmony.transformer` field contains circle options, tone labels,
 Schritt/Wechsel graphics, collapse options, panel visibility, expanded paths and
 the zoom/pan viewport, active tab, hover options and modal rectangle.
-Older project files without the field use harmony-derived defaults. Reset style
-resets inherited marker and label settings, without changing circle settings or
-neighborhood visibility.
+Older project files without the field use harmony-derived defaults. Reset returns
+to the last saved Transformer configuration. The former inherited-style reset
+button is no longer shown.
 
 There may be up to 16 distinct octave-equivalent tones, 24 expanded neighborhoods,
 and 8 expansion levels. These bounds keep the SVG and exact arithmetic responsive.
@@ -165,12 +181,14 @@ node tests/transformer-view-labels.test.cjs http://127.0.0.1:8766
 node tests/transformer-workspace.test.cjs http://127.0.0.1:8766
 node tests/transformer-links.test.cjs http://127.0.0.1:8766
 node tests/transformer-pins.test.cjs http://127.0.0.1:8766
+node tests/transformer-split-controls.test.cjs http://127.0.0.1:8766
 ```
 
 ## Shared configuration components
 
 `js/ui-components.js` provides sections, independent checkbox disclosures, tabs,
-selection bars/pickers, choice menus and list rows to both modules. The Keyboard
+selection bars/pickers, choice menus, list rows and split-panel layout helpers.
+Transformer's lists intentionally omit the Keyboard's selected-name bar. The Keyboard
 Key Shape section contains only Shape through Opacity; style, rotation, stretch,
 offset, connections and labels are peer sections. Key Style, Key Rotation, Key
 Stretch, Connect Tones and Show Secondary Labels start collapsed. Editing

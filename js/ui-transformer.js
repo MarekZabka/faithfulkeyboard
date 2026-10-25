@@ -52,13 +52,13 @@ const Transformer = (() => {
       circle: {size: 300, edgeWidth: 6, edgeColor: '#888888', rotation: 0},
       toneLabels: {show: h.showLabels !== false, type: h.labelType || 'ratio',
         fontSize: h.labelFontSize || 10, color: h.labelColor || '#000000',
-        offsetX: h.labelOffsetX || 0, offsetY: h.labelOffsetY || 0,
+        offset:0,
         hideDerived:false, showLetter:true},
       showSchritts: true, flipSchritts: false, secondarySize: 300,
-      showCollapses: false, collapses: {edgeWidth: 4, edgeColor: '#b34b4b',hideDerived:true},
+      showCollapses: false, collapses: {edgeWidth: 4, edgeColor: '#b34b4b',hideWeak:false,hideDerived:true},
       ...inherited(h), wechselSync: {label:true,shape:true,style:true,geometry:true},
       expanded: [], panelOpen: true, viewport:[-700,-700,1400,1400],
-      hovers:{neighborhoods:true,circles:true}, activeTab:'harmony', window:null
+      hovers:{neighborhoods:true,circles:true}, activeTab:'harmony', window:null,viewLocked:false,camera:null
     };
   }
   function hydrate(h) {
@@ -76,6 +76,8 @@ const Transformer = (() => {
       result.viewport=base.viewport.slice();
     if(result.window && (!['left','top','width','height'].every(k=>Number.isFinite(result.window[k])) ||
       result.window.width<=0 || result.window.height<=0)) result.window=null;
+    if(result.camera && (!['x','y','units'].every(k=>Number.isFinite(result.camera[k])) || result.camera.units<=0))
+      result.camera=null;
     return result;
   }
   function get(path) { return path.split('.').reduce((o,k) => o[k], state.draft.config); }
@@ -92,7 +94,37 @@ const Transformer = (() => {
     state.viewport=viewport.slice();
     state.draft.config.viewport=viewport.slice();
     dialog.querySelector('#tf-diagram').setAttribute('viewBox',viewport.join(' '));
+    rememberCamera();
     updateDirty();
+  }
+  function rememberCamera() {
+    const diagram=dialog?.querySelector('#tf-diagram'),matrix=diagram?.getScreenCTM();
+    if(!matrix?.a || !matrix?.d)return;
+    const rect=diagram.getBoundingClientRect(),point=diagram.createSVGPoint();point.x=rect.left;point.y=rect.top;
+    const origin=point.matrixTransform(matrix.inverse());
+    state.cameraFrame={x:origin.x,y:origin.y,ux:1/matrix.a,uy:1/matrix.d,w:rect.width,h:rect.height};
+    state.draft.config.camera={x:origin.x,y:origin.y,units:1/matrix.a};
+  }
+  function preserveCamera(frame) {
+    if(!frame)return;
+    const rect=dialog.querySelector('#tf-diagram').getBoundingClientRect();
+    if(rect.width>0 && rect.height>0 && (Math.abs(rect.width-frame.w)>.5 || Math.abs(rect.height-frame.h)>.5))
+      setViewport([frame.x,frame.y,rect.width*frame.ux,rect.height*frame.uy]);
+  }
+  function syncSplit() {
+    const config=state.draft.config,frame=state.cameraFrame;
+    ConfigUI.splitPanel({root:dialog.querySelector('.tf-shell'),panel:dialog.querySelector('#tf-panel'),
+      toolbarPanel:dialog.querySelector('#tf-toolbar-panel'),open:config.panelOpen,width:360});
+    dialog.querySelector('#tf-show-panel').hidden=config.panelOpen;
+    const actions=dialog.querySelector(config.panelOpen?'#tf-toolbar-panel':'#tf-stage-actions');
+    actions.appendChild(dialog.querySelector('#tf-close'));
+    const locked=!!config.viewLocked,button=dialog.querySelector('#tf-lock');
+    button.title=locked?'Lock view':'Unlock view';button.setAttribute('aria-label',locked?'Unlock view':'Lock view');
+    button.classList.toggle('locked',locked);
+    button.setAttribute('aria-pressed',String(locked));
+    button.innerHTML=locked?LOCK_ICON_LOCKED:LOCK_ICON_UNLOCKED;
+    dialog.querySelector('#tf-fit').disabled=locked;
+    preserveCamera(frame);
   }
   function syncWechsel(group, force = false) {
     const config = state.draft.config, inverse = inherited(config.schritt).wechsel;
@@ -120,10 +152,20 @@ const Transformer = (() => {
       button.classList.toggle('active', on);
     });
   }
+  function hasChanges() {
+    const current=clone(state.draft),saved=clone(state.saved),a=current.config.viewport,b=saved.config.viewport;
+    const ac=current.config.camera,bc=saved.config.camera;
+    delete current.config.viewport;delete saved.config.viewport;
+    delete current.config.camera;delete saved.config.camera;
+    if(JSON.stringify(current)!==JSON.stringify(saved))return true;
+    if(ac&&bc)return ['x','y','units'].some(k=>Math.abs(ac[k]-bc[k])>
+      Math.max(k==='units'?1e-7:.001,Math.abs(ac[k])*1e-6));
+    return a.some((value,i)=>Math.abs(value-b[i])>Math.max(.001,Math.abs(value)*1e-6));
+  }
   function updateDirty() {
-    const dirty = JSON.stringify(state.draft) !== JSON.stringify(state.saved);
+    const dirty = hasChanges();
     dialog.querySelector('#tf-save').classList.toggle('tf-dirty', dirty);
-    dialog.querySelector('#tf-title').textContent = `Transformer · ${state.draft.name || 'Unnamed harmony'}${dirty ? ' *' : ''}`;
+    dialog.querySelector('#tf-title').textContent = `${state.draft.name || 'Unnamed harmony'}${dirty ? ' *' : ''}`;
   }
   function message(text, error = false) {
     const el = dialog.querySelector('#tf-status');
@@ -303,7 +345,7 @@ const Transformer = (() => {
     function resetSimplify() { original = null; simplify.textContent = 'Simplify'; simplify.classList.remove('active'); }
     function changed() {
       state.draft.ratios = ta.value; state.draft.config.expanded = [];
-      state.selectedNode=null;state.menuOpen=false;
+      state.selectedNode=null;state.menuOpen=false;state.collectionSelection={};
       updateDirty(); draw();
     }
     ta.addEventListener('input', () => { resetSimplify(); changed(); });
@@ -345,13 +387,12 @@ const Transformer = (() => {
     field(body, 'Rotation', 'circle.rotation', 'number', {min: -360, max: 360, step: 1});
     const toneWrapper=document.createElement('div');
     conditional(toneWrapper, 'Show Tone Labels', 'toneLabels.show', b => {
-      field(b, 'Show letter', 'toneLabels.showLetter', 'checkbox');
-      field(b, 'Hide from pinned', 'toneLabels.hideDerived', 'checkbox');
       field(b, 'Type', 'toneLabels.type', 'select', {values: [['ratio','Ratio'],['cents','Cents'],['heji','Tone name (HEJI)']]});
       field(b, 'Font Size', 'toneLabels.fontSize', 'number', {min: 4, max: 72, step: 1});
+      field(b, 'Offset', 'toneLabels.offset', 'number', {min: -200, max: 200, step: 1});
+      field(b, 'Show letter', 'toneLabels.showLetter', 'checkbox');
+      field(b, 'Hide from pinned', 'toneLabels.hideDerived', 'checkbox');
       field(b, 'Color', 'toneLabels.color', 'color');
-      field(b, 'Offset X', 'toneLabels.offsetX', 'number', {min: -200, max: 200, step: 1});
-      field(b, 'Offset Y', 'toneLabels.offsetY', 'number', {min: -200, max: 200, step: 1});
     });
     conditional(panel, 'Show Nontrivial Schritts', 'showSchritts', b => {
       const flip=field(b, 'Flip Schritts', 'flipSchritts', 'checkbox');
@@ -360,9 +401,10 @@ const Transformer = (() => {
       flip.addEventListener('change',()=>{secondary.hidden=!flip.checked;});
     });
     conditional(panel, 'Show Collapses', 'showCollapses', b => {
-      field(b, 'Hide from pinned', 'collapses.hideDerived', 'checkbox');
       field(b, 'Edge Width', 'collapses.edgeWidth', 'number', {min: 0, max: 20, step: 0.5});
       field(b, 'Edge Color', 'collapses.edgeColor', 'color');
+      field(b, 'Hide weak collapses', 'collapses.hideWeak', 'checkbox');
+      field(b, 'Hide from pinned', 'collapses.hideDerived', 'checkbox');
     });
     panel.append(...toneWrapper.childNodes,...circleWrapper.childNodes);
     body=section(panel,'Hovers',true);
@@ -375,7 +417,6 @@ const Transformer = (() => {
     renderCollections();
   }
   function selectTab(id,dirty=true) {
-    dialog.querySelector('#tf-collection-title')._closeChoices?.();
     const target=dialog.querySelector(`#tf-pane-${id}`)?id:'harmony';
     state.draft.config.activeTab=target;
     dialog.querySelectorAll('[data-tf-tab]').forEach(button=>{
@@ -383,7 +424,6 @@ const Transformer = (() => {
       button.classList.toggle('active',selected);button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;
     });
     dialog.querySelectorAll('.tf-tab-pane').forEach(pane=>{pane.hidden=pane.id!==`tf-pane-${target}`;});
-    dialog.querySelector('#tf-collection-title').hidden=!['transformations','pinned','transported'].includes(target);
     renderCollections();
     if(dirty) updateDirty();
   }
@@ -398,14 +438,18 @@ const Transformer = (() => {
         'font-size': size, fill: color, 'pointer-events': 'none'}, parent).textContent = text;
     }
   }
+  function toneLabelPosition(circle,origin) {
+    const dx=circle.center[0]-origin[0],dy=circle.center[1]-origin[1],length=Math.hypot(dx,dy)||1;
+    const offset=Number(get('toneLabels.offset'))||0;
+    const factor=Math.max(0,length+offset)/length;
+    return [origin[0]+dx*factor,origin[1]+dy*factor];
+  }
   function draw() {
     if (!state) return;
     dialog.querySelector('#tf-point-menu').hidden = true;
     const diagram = dialog.querySelector('#tf-diagram'), config = state.draft.config;
     clearHighlight();
-    dialog.querySelector('#tf-panel').hidden = !config.panelOpen;
-    dialog.querySelector('#tf-show-panel').hidden = config.panelOpen;
-    dialog.querySelector('#tf-collapse').hidden = !config.panelOpen;
+    syncSplit();
     let tones;
     try { tones = TransformerMath.parse(state.draft.ratios, state.draft.toneMode); }
     catch (e) {
@@ -416,7 +460,7 @@ const Transformer = (() => {
     const scenes = [], nodeMap = new Map(), catalogMap=new Map();
     function visit(path, parent, origin) {
       const scene = TransformerMath.neighborhood(tones, parent, origin, config);
-      scene.path=path; scene.id=JSON.stringify(path); scene.depth=path.length;
+      scene.path=path; scene.id=JSON.stringify(path); scene.depth=path.length;scene.origin=origin;
       const shown=!path.length || config.expanded.some(p=>JSON.stringify(p)===scene.id);
       if(shown) scenes.push(scene);
       scene.allNodes=config.showSchritts?scene.nodes:
@@ -467,13 +511,14 @@ const Transformer = (() => {
       circle.addEventListener('pointerleave',leaveHighlight);
       if (!c.secondary && config.toneLabels.show && !(scene.depth && config.toneLabels.hideDerived)) {
         const t = c.tone, opts = config.toneLabels;
+        const [labelX,labelY]=toneLabelPosition(c,scene.origin);
         const label = getKeyLabel({label:t.display, cents:t.log * 1200, _exps:t.v}, {labelType:opts.type});
         const toneGroup=svg('g',{class:'tf-tone-label tf-visual','data-scene':scene.id,'data-tone-index':toneIndex,
           'data-depth':scene.depth,opacity:Math.pow(.85,scene.depth),tabindex:0,role:'img',
           'aria-label':`Tone ${t.letter}: ${t.display}`},labelLayer);
-        svg('rect',{x:x+opts.offsetX-opts.fontSize*5,y:y+opts.offsetY-opts.fontSize*1.5,
+        svg('rect',{x:labelX-opts.fontSize*5,y:labelY-opts.fontSize*1.5,
           width:opts.fontSize*10,height:opts.fontSize*3,fill:'transparent'},toneGroup);
-        displayLabel(toneGroup, x + opts.offsetX, y + opts.offsetY, `${opts.showLetter ? t.letter+' = ' : ''}${label}`,
+        displayLabel(toneGroup, labelX, labelY, `${opts.showLetter ? t.letter+' = ' : ''}${label}`,
           opts.fontSize * 2, opts.color, opts.type === 'heji');
         toneGroup.addEventListener('pointerenter',highlight);
         toneGroup.addEventListener('pointerleave',leaveHighlight);
@@ -491,6 +536,7 @@ const Transformer = (() => {
       });
       groups.forEach(group => {
         function link(a,b,kind) {
+          if(kind==='sw' && config.collapses.hideWeak)return;
           svg('line',{
             x1:a.point[0],y1:a.point[1],x2:b.point[0],y2:b.point[1],
             class:'tf-visual','data-from':a.id,'data-to':b.id,'data-kind':kind,
@@ -542,12 +588,17 @@ const Transformer = (() => {
       const height = Math.max(100, Math.max(...bounds.map(p=>p[1])) - minY + margin);
       state.fitRequested=false;
       const rect=diagram.getBoundingClientRect();
-      const availableWidth=Math.max(1,rect.width-(config.panelOpen?dialog.querySelector('#tf-panel').getBoundingClientRect().width:0));
+      const availableWidth=Math.max(1,rect.width);
       const scale=Math.max(.001,Math.min(availableWidth/width,rect.height/height));
       const worldWidth=rect.width/scale,worldHeight=rect.height/scale;
       setViewport([minX+width/2-availableWidth/(2*scale),minY+height/2-worldHeight/2,worldWidth,worldHeight]);
     }
+    if(!state.cameraFrame && config.camera) {
+      const {x,y,units}=config.camera,r=diagram.getBoundingClientRect();
+      state.viewport=[x,y,r.width*units,r.height*units];config.viewport=state.viewport.slice();
+    }
     diagram.setAttribute('viewBox', state.viewport.join(' '));
+    rememberCamera();
     message(`${tones.length} tones · ${scenes.length} neighborhood${scenes.length === 1 ? '' : 's'} · ${nodes.length} transformations`);
     renderCollections();
     restoreSelection();
@@ -635,13 +686,14 @@ const Transformer = (() => {
       displayLabel(group,x,y,label,style.labelFontSize*2,style.labelColor);
     }
   }
-  function paintPreviewTone(parent,circle,depth) {
+  function paintPreviewTone(parent,circle,depth,origin) {
     const opts=get('toneLabels');
     if(circle.secondary || !opts.show || (depth && opts.hideDerived)) return;
     const t=circle.tone;
     const label=getKeyLabel({label:t.display,cents:t.log*1200,_exps:t.v},{labelType:opts.type});
     const group=svg('g',{class:'tf-preview-tone-label'},parent);
-    displayLabel(group,circle.center[0]+opts.offsetX,circle.center[1]+opts.offsetY,
+    const [x,y]=toneLabelPosition(circle,origin);
+    displayLabel(group,x,y,
       `${opts.showLetter?t.letter+' = ':''}${label}`,opts.fontSize*2,opts.color,opts.type==='heji');
   }
   function highlightNeighborhood(node,force=false) {
@@ -667,7 +719,7 @@ const Transformer = (() => {
     preview.circles.forEach(c=>{
       svg('circle',{cx:c.center[0],cy:c.center[1],r:c.radius,fill:'#eadfbd','fill-opacity':.35,
         stroke:'#b48b32','stroke-width':3,opacity:.6},overlay);
-      paintPreviewTone(overlay,c,node.path.length);
+      paintPreviewTone(overlay,c,node.path.length,node.point);
     });
     const ops=new Set();
     preview.nodes.forEach(n=>{
@@ -703,6 +755,8 @@ const Transformer = (() => {
   function selectNode(node,mode='neighborhood') {
     if(!node) return;
     state.selectedNode=node;state.selectionMode=mode;restoreSelection();renderCollections();
+    if(['transformations','transported'].includes(get('activeTab')))
+      dialog.querySelector(`#tf-pane-${get('activeTab')} .tf-selected-group`)?.scrollIntoView({block:'nearest'});
   }
   function highlightIncludedTone(node,key) {
     if(!get('hovers.circles')) return;
@@ -714,7 +768,7 @@ const Transformer = (() => {
     const index=preview.circles.indexOf(circle);
     svg('circle',{cx:circle.center[0],cy:circle.center[1],r:circle.radius,fill:'#eadfbd','fill-opacity':.55,
       stroke:'#b48b32','stroke-width':5},layer);
-    paintPreviewTone(layer,circle,node.path.length);
+    paintPreviewTone(layer,circle,node.path.length,node.point);
     preview.nodes.filter(n=>{
       if(n.origin) return true;
       const [kind,i,j]=n.slot.split(':');
@@ -807,8 +861,6 @@ const Transformer = (() => {
     for(const kind of ['transformations','pinned','transported'].filter(k=>k===get('activeTab'))) {
       const pane=dialog.querySelector(`#tf-pane-${kind}`);if(!pane)continue;
       const scroll=dialog.querySelector('#tf-options').scrollTop;pane.replaceChildren();
-      const bar=dialog.querySelector('#tf-collection-title');
-      bar._closeChoices?.();bar.replaceChildren();ConfigUI.titleBar(bar);bar.hidden=false;
       if(!state.tones) {
         const error=document.createElement('p');error.className='tf-empty';error.textContent='Enter a valid harmony in the Harmony tab.';
         pane.appendChild(error);continue;
@@ -819,54 +871,27 @@ const Transformer = (() => {
       else if(kind==='pinned') nodes=state.scenes.filter(s=>s.path.length).map(s=>
         state.catalogNodes.find(n=>n.id===s.id)).filter(Boolean);
       else nodes=harmonies.filter(h=>h.transport?.sourceId===state.source.id).map(nodeForTransport);
-      const selected=nodes.find(n=>n.id===(state.collectionSelection[kind]||state.selectedNode?.id))||nodes[0];
+      const selected=nodes.find(n=>n.id===(state.collectionSelection[kind]||state.selectedNode?.id));
       if(selected)state.collectionSelection[kind]=selected.id;
       const choose=node=>{
         state.menuOpen=false;dialog.querySelector('#tf-point-menu').hidden=true;
         state.collectionSelection[kind]=node.id;selectNode(node,kind==='transported'?'point':'neighborhood');
       };
-      if(selected) {
-        const picker=ConfigUI.picker(collectionName(selected,kind),{icon:collectionIcon(selected,kind)});
-        picker.setAttribute('aria-label','Select harmony');bar.appendChild(picker);
-        picker.addEventListener('click',e=>{
-          e.stopPropagation();
-          if(bar._closeChoices){bar._closeChoices();return;}
-          const popup=ConfigUI.choices(nodes.map(n=>({id:n.id,name:collectionName(n,kind),
-            icon:collectionIcon(n,kind),selected:n.id===selected.id})),item=>{
-              bar._closeChoices?.();choose(nodes.find(n=>n.id===item.id));
-            });
-          bar.appendChild(popup);
-          const outside=e=>{if(!bar.contains(e.target))bar._closeChoices?.();};
-          const escape=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();bar._closeChoices?.();picker.focus();}};
-          bar._closeChoices=()=>{
-            popup.remove();bar._closeChoices=null;document.removeEventListener('pointerdown',outside,true);
-            bar.removeEventListener('keydown',escape);
-          };
-          document.addEventListener('pointerdown',outside,true);bar.addEventListener('keydown',escape);
-        });
-      } else {
-        const label=document.createElement('span');label.className='harmony-title-name';
-        label.textContent=kind==='pinned'?'Pinned neighborhoods':'Transported harmonies';bar.appendChild(label);
-      }
       if(!nodes.length) {
         const empty=document.createElement('p');empty.className='tf-empty';
         empty.textContent=kind==='pinned'?'No pinned neighborhoods yet. Use Pin neighborhood on a transformation.':
           'No transported harmonies yet. Use Transport to keyboard on a transformation.';list.appendChild(empty);
       }
       for(const node of nodes) {
-        list.appendChild(collectionRow(node,kind,node.id===selected?.id,()=>choose(node)));
-      }
-      if(selected) {
-        const details=document.createElement('div');details.className='tf-collection-details';pane.appendChild(details);
-        if(kind==='pinned') {
-          const label=document.createElement('div');label.className='field-label';label.textContent='Transformations';details.appendChild(label);
-          const scene=state.scenes.find(s=>s.id===selected.id);
-          const transformations=document.createElement('div');transformations.className='tf-collection tf-pinned-transformations';
-          for(const node of scene?.allNodes||[])
-            transformations.appendChild(collectionRow(node,'transformations',state.selectedNode?.id===node.id,e=>pointMenu(node,e)));
-          details.appendChild(transformations);
-        } else {
-          includedTable(selected,details,kind==='transported');
+        const row=collectionRow(node,kind,node.id===selected?.id,()=>choose(node));
+        if(kind==='pinned')list.appendChild(row);
+        else {
+          const group=document.createElement('div');list.appendChild(group);group.appendChild(row);
+          if(node.id===selected?.id) {
+            group.className='tf-selected-group';
+            const details=document.createElement('div');details.className='tf-selected-tones';group.appendChild(details);
+            includedTable(node,details,kind==='transported');
+          }
         }
       }
       dialog.querySelector('#tf-options').scrollTop=scroll;
@@ -894,6 +919,7 @@ const Transformer = (() => {
     const button=stateAction(transportedFor(node)?'Withdraw from keyboard':'Transport to keyboard',
       'transport',!!transportedFor(node),()=>transportNode(node));button.dataset.action='transport';return button;
   }
+  function isIdentity(node) { return !node.op.inverted && node.op.q.every(n=>n===0); }
   function collectionRow(node,kind,selected,choose) {
     const row=ConfigUI.listRow(selected);row.classList.add('tf-list-item');row.tabIndex=0;row.setAttribute('role','group');
     row.dataset.node=node.id;row.dataset.monomial=TransformerMath.monomial(node.op);
@@ -903,7 +929,7 @@ const Transformer = (() => {
     if(kind==='pinned') row.appendChild(actionButton('Unpin neighborhood','pin',()=>{
       if(state.selectedNode?.id===node.id)dismissSelection();toggleNeighborhood(node);
     }));
-    else {
+    else if(kind==='transported' || !isIdentity(node)) {
       if(kind==='transformations')row.appendChild(pinAction(node));
       row.appendChild(transportAction(node));
     }
@@ -920,7 +946,7 @@ const Transformer = (() => {
     menu.appendChild(title);
     const closeButton=actionButton('Close actions','close',dismissSelection);closeButton.classList.add('tf-menu-close');
     title.appendChild(closeButton);
-    for(const button of [pinAction(node),transportAction(node)]) {
+    for(const button of isIdentity(node)?[]:[pinAction(node),transportAction(node)]) {
       button.classList.add('tf-menu-action');
       const label=document.createElement('span');label.textContent=button.getAttribute('aria-label');
       button.appendChild(label);menu.appendChild(button);
@@ -928,7 +954,7 @@ const Transformer = (() => {
     menu.hidden = false;
     includedTable(node,menu);
     const rect = dialog.querySelector('.tf-stage').getBoundingClientRect();
-    const available=rect.width-(get('panelOpen')?dialog.querySelector('#tf-panel').getBoundingClientRect().width:0);
+    const available=rect.width;
     const width=Math.min(360,Math.max(240,available-16));menu.style.width=`${width}px`;
     const pos=state.menuPosition||{x:20,y:20};
     menu.style.left=`${Math.max(8,Math.min(pos.x,available-width-8))}px`;
@@ -958,10 +984,9 @@ const Transformer = (() => {
     renderCollections();return true;
   }
   async function close() {
-    if (JSON.stringify(state.draft) !== JSON.stringify(state.saved) &&
+    if (hasChanges() &&
       !await confirmAction('Discard unsaved Transformer changes?','Discard changes')) return;
     state.windowCleanup?.();
-    dialog.querySelector('#tf-collection-title')._closeChoices?.();
     clearHighlight();
     dialog.close(); dialog.remove(); dialog = null; state = null;
     previousFocus?.focus();
@@ -1019,6 +1044,7 @@ const Transformer = (() => {
     state.positionWindow=position;
   }
   function restoreWindow() {
+    state.cameraFrame=null;
     const rect=state.draft.config.window;
     if(rect) state.positionWindow(rect);
     else {
@@ -1038,18 +1064,25 @@ const Transformer = (() => {
     dialog = document.createElement('dialog'); dialog.id = 'transformer-modal'; dialog.className = 'tf-modal';
     dialog.setAttribute('aria-labelledby','tf-title');
     dialog.innerHTML = `<div class="tf-shell">
-      <header class="tf-toolbar">
-        <strong id="tf-title">Transformer</strong>
-        <div class="tf-toolbar-actions">
-          <button type="button" class="btn-icon" id="tf-save" title="Save transformer" aria-label="Save transformer">${icon('save')}</button>
-          <button type="button" class="btn-icon" id="tf-reset" title="Reset to last saved" aria-label="Reset to last saved">${icon('reset')}</button>
-          <button type="button" class="btn-icon" id="tf-reset-style" title="Reset harmony-inherited styles" aria-label="Reset style">${icon('style')}</button>
+      <header class="tf-toolbar top-bar">
+        <div class="top-bar-stage">
+          <div class="logo" title="Transformer">${icon('derived')}<span class="logo-text">Transformer</span></div>
+          <strong id="tf-title" class="top-bar-project-name"></strong>
+          <div class="header-actions" id="tf-stage-actions">
+            <button type="button" class="btn-icon" id="tf-lock" title="Unlock view" aria-label="Lock view"></button>
+            <button type="button" class="btn-icon" id="tf-theme" title="Toggle light/dark mode" aria-label="Toggle theme"></button>
+            <button type="button" class="btn-icon" id="tf-show-panel" title="Show configuration panel" aria-label="Show configuration panel" hidden>${document.querySelector('#btn-toggle-config')?.innerHTML || icon('panel')}</button>
+          </div>
         </div>
-        <button type="button" class="btn-icon" id="tf-close" title="Close transformer" aria-label="Close transformer">${icon('close')}</button>
+        <div class="top-bar-panel" id="tf-toolbar-panel">
+          <button type="button" class="panel-action-btn" id="tf-save" title="Save transformer" aria-label="Save transformer">${document.querySelector('#btn-config-save').innerHTML}</button>
+          <button type="button" class="panel-action-btn" id="tf-reset" title="Reset to last saved" aria-label="Reset to last saved">${document.querySelector('#btn-config-revert').innerHTML}</button>
+          <div style="flex:1"></div>
+          <button type="button" class="panel-action-btn" id="tf-collapse" title="Hide configuration panel" aria-label="Hide configuration panel">${document.querySelector('#panel-toggle')?.innerHTML || icon('collapse')}</button>
+          <button type="button" class="panel-action-btn" id="tf-close" title="Close transformer" aria-label="Close transformer">${icon('close')}</button>
+        </div>
       </header>
       <div class="tf-content">
-        <button type="button" class="btn-icon tf-config-toggle" id="tf-show-panel" title="Show configuration panel" aria-label="Show configuration panel" hidden>${document.querySelector('#btn-toggle-config')?.innerHTML || icon('panel')}</button>
-        <button type="button" class="btn-icon tf-config-toggle" id="tf-collapse" title="Hide configuration panel" aria-label="Hide configuration panel">${document.querySelector('#panel-toggle')?.innerHTML || icon('collapse')}</button>
         <main class="tf-stage">
           <svg id="tf-diagram" aria-label="Neighborhood of harmony"></svg>
           <div id="tf-point-menu" class="tf-point-menu" hidden></div>
@@ -1060,7 +1093,6 @@ const Transformer = (() => {
         </main>
         <aside class="tf-panel" id="tf-panel" aria-label="Transformer configuration">
           <nav id="tf-tabs" class="tf-tabs" role="tablist" aria-label="Transformer options"></nav>
-          <div id="tf-collection-title" hidden></div>
           <div id="tf-options"></div>
         </aside>
       </div>
@@ -1088,22 +1120,16 @@ const Transformer = (() => {
       state.draft = clone(state.saved); state.viewport = clone(state.draft.config.viewport);
       dismissSelection(); restoreWindow(); controls(); updateDirty(); draw();
     });
-    dialog.querySelector('#tf-reset-style').addEventListener('click',()=>{
-      const fresh=inherited(state.source);
-      for(const kind of ['schritt','wechsel'])
-        shapeFields.forEach(k=>{state.draft.config[kind][k]=fresh[kind][k];});
-      const old=state.draft.config.toneLabels;
-      state.draft.config.toneLabels = {...defaults(state.source).toneLabels,
-        hideDerived:old.hideDerived,showLetter:old.showLetter};
-      syncWechsel();
-      controls(); updateDirty(); draw();
-    });
+    dialog.querySelector('#tf-lock').addEventListener('click',()=>set('viewLocked',!get('viewLocked')));
+    const themeButton=dialog.querySelector('#tf-theme'),mainTheme=document.querySelector('[data-theme-toggle]');
+    const syncTheme=()=>{themeButton.innerHTML=mainTheme.innerHTML;};
+    syncTheme();themeButton.addEventListener('click',()=>{mainTheme.click();syncTheme();});
     dialog.querySelector('#tf-collapse').addEventListener('click',()=>set('panelOpen',false));
     dialog.querySelector('#tf-show-panel').addEventListener('click',()=>set('panelOpen',true));
     dialog.querySelector('#tf-fit').addEventListener('click',()=>{state.fitRequested=true; draw();});
     const stage = dialog.querySelector('.tf-stage'), diagram = dialog.querySelector('#tf-diagram');
     diagram.addEventListener('wheel',e=>{
-      if (!state.viewport) return; e.preventDefault();
+      if (!state.viewport || get('viewLocked')) return; e.preventDefault();
       if(!state.selectedNode) clearHighlight();
       const [x,y,w,h] = state.viewport, factor = e.deltaY > 0 ? 1.12 : 1/1.12;
       if (w * factor < 30 || w * factor > 100000) return;
@@ -1113,7 +1139,7 @@ const Transformer = (() => {
     },{passive:false});
     let drag=null;
     diagram.addEventListener('pointerdown',e=>{
-      if (e.target.closest('.tf-point') || e.button !== 0 || !state.viewport) return;
+      if (e.target.closest('.tf-point') || e.button !== 0 || !state.viewport || get('viewLocked')) return;
       if(!state.selectedNode) clearHighlight();
       const m = diagram.getScreenCTM(); if(!m) return;
       drag={x:e.clientX,y:e.clientY,v:state.viewport.slice(),sx:m.a,sy:m.d};
@@ -1126,6 +1152,16 @@ const Transformer = (() => {
     diagram.addEventListener('pointerup',()=>{drag=null;});
     diagram.addEventListener('pointercancel',()=>{drag=null;});
     controls(); dialog.showModal(); setupWindowManipulation(); restoreWindow(); updateDirty(); draw();
+    const initialFrame=state.cameraFrame,initialRect=diagram.getBoundingClientRect();
+    if(!state.saved.config.camera && initialFrame && Math.abs(state.viewport[2]/state.viewport[3]-initialRect.width/initialRect.height)>1e-6) {
+      setViewport([initialFrame.x,initialFrame.y,initialRect.width*initialFrame.ux,initialRect.height*initialFrame.uy]);
+    }
+    state.saved.config.viewport=state.viewport.slice();state.saved.config.camera=clone(state.draft.config.camera);updateDirty();
+    const canvasObserver=new ResizeObserver(()=>preserveCamera(state?.cameraFrame));
+    canvasObserver.observe(diagram);
+    const themeObserver=new MutationObserver(syncTheme);themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+    const cleanup=state.windowCleanup;
+    state.windowCleanup=()=>{cleanup?.();canvasObserver.disconnect();themeObserver.disconnect();};
     if(options.transportedId) {
       const transported=harmonies.find(x=>x.id===options.transportedId);
       if(transported) selectNode(nodeForTransport(transported),'point');

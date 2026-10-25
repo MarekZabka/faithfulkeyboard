@@ -14,9 +14,8 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.equal(await input('circle.edgeWidth').inputValue(),'6');
   for(const [target,source] of [['#tf-show-panel','#btn-toggle-config'],['#tf-collapse','#panel-toggle']])
     assert.equal(await page.locator(`${target} svg`).innerHTML(),await page.locator(`${source} svg`).innerHTML());
-  const hideBox=await page.locator('#tf-collapse').boundingBox();
   await page.locator('#tf-collapse').click();
-  assert.deepEqual(await page.locator('#tf-show-panel').boundingBox(),hideBox);
+  assert.equal(await page.locator('#tf-save').isVisible(),false);
   await page.locator('#tf-show-panel').click();
   async function drag(selector,dx,dy) {
     const box=await page.locator(selector).boundingBox();

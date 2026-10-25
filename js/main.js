@@ -21,13 +21,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 function setPanelOpen(open) {
   const panel = document.getElementById('side-panel');
   const topBarPanel = document.getElementById('top-bar-panel');
-  if (open) {
-    panel.classList.add('open');
-    if (topBarPanel) topBarPanel.classList.remove('panel-hidden');
-  } else {
-    panel.classList.remove('open');
-    if (topBarPanel) topBarPanel.classList.add('panel-hidden');
-  }
+  ConfigUI.splitPanel({root:document.querySelector('.app'),panel,toolbarPanel:topBarPanel,open});
   // Show gear button only when panel is closed
   const toggleBtn = document.getElementById('btn-toggle-config');
   if (toggleBtn) {
@@ -547,6 +541,7 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
     resizing = true;
     startX = e.clientX;
     startW = panel.offsetWidth;
+    document.querySelector('.app').classList.add('panel-resizing');
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
     e.preventDefault();
@@ -555,12 +550,12 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
     if (!resizing) return;
     const dx = startX - e.clientX; // panel is on right, so moving left increases width
     const newW = Math.max(260, Math.min(600, startW + dx));
-    panel.style.width = newW + 'px';
-    const tbp = document.getElementById('top-bar-panel'); if (tbp) tbp.style.width = newW + 'px';
+    document.querySelector('.app').style.setProperty('--panel-width',newW+'px');
   });
   document.addEventListener('mouseup', () => {
     if (!resizing) return;
     resizing = false;
+    document.querySelector('.app').classList.remove('panel-resizing');
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     renderSVG();
@@ -670,9 +665,7 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
   });
 
   // Mobile: start with panel closed
-  if (window.innerWidth < 960) {
-    setPanelOpen(false);
-  }
+  setPanelOpen(window.innerWidth>=960);
 
   initProjectName();
   initProjectDescription();

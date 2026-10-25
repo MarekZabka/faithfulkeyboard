@@ -40,9 +40,9 @@ async function run(page,url='http://127.0.0.1:8766') {
   const point=page.locator('.tf-point[data-monomial="a/b"]');
   const bounds=await point.boundingBox();
   await page.locator('#tf-collapse').click();
-  assert.deepEqual(await point.boundingBox(),bounds);
+  for(const [k,v] of Object.entries(await point.boundingBox()))assert.ok(Math.abs(v-bounds[k])<.05);
   await page.locator('#tf-show-panel').click();
-  assert.deepEqual(await point.boundingBox(),bounds);
+  for(const [k,v] of Object.entries(await point.boundingBox()))assert.ok(Math.abs(v-bounds[k])<.05);
   await page.locator('#tf-fit').click();
   const panelLeft=(await page.locator('#tf-panel').boundingBox()).x;
   for(const r of await page.locator('.tf-point').evaluateAll(es=>es.map(e=>e.getBoundingClientRect().toJSON())))

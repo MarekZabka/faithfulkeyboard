@@ -9,6 +9,10 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.locator('[title="Transform"]').first().click();
   const field=p=>page.locator(`[data-setting="${p}"]`);
   const view=()=>page.locator('#tf-diagram').getAttribute('viewBox');
+  const camera=()=>page.locator('#tf-diagram').evaluate(svg=>{
+    const r=svg.getBoundingClientRect(),m=svg.getScreenCTM(),p=svg.createSVGPoint();p.x=r.left;p.y=r.top;
+    const origin=p.matrixTransform(m.inverse());return {x:origin.x,y:origin.y,units:1/m.a};
+  });
   const initial=await view();
   assert.equal(await field('collapses.edgeWidth').inputValue(),'4');
   assert.equal(await field('collapses.hideDerived').isChecked(),true);
@@ -81,9 +85,10 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.mouse.move(stage.x+65,stage.y+50,{steps:5});
   await page.mouse.up();
   const panned=await view();
+  const pannedCamera=await camera();
   assert.notEqual(panned,zoomed);
   await field('circle.rotation').fill('20');
-  assert.equal(await view(),panned);
+  for(const [key,value] of Object.entries(await camera()))assert.ok(Math.abs(value-pannedCamera[key])<.01);
   await page.locator('#tf-save').click();
   const json=await page.evaluate(()=>buildProjectJSON());
   assert.deepEqual(JSON.parse(json).harmonies[0].transformer.viewport,panned.split(' ').map(Number));
@@ -91,7 +96,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.locator('#import-file').setInputFiles({name:'view.json',mimeType:'application/json',buffer:Buffer.from(json)});
   await page.locator('[data-tab="harmony"]').click();
   await page.locator('[title="Transform"]').first().click();
-  assert.equal(await view(),panned);
+  for(const [key,value] of Object.entries(await camera()))assert.ok(Math.abs(value-pannedCamera[key])<.01);
   await page.locator('#tf-fit').click();
   await page.locator('.tf-tone-label[data-depth="0"][data-tone-index="0"]').hover();
   assert.equal(await page.locator('#tf-diagram > g').first().getAttribute('data-layer'),'hover-highlight');
@@ -103,7 +108,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.locator('.tf-hover-layer').waitFor({state:'detached'});
   assert.equal(await page.locator('.tf-emphasized').count(),0);
   await page.locator('#tf-reset').click();
-  assert.equal(await view(),panned);
+  for(const [key,value] of Object.entries(await camera()))assert.ok(Math.abs(value-pannedCamera[key])<.01);
   await page.locator('[data-tf-tab="harmony"]').click();
   await page.locator('#tf-tones').fill('invalid');
   await page.locator('#tf-diagram').click();

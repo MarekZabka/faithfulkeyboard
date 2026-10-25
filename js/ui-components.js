@@ -63,5 +63,13 @@ const ConfigUI = (() => {
     }
     return list;
   }
-  return {section,adoptSection,tab,titleBar,picker,listRow,autoEnable,choices};
+  function splitPanel({root,panel,toolbarPanel,open,width}) {
+    root.classList.add('config-split');
+    if(width)root.style.setProperty('--panel-width',`${width}px`);
+    panel.classList.add('config-split-panel');toolbarPanel.classList.add('config-split-actions');
+    panel.style.removeProperty('width');toolbarPanel.style.removeProperty('width');
+    panel.classList.toggle('open',open);toolbarPanel.classList.toggle('panel-hidden',!open);
+    panel.hidden=!open;toolbarPanel.hidden=!open;panel.inert=!open;toolbarPanel.inert=!open;
+  }
+  return {section,adoptSection,tab,titleBar,picker,listRow,autoEnable,choices,splitPanel};
 })();
