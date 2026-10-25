@@ -53,6 +53,9 @@ Transport links are stored on the transported harmony as `transport` metadata
 (source ID, operation, path and point). The same operation cannot be transported
 twice from the same source. Withdrawal asks for confirmation. Transporting pending
 source name/tone edits asks to save those edits first, ensuring links are valid.
+These confirmations, source deletion and unsaved-Transformer discard use in-app
+HTML dialogs, so they also work in embedded previews that block native browser
+confirmation popups. Cancel always leaves the pending action unapplied.
 Saving a source Transformer refreshes linked names/tones while retaining any
 keyboard-specific visual edits.
 

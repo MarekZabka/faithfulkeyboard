@@ -382,11 +382,12 @@ function renderHarmonyList() {
       delBtn.title = h.transport ? 'Withdraw from keyboard' : 'Delete';
       delBtn.style.color = 'var(--color-danger)';
       delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
-      delBtn.addEventListener('click', e => {
+      delBtn.addEventListener('click', async e => {
         e.stopPropagation();
         const linked=harmonies.filter(x=>x.transport?.sourceId===h.id);
-        if (!confirm(h.transport ? `Withdraw "${h.name}" from keyboard?` :
-          `Delete "${h.name}"?${linked.length ? ` This also withdraws ${linked.length} linked transported harmonies.`:''}`)) return;
+        if (!await confirmAction(h.transport ? `Withdraw "${h.name}" from keyboard?` :
+          `Delete "${h.name}"?${linked.length ? ` This also withdraws ${linked.length} linked transported harmonies.`:''}`,
+          h.transport?'Withdraw':'Delete')) return;
         harmonies = harmonies.filter(x => x.id !== h.id && x.transport?.sourceId!==h.id);
         selectedHarmonyId = harmonies.length ? harmonies[harmonies.length-1].id : null;
         renderHarmonyList();
@@ -1070,6 +1071,26 @@ function makeIndependentSection(header,body) {
   details.append(summary,body); header.remove();
   summary.querySelectorAll('input').forEach(input=>input.addEventListener('click',e=>e.stopPropagation()));
   return details;
+}
+
+// Application-owned confirmation also works in embedded previews that block window.confirm.
+function confirmAction(message, action='Confirm') {
+  return new Promise(resolve=>{
+    const previous=document.activeElement;
+    const modal=document.createElement('dialog');modal.id='app-confirm-dialog';modal.className='app-confirm';
+    modal.setAttribute('aria-labelledby','app-confirm-title');modal.setAttribute('aria-describedby','app-confirm-message');
+    modal.innerHTML='<h2 id="app-confirm-title">Confirm action</h2><p id="app-confirm-message"></p><div class="app-confirm-actions"><button type="button" class="btn-secondary" data-cancel autofocus>Cancel</button><button type="button" class="btn-primary" data-confirm></button></div>';
+    modal.querySelector('p').textContent=message;modal.querySelector('[data-confirm]').textContent=action;
+    let complete=false;
+    function finish(accepted) {
+      if(complete)return;complete=true;
+      modal.close();modal.remove();if(previous?.isConnected)previous.focus();resolve(accepted);
+    }
+    modal.querySelector('[data-confirm]').addEventListener('click',()=>finish(true));
+    modal.querySelector('[data-cancel]').addEventListener('click',()=>finish(false));
+    modal.addEventListener('cancel',e=>{e.preventDefault();finish(false);});
+    document.body.appendChild(modal);modal.showModal();
+  });
 }
 
 function refreshEditorDirtyState() {

@@ -7,6 +7,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.locator('#tf-tones').fill('1, 5/4, 3/2');await page.locator('#tf-name').fill('Links');
   await page.locator('.tf-point[data-monomial="a/b"]').click();
   await page.getByRole('button',{name:'Transport to keyboard',exact:true}).click();
+  await page.locator('#app-confirm-dialog [data-confirm]').click();
   await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   await page.locator('#tf-close').click();
   const transported=page.locator('#harmony-list .transported-harmony');
@@ -33,6 +34,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.locator('[data-tab="harmony"]').click();
   const originalSource=await page.evaluate(()=>harmonies[0].id);
   await page.locator(`#harmony-list .harmony-item[data-id="${originalSource}"] [title="Delete"]`).click();
+  await page.locator('#app-confirm-dialog [data-confirm]').click();
   assert.equal(await page.evaluate(()=>harmonies.length),2);
   assert.equal(await page.locator('#harmony-list .transported-harmony').count(),1);
   // A partial import without the source is detached rather than linked to an unrelated existing ID.

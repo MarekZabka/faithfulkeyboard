@@ -692,3 +692,8 @@
 .independent-section:not([open]) > .independent-section-body { display:none !important; }
 .transported-harmony { border-left:3px solid var(--color-primary); }
 .transport-badge { color:var(--color-primary);font-size:var(--text-xs);padding:0 .15rem; }
+.app-confirm { width:min(420px,calc(100vw - 32px));margin:auto;padding:1.25rem;color:var(--color-text);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);font:inherit; }
+.app-confirm::backdrop { background:rgba(0,0,0,.5); }
+.app-confirm h2 { font-size:var(--text-base);font-weight:700;margin:0 0 .75rem; }
+.app-confirm p { font-size:var(--text-sm);line-height:1.6;white-space:pre-line;overflow-wrap:anywhere; }
+.app-confirm-actions { display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem; }

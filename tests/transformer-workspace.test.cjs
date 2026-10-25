@@ -87,10 +87,15 @@ async function run(page,url='http://127.0.0.1:8766') {
   await menu.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
   assert.equal(await menu.getByRole('button',{name:'Hide derived neighborhood',exact:true}).count(),1);
   await menu.getByRole('button',{name:'Transport to keyboard',exact:true}).click();
+  await page.locator('#app-confirm-dialog [data-cancel]').click();
+  assert.equal(await page.evaluate(()=>harmonies.length),1);
+  await menu.getByRole('button',{name:'Transport to keyboard',exact:true}).click();
+  await page.locator('#app-confirm-dialog [data-confirm]').click();
   assert.equal(await page.evaluate(()=>harmonies.length),2);
   assert.equal(await menu.getByRole('button',{name:'Withdraw from keyboard',exact:true}).count(),1);
   allowWithdraw=false;
   await menu.getByRole('button',{name:'Withdraw from keyboard',exact:true}).click();
+  await page.locator('#app-confirm-dialog [data-cancel]').click();
   assert.equal(await page.evaluate(()=>harmonies.length),2);
   await menu.getByRole('button',{name:'Close actions',exact:true}).click();
   assert.equal(await menu.isVisible(),false);
@@ -143,8 +148,17 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.equal(await page.locator('#tf-pane-transported .tf-list-item').count(),1);
   allowWithdraw=true;
   await page.locator('#tf-pane-transported [title="Withdraw from keyboard"]').click();
+  await page.locator('#app-confirm-dialog [data-confirm]').click();
   assert.equal(await page.evaluate(()=>harmonies.length),1);
   assert.equal(await page.locator('#tf-pane-transported .tf-list-item').count(),0);
+  await page.locator('[data-tf-tab="harmony"]').click();
+  await page.locator('#tf-tones').fill('1, 3/2');
+  await page.locator('#tf-close').click();
+  await page.locator('#app-confirm-dialog [data-cancel]').click();
+  assert.equal(await page.locator('#transformer-modal').isVisible(),true);
+  await page.locator('#tf-close').click();
+  await page.locator('#app-confirm-dialog [data-confirm]').click();
+  assert.equal(await page.locator('#transformer-modal').isVisible(),false);
   assert.deepEqual(errors,[]);
   console.log('PASS Transformer workspace tabs, no-shift panel, additive previews, selection, transport and modal persistence');
 }

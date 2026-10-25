@@ -750,16 +750,16 @@ const Transformer = (() => {
     return harmonies.find(h=>h.transport?.sourceId===state.source.id &&
       TransformerMath.opKey(h.transport.op)===TransformerMath.opKey(node.op));
   }
-  function transportNode(node) {
+  async function transportNode(node) {
     const existing=transportedFor(node);
     if(existing) {
-      if(!confirm(`Withdraw "${existing.name}" from keyboard?`)) return;
+      if(!await confirmAction(`Withdraw "${existing.name}" from keyboard?`,'Withdraw')) return;
       harmonies=harmonies.filter(h=>h.id!==existing.id);
       if(selectedHarmonyId===existing.id) selectedHarmonyId=state.source.id;
     } else {
       if(state.source.ratios!==state.draft.ratios || state.source.name!==state.draft.name ||
         state.source.toneMode!==state.draft.toneMode) {
-        if(!confirm('Save the source harmony changes before transporting this transformation?')) return;
+        if(!await confirmAction('Save the source harmony changes before transporting this transformation?','Save and transport')) return;
         if(!save()) return;
       }
       const h=makeHarmony({...imageHarmony(node),
@@ -926,9 +926,9 @@ const Transformer = (() => {
     message('Transformer saved to harmony. Save the project to keep it in your project file.');
     renderCollections();return true;
   }
-  function close() {
+  async function close() {
     if (JSON.stringify(state.draft) !== JSON.stringify(state.saved) &&
-      !confirm('Discard unsaved Transformer changes?')) return;
+      !await confirmAction('Discard unsaved Transformer changes?','Discard changes')) return;
     state.windowCleanup?.();
     clearHighlight();
     dialog.close(); dialog.remove(); dialog = null; state = null;
