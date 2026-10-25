@@ -87,7 +87,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.locator('[data-tf-tab="layout"]').click();
   await page.locator('.tf-tone-label[data-depth="0"]').first().hover();
   assert.notEqual(await page.locator('.tf-hover-visible circle').first().getAttribute('fill'),'none');
-  await page.locator('.tf-point[data-monomial="a/b"]').first().click();
+  await page.locator('.tf-point[data-monomial="a/b"][data-depth="0"]').click();
   assert.equal(await menu.isVisible(),true);
   await page.locator('[data-tf-tab="harmony"]').click();
   assert.equal(await menu.isVisible(),false);

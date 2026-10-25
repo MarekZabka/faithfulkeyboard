@@ -80,7 +80,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.ok(await page.locator('[data-kind="ww"]').count()>0);assert.ok(await page.locator('[data-kind="ss"]').count()>0);
   await page.locator('[data-setting="collapses.hideWeak"]').uncheck();
   assert.ok(await page.locator('[data-kind="sw"]').count()>0);
-  await page.locator('.tf-point[data-monomial="1"]').first().click();
+  await page.locator('.tf-point[data-monomial="1"][data-depth="0"]').click();
   assert.equal(await page.locator('#tf-point-menu .tf-menu-action').count(),0);
   assert.equal(await page.locator('#tf-point-menu .tone-table tbody tr').count(),3);
   await page.locator('#tf-point-menu [aria-label="Close actions"]').click();

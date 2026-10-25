@@ -125,14 +125,18 @@ const TransformerMath = (() => {
       seen.add(text); return text;
     }).filter(Boolean).join(', ');
   }
-  // Neighborhood locations reproduce the prototype: p_i+p_j are Wechsels,
-  // p_i-p_j are Schritts. Primary circles share the common origin.
+  // Use one geometric basis for the original tone letters. For unflipped
+  // Schritts, P(q) = sum(q_i * p_i), so composing an operation must add the
+  // local displacement with exactly the same sign used by compose().
+  // Transformed frequencies are circle labels, not a new angular basis:
+  // reusing their phases rotates/reverses each neighborhood a second time.
   function neighborhood(tones, parent, origin, settings) {
     const radius = settings.circle.size, rot = settings.circle.rotation * Math.PI / 180;
     const transformed = image(tones, parent);
-    const p = transformed.map(t => {
+    const direction = parent.inverted ? -1 : 1;
+    const p = tones.map(t => {
       const angle = 2 * Math.PI * t.log + rot;
-      return [radius * Math.sin(angle), -radius * Math.cos(angle)];
+      return [direction * radius * Math.sin(angle), -direction * radius * Math.cos(angle)];
     });
     const addOrigin = v => [v[0] + origin[0], v[1] + origin[1]];
     const circles = p.map((v, i) => ({center: addOrigin(v), radius, tone: transformed[i], secondary: false}));

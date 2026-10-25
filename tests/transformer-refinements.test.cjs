@@ -99,11 +99,11 @@ async function run(page,url='http://127.0.0.1:8766') {
   const root=page.locator('.tf-point[data-depth="0"]').first();
   const child=page.locator('.tf-point[data-depth="1"]').first();
   assert.ok(Number(await child.getAttribute('opacity'))<Number(await root.getAttribute('opacity')));
-  await page.locator('.tf-point[data-monomial="bc"]').first().hover();
+  await page.locator('.tf-point[data-monomial="bc"][data-depth="0"]').hover();
   assert.equal(await page.locator('.tf-circle.tf-emphasized').count(),3);
   assert.equal(await page.locator('.tf-point.tf-emphasized').count(),13);
   const count=await page.locator('.tf-point').count();
-  await page.locator('.tf-point[data-monomial="a/b"]').first().hover();
+  await page.locator('.tf-point[data-monomial="a/b"][data-depth="0"]').hover();
   assert.equal(await page.locator('[data-layer="hover-preview"].tf-hover-visible > circle').count(),3);
   assert.equal(await page.locator('[data-layer="hover-preview"].tf-hover-visible .tf-preview-point').count(),13);
   assert.equal(await page.locator('.tf-point').count(),count);

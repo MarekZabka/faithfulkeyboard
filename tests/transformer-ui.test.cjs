@@ -38,7 +38,7 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   await page.locator('#tf-fit').click();
   assert.equal(await page.locator('.tf-point').count(),37);
-  await page.locator('.tf-point[data-monomial="bc"]').first().click();
+  await page.locator('.tf-point[data-monomial="bc"][data-depth="0"]').click();
   await page.getByRole('button',{name:'Unpin neighborhood',exact:true}).click();
   await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   assert.equal(await page.locator('.tf-point').count(),26);
@@ -98,7 +98,7 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   await page.locator('#tf-save').click();
   assert.equal(await page.evaluate(()=>harmonies[0].name),'Triangle QA');
-  await page.locator('.tf-point[data-monomial="a/b"]').first().click();
+  await page.locator('.tf-point[data-monomial="a/b"][data-depth="0"]').click();
   await page.getByRole('button',{name:'Transport to keyboard',exact:true}).click();
   assert.equal(await page.evaluate(()=>harmonies.at(-1).name),'a/b of Triangle QA');
   assert.equal(await page.evaluate(()=>harmonies.at(-1).ratios),'1, 6/5, 8/5');

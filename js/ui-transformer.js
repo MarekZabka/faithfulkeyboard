@@ -492,7 +492,11 @@ const Transformer = (() => {
     const labelLayer = svg('g', {'data-layer':'tone-labels'}, diagram);
     const pointLayer = svg('g', {'data-layer':'points'}, diagram);
     const bounds = [];
-    scenes.forEach(scene => scene.circles.forEach((c, index) => {
+    const labelLocations=new Set();
+    const labelBackdrop=getComputedStyle(dialog.querySelector('.tf-stage')).backgroundColor;
+    // Shared circles and labels now coincide. Draw deeper neighborhoods first
+    // so their hit targets cannot cover the primary tone labels.
+    [...scenes].reverse().forEach(scene => scene.circles.forEach((c, index) => {
       const [x, y] = c.center;
       const toneIndex=index % tones.length;
       const members=scene.nodes.filter(n=>{
@@ -512,12 +516,16 @@ const Transformer = (() => {
       if (!c.secondary && config.toneLabels.show && !(scene.depth && config.toneLabels.hideDerived)) {
         const t = c.tone, opts = config.toneLabels;
         const [labelX,labelY]=toneLabelPosition(c,scene.origin);
+        const labelSite=`${Math.round(labelX*1e6)},${Math.round(labelY*1e6)}`;
+        const overlappingLabel=labelLocations.has(labelSite);
+        labelLocations.add(labelSite);
         const label = getKeyLabel({label:t.display, cents:t.log * 1200, _exps:t.v}, {labelType:opts.type});
         const toneGroup=svg('g',{class:'tf-tone-label tf-visual','data-scene':scene.id,'data-tone-index':toneIndex,
           'data-depth':scene.depth,opacity:Math.pow(.85,scene.depth),tabindex:0,role:'img',
           'aria-label':`Tone ${t.letter}: ${t.display}`},labelLayer);
         svg('rect',{x:labelX-opts.fontSize*5,y:labelY-opts.fontSize*1.5,
-          width:opts.fontSize*10,height:opts.fontSize*3,fill:'transparent'},toneGroup);
+          width:opts.fontSize*10,height:opts.fontSize*3,
+          fill:overlappingLabel?labelBackdrop:'transparent'},toneGroup);
         displayLabel(toneGroup, labelX, labelY, `${opts.showLetter ? t.letter+' = ' : ''}${label}`,
           opts.fontSize * 2, opts.color, opts.type === 'heji');
         toneGroup.addEventListener('pointerenter',highlight);
@@ -552,7 +560,9 @@ const Transformer = (() => {
         if(w.length && s.length) link(s[0],w[0],'sw');
       });
     }
-    nodes.sort((a,b) => Number(a.op.inverted) - Number(b.op.inverted)).forEach(n => {
+    // Retain Wechsel-over-Schritt ordering, but keep primary representatives
+    // above nested aliases of the same transformation for pointer interaction.
+    nodes.sort((a,b) => Number(a.op.inverted) - Number(b.op.inverted) || b.depth-a.depth).forEach(n => {
       const style = n.op.inverted ? config.wechsel : config.schritt;
       const [x,y] = [n.point[0] + (style.keyOffsetX || 0), n.point[1] + (style.keyOffsetY || 0)];
       // Keyboard keySize is in cents-like units; map it to the prototype's diagram scale.

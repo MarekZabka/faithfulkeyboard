@@ -141,6 +141,22 @@ vector is `m.q + sign(m)*u.q`; inversion parity is XOR. This implements
 `s1#s2=s1*s2`, `w1#s2=w1*s2`, `s1#w2=w2/s1`, and `w1#w2=w2/w1`.
 For example, `a/b` in the neighborhood of Wechsel `bc` is Wechsel `b²c/a`.
 
+Neighborhood geometry uses a fixed vector for each original tone letter,
+with the configured circle rotation applied once. A Schritt parent retains
+these directions; a Wechsel parent reverses them. Transformed frequency values
+label the circles but must not rotate the coordinate frame again.
+In the ordinary (unflipped) layout, a transformation has position
+`P(q) = sum(q_i * p_i)` relative to the primary origin, independent of the path
+used to reach it. In particular, the identity reached inside Wechsel `ab`
+coincides with the primary identity. Hover previews, pins and transported-item
+lookup all use this same geometry function.
+Primary markers and tone-label hit targets stay above nested aliases.
+Coincident tone labels use the plot background as a backing so the primary
+label remains legible rather than printing two letter prefixes over each other.
+Flip Schritts is the prototype's separate visual relocation onto complementary
+circles; that relocation is not the additive coordinate embedding and does not
+guarantee cross-neighborhood overlap for the relocated Schritt markers.
+
 Rational images use BigInt arithmetic and exact octave reduction. Fractional
 prime-exponent vectors use logarithmic octave normalization. Collapse groups
 compare complete image tone sets, not just scalar transformation coefficients.
@@ -182,6 +198,7 @@ node tests/transformer-workspace.test.cjs http://127.0.0.1:8766
 node tests/transformer-links.test.cjs http://127.0.0.1:8766
 node tests/transformer-pins.test.cjs http://127.0.0.1:8766
 node tests/transformer-split-controls.test.cjs http://127.0.0.1:8766
+node tests/transformer-neighborhood-frame.test.cjs http://127.0.0.1:8766
 ```
 
 ## Shared configuration components

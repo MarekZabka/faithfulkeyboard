@@ -65,6 +65,57 @@ test('flip Schritts uses secondary circles of chosen size', `
     assert.ok(Math.abs(Math.hypot(n.point[0]-c[0],n.point[1]-c[1])-175)<1e-7);
   });
 `);
+test('pinned and nested neighborhoods share a single transformation frame', `
+  for (var [raw,mode] of [
+    ['1, 5/4, 3/2','ratios'],['7/6, 11/8, 13/8','ratios'],
+    ['(0,0), (-2,0,1), (-1,1)','vectors'],
+    ['(0,0), (1/2,0), (-1,1)','vectors']
+  ]) {
+    var frameTones=TransformerMath.parse(raw,mode);
+    for(var rotation of [0,37,-123,360]) {
+      var frameSettings={circle:{size:287,rotation},showSchritts:true,flipSchritts:false,secondarySize:175};
+      var frameOrigin=[71,-43];
+      var rootScene=TransformerMath.neighborhood(frameTones,TransformerMath.identity(3),frameOrigin,frameSettings);
+      var basis=rootScene.circles.map(c=>c.center.map((x,k)=>x-frameOrigin[k]));
+      var positions=new Map();
+      function checkFrame(scene) {
+        scene.nodes.forEach(n=>{
+          var expected=frameOrigin.map((x,k)=>x+n.op.q.reduce((sum,e,i)=>sum+e*basis[i][k],0));
+          assert.ok(Math.hypot(n.point[0]-expected[0],n.point[1]-expected[1])<1e-7,
+            'wrong position for '+TransformerMath.opKey(n.op));
+          var key=TransformerMath.opKey(n.op), previous=positions.get(key);
+          if(previous) assert.ok(Math.hypot(n.point[0]-previous[0],n.point[1]-previous[1])<1e-7,
+            'shared transformation moved: '+key);
+          positions.set(key,n.point);
+          if(n.slot.startsWith('w:')) {
+            n.slot.split(':').slice(1).forEach(i=>{
+              var center=scene.circles[Number(i)].center;
+              assert.ok(Math.abs(Math.hypot(n.point[0]-center[0],n.point[1]-center[1])-287)<1e-7);
+            });
+          }
+        });
+      }
+      checkFrame(rootScene);
+      for(var anchor of rootScene.nodes) {
+        var childScene=TransformerMath.neighborhood(frameTones,anchor.op,anchor.point,frameSettings);
+        checkFrame(childScene);
+        for(var next of childScene.nodes)
+          checkFrame(TransformerMath.neighborhood(frameTones,next.op,next.point,frameSettings));
+      }
+    }
+  }
+`);
+test('identity in Wechsel ab returns to the primary origin in either Schritt display mode', `
+  for(var flip of [false,true]) {
+    var cfg={circle:{size:300,rotation:23},showSchritts:true,flipSchritts:flip,secondarySize:175};
+    var base=TransformerMath.neighborhood(tones,id,[0,0],cfg);
+    var ab=base.nodes.find(n=>n.slot==='w:0:1');
+    var pinned=TransformerMath.neighborhood(tones,ab.op,ab.point,cfg);
+    var back=pinned.nodes.find(n=>n.slot==='w:0:1');
+    assert.equal(TransformerMath.opKey(back.op),TransformerMath.opKey(id));
+    assert.ok(Math.hypot(...back.point)<1e-7);
+  }
+`);
 test('fractional exponent vectors and negative octaves', `
   var vectors=TransformerMath.parse('(0,0), (-2,0,1), (-1,1), (1,0)', 'vectors');
   assert.equal(vectors.length,3);
