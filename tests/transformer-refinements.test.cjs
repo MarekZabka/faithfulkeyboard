@@ -86,11 +86,11 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.equal(await input('wechsel.keyRotation').isDisabled(),true);
 
   await page.locator('.tf-point[data-monomial="bc"]').click();
-  await page.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
+  await page.getByRole('button',{name:'Pin neighborhood',exact:true}).click();
   await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   await page.locator('#tf-fit').click();
   await page.locator('.tf-point[data-monomial="b^2c/a"]').click();
-  await page.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
+  await page.getByRole('button',{name:'Pin neighborhood',exact:true}).click();
   await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   await page.locator('#tf-fit').click();
   for(const [depth,width] of [[0,6],[1,3.6],[2,2.16]]) {

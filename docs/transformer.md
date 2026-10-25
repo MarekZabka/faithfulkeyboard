@@ -9,8 +9,9 @@ the JSON file. Reset to last saved restores the modal's latest saved draft. Clos
 an unsaved draft asks before discarding it.
 
 Select a transformation point to add its octave-normalized image to the keyboard,
-or independently expand/hide its neighborhood. Hiding a neighborhood removes its
-descendants too. The root neighborhood remains visible. Image harmonies inherit
+or independently pin/unpin its neighborhood. Unpinning one neighborhood leaves
+every other pin in place, including pins first discovered within that neighborhood.
+Implicit ancestors resolve positions but are not drawn. The root neighborhood remains visible. Image harmonies inherit
 source harmony options and the applicable Schritt/Wechsel marker style.
 
 ## Window and controls
@@ -33,34 +34,43 @@ position, clamped within the current screen.
 - Layout: Show Nontrivial Schritts, Show Collapses, Show Tone Labels, Circle Style,
   then Hovers. Hover neighborhoods and tone circles both default ON.
 - Design: Schritt/Wechsel label, shape, style and geometry controls.
-- Transformations: all Schritts and Wechsels from the current neighborhoods,
-  including nontrivial Schritts hidden by the layout setting. Rows have transport/
-  withdraw and show/hide-derived-neighborhood actions. Selecting a row expands
-  the shared keyboard Included Tones table directly below it.
-- Derived neighborhoods: the added neighborhoods, each with Delete. Hover
-  emphasizes that neighborhood; removing a parent also removes its descendants.
+- Transformations: only primary Schritts and Wechsels from the neighborhood of 1,
+  including nontrivial Schritts hidden by the layout setting. Rows have Pin/Unpin
+  followed by Transport/Withdraw. Each toggle retains its icon and uses a filled
+  active-button style. Included Tones appears after the full list, not inside a row.
+- Pinned neighborhoods: independent pins, each with Unpin. Hover emphasizes that
+  neighborhood. Selected details contain its full transformation list, whose
+  actions can pin further neighborhoods. Neighborhood miniatures overlap two
+  copies of their transformation shape.
 - Transported harmonies: linked keyboard harmonies, each with Withdraw. Selecting
-  one shows Included Tones; row hover emphasizes only its transformation point.
+  one shows Included Tones after the full list; row hover emphasizes only its transformation point.
 
-Diagram point actions are Transport to keyboard / Withdraw from keyboard and
-Show derived neighborhood / Hide derived neighborhood. The action panel has an X
+These list tabs share the Keyboard's fixed selected-name bar and picker above
+the scrollable list/details area. The list can scroll away while its selected
+name remains visible. Active tab text appears next to the icon in the tab itself.
+
+Diagram point actions are Pin/Unpin neighborhood and Transport/Withdraw from keyboard,
+with the same leading icons as their tabs. The action panel has an X
 and the keyboard's shared Included Tones table. Selection remains highlighted
-until dismissed. Hovering an included tone shows its corresponding circle.
+until dismissed. The action panel also closes on an outside click. Hovering an
+included tone shows its corresponding circle with a light beige fill.
 Hover previews are behind the primary graph, use the configured Schritt/Wechsel
 shapes and labels, and never gray out or change the opacity of the primary graph.
 
 Transport links are stored on the transported harmony as `transport` metadata
 (source ID, operation, path and point). The same operation cannot be transported
-twice from the same source. Withdrawal asks for confirmation. Transporting pending
+twice from the same source. Withdrawal is immediate and does not ask for confirmation. Transporting pending
 source name/tone edits asks to save those edits first, ensuring links are valid.
-These confirmations, source deletion and unsaved-Transformer discard use in-app
+Source-save confirmation, source deletion and unsaved-Transformer discard use in-app
 HTML dialogs, so they also work in embedded previews that block native browser
 confirmation popups. Cancel always leaves the pending action unapplied.
 Saving a source Transformer refreshes linked names/tones while retaining any
 keyboard-specific visual edits.
 
-Transported keyboard harmonies carry a visual badge, have read-only name/tones
-and format, and omit Multiply/Invert/Reduce/Simplify. Their Transformer action
+Transported keyboard harmonies carry a border modifier, have read-only name/tones
+and format, and omit Multiply/Invert/Reduce/Simplify. Read-only fields are disabled,
+unselectable and gray-filled; transported entries retain their border modifier
+without an extra arrow badge. Their Transformer action
 opens the source Transformer on Transported harmonies. Cloning creates an
 independent editable harmony. Deleting a source explicitly confirms withdrawal
 of its linked harmonies. Full project imports preserve links; batch harmony
@@ -84,7 +94,7 @@ all other values are copied unchanged. Sync defaults ON for new Transformers;
 existing saved choices are preserved. Tooltips are "Keep in sync with Schritt"
 and "Copy from Schritt". Sync settings persist per harmony.
 
-Show Tone Labels, Schritt Label and Wechsel Label each include Hide from derived
+Show Tone Labels, Schritt Label and Wechsel Label each include Hide from pinned
 (OFF by default). When enabled, the corresponding labels are omitted from nested
 neighborhoods, but primary-neighborhood labels remain visible. Show letter defaults
 ON and includes the `a = ` prefix in tone labels; turning it off leaves only the
@@ -93,7 +103,7 @@ tone value/name. Secondary Circle Size is available only with Flip Schritts enab
 Collapse outlines default to width 4. Wechsel-Wechsel lines use the full width,
 Schritt-Schritt lines use half width, and mixed lines use half width with dashes.
 Same-kind spanning sets plus a mixed bridge keep each collapse group connected
-without quadratic growth. Hide from derived defaults ON for collapses; turning it
+without quadratic growth. Hide from pinned defaults ON for collapses; turning it
 off includes links involving nested-neighborhood points.
 
 Circle outlines default to width 6. Each nested neighborhood uses 60% of its
@@ -154,4 +164,18 @@ node tests/transformer-refinements.test.cjs http://127.0.0.1:8766
 node tests/transformer-view-labels.test.cjs http://127.0.0.1:8766
 node tests/transformer-workspace.test.cjs http://127.0.0.1:8766
 node tests/transformer-links.test.cjs http://127.0.0.1:8766
+node tests/transformer-pins.test.cjs http://127.0.0.1:8766
 ```
+
+## Shared configuration components
+
+`js/ui-components.js` provides sections, independent checkbox disclosures, tabs,
+selection bars/pickers, choice menus and list rows to both modules. The Keyboard
+Key Shape section contains only Shape through Opacity; style, rotation, stretch,
+offset, connections and labels are peer sections. Key Style, Key Rotation, Key
+Stretch, Connect Tones and Show Secondary Labels start collapsed. Editing
+non-default suboptions enables their main checkbox. Layout hide switches live
+in a separate Hide section. Explicit disclosure choices are retained during the
+session when switching harmonies, preserving the bulk-parameter editing workflow.
+Legacy `expanded` paths and `hideDerived` JSON keys
+are retained for compatibility, while the visible terminology is Pinned.

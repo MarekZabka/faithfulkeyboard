@@ -162,7 +162,8 @@ function renderHarmonyTitleBar() {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       </button>
     </div>`;
-  bar.style.cssText = 'display:flex; padding:0.6rem 1rem; align-items:center; gap:0.4rem; position:relative;';
+  ConfigUI.titleBar(bar);
+  bar.querySelector('#harmony-title-picker').replaceWith(ConfigUI.picker(h?.name||'',{id:'harmony-title-picker'}));
 
   // Dropdown open/close
   const picker = bar.querySelector('#harmony-title-picker');
@@ -182,14 +183,9 @@ function renderHarmonyTitleBar() {
   function openDropdown() {
     if (dropdownEl) { closeDropdown(); return; }
     chevron.classList.add('open');
-    dropdownEl = document.createElement('div');
-    dropdownEl.className = 'harmony-title-dropdown';
-    for (const hh of harmonies) {
-      const item = document.createElement('div');
-      item.className = 'harmony-title-dropdown-item' + (hh.id === selectedHarmonyId ? ' active' : '');
-      item.innerHTML = getMiniKeyShapeSVG(hh) + `<span>${escHtml(hh.name)}</span>`;
-      item.addEventListener('click', e => {
-        e.stopPropagation();
+    dropdownEl = ConfigUI.choices(harmonies.map(hh=>({id:hh.id,name:hh.name,
+      icon:getMiniKeyShapeSVG(hh),selected:hh.id===selectedHarmonyId})),item=>{
+        const hh=harmonies.find(x=>x.id===item.id);if(!hh)return;
         closeDropdown();
         if (hh.id === selectedHarmonyId) return;
         selectedHarmonyId = hh.id;
@@ -207,9 +203,7 @@ function renderHarmonyTitleBar() {
           if (toneWrap) { toneWrap.innerHTML = ''; renderToneTable(hh, toneWrap); }
         }
         applyAndDraw();
-      });
-      dropdownEl.appendChild(item);
-    }
+    });
     bar.appendChild(dropdownEl);
     // Dismiss on outside click
     setTimeout(() => document.addEventListener('click', onOutsideClick, true), 0);
@@ -297,8 +291,7 @@ function renderHarmonyList() {
   const list = document.getElementById('harmony-list');
   list.innerHTML = '';
   for (const h of harmonies) {
-    const item = document.createElement('div');
-    item.className = 'harmony-item' + (h.id===selectedHarmonyId?' selected':'');
+    const item = ConfigUI.listRow(h.id===selectedHarmonyId);
     if(h.transport) item.classList.add('transported-harmony');
     item.draggable = true;
     item.dataset.id = h.id;
@@ -320,10 +313,6 @@ function renderHarmonyList() {
     name.className = 'harmony-name';
     name.textContent = h.name;
     item.appendChild(name);
-    if(h.transport) {
-      const badge=document.createElement('span'); badge.className='transport-badge';
-      badge.textContent='↗'; badge.title='Transported from Transformer'; item.appendChild(badge);
-    }
 
     // Visibility toggle (always shown)
     const visBtn = document.createElement('button');
@@ -385,9 +374,9 @@ function renderHarmonyList() {
       delBtn.addEventListener('click', async e => {
         e.stopPropagation();
         const linked=harmonies.filter(x=>x.transport?.sourceId===h.id);
-        if (!await confirmAction(h.transport ? `Withdraw "${h.name}" from keyboard?` :
+        if (!h.transport && !await confirmAction(
           `Delete "${h.name}"?${linked.length ? ` This also withdraws ${linked.length} linked transported harmonies.`:''}`,
-          h.transport?'Withdraw':'Delete')) return;
+          'Delete')) return;
         harmonies = harmonies.filter(x => x.id !== h.id && x.transport?.sourceId!==h.id);
         selectedHarmonyId = harmonies.length ? harmonies[harmonies.length-1].id : null;
         renderHarmonyList();
@@ -470,24 +459,6 @@ function renderHarmonyEditor() {
         <span id="${id}-val" style="font-size:var(--text-xs);color:var(--color-text-muted);min-width:2.5rem;text-align:right;">${disp}</span>
       </div>`;
     return div;
-  }
-
-  // ── Helper: collapsible section ──
-  function makeSection(title, open) {
-    const wrap = document.createElement('div');
-    const hdr = document.createElement('div');
-    hdr.className = 'editor-section-header' + (open ? ' open' : '');
-    hdr.innerHTML = `<span class="section-title">${title}</span><svg class="section-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>`;
-    const body = document.createElement('div');
-    body.className = 'editor-section-body' + (open ? '' : ' collapsed');
-    hdr.addEventListener('click', () => {
-      hdr.classList.toggle('open');
-      body.classList.toggle('collapsed');
-    });
-    wrap.appendChild(hdr);
-    wrap.appendChild(body);
-    editor.appendChild(wrap);
-    return body;
   }
 
   // ── Helper: check row ──
@@ -610,10 +581,7 @@ function renderHarmonyEditor() {
     refreshEditorDirtyState(); applyAndDraw();
   });
 
-  editor.appendChild(document.createElement('hr')).className = 'section-sep';
-
-  // ── KEY SHAPE (flat, non-collapsible header) ─────────────────────────────
-  // Static section label
+  // KEY SHAPE: Shape through Opacity only. Other main sections are peers.
   const shapeSectionHdr = document.createElement('div');
   shapeSectionHdr.className = 'editor-section-header';
   shapeSectionHdr.style.cursor = 'default';
@@ -724,12 +692,12 @@ function renderHarmonyEditor() {
 
   // KEY STYLE checkbox → Rounding, Edge Form, Bulge Amount
   // Uncheck resets all style values to defaults
-  const keyStyleActive = h.keyRounding > 0 || (h.keyEdge && h.keyEdge !== 'straight');
+  const keyStyleActive = h.keyRounding > 0 || (h.keyEdge && h.keyEdge !== 'straight') || h.keyBulge!==.2;
   const keyStyleCheck = makeCheckRow('Key Style', 'he-key-style', keyStyleActive, true);
-  appendSub(shapeSectionBody, keyStyleCheck);
+  appendSub(editor, keyStyleCheck);
   const keyStyleOpts = document.createElement('div');
   keyStyleOpts.style.cssText = `padding-left:1.2rem;margin-top:0.1rem;display:${keyStyleActive ? 'flex' : 'none'};flex-direction:column;gap:0.1rem;`;
-  appendSub(shapeSectionBody, keyStyleOpts);
+  appendSub(editor, keyStyleOpts);
 
   const roundingVal = h.keyRounding !== undefined ? h.keyRounding : 0;
   const roundingDiv = makeSliderField('Rounding', 'he-rounding', 0, 1, 0.05, roundingVal, v=>parseFloat(v).toFixed(2));
@@ -782,10 +750,10 @@ function renderHarmonyEditor() {
   // KEY ROTATION checkbox → Rotation slider
   const rotActive = h.keyRotation !== 0;
   const rotCheck = makeCheckRow('Key Rotation', 'he-key-rotation-check', rotActive, true);
-  appendSub(shapeSectionBody, rotCheck);
+  appendSub(editor, rotCheck);
   const rotOpts = document.createElement('div');
   rotOpts.style.cssText = `padding-left:1.2rem;margin-top:0.1rem;display:${rotActive ? 'flex' : 'none'};flex-direction:column;gap:0.1rem;`;
-  appendSub(shapeSectionBody, rotOpts);
+  appendSub(editor, rotOpts);
 
   const rotDiv = makeSliderField('Rotation (°)', 'he-rot', -180, 180, 1, h.keyRotation, v=>v+'°');
   rotOpts.appendChild(rotDiv);
@@ -806,10 +774,10 @@ function renderHarmonyEditor() {
 
   // KEY STRETCH checkbox → X, Y (uncheck resets to 1)
   const stretchCheck = makeCheckRow('Key Stretch', 'he-key-stretch', h.keyStretchX !== 1 || h.keyStretchY !== 1, true);
-  appendSub(shapeSectionBody, stretchCheck);
+  appendSub(editor, stretchCheck);
   const stretchOpts = document.createElement('div');
   stretchOpts.style.cssText = `padding-left:1.2rem;margin-top:0.1rem;display:${(h.keyStretchX !== 1 || h.keyStretchY !== 1) ? 'flex' : 'none'};flex-direction:column;gap:0.1rem;`;
-  appendSub(shapeSectionBody, stretchOpts);
+  appendSub(editor, stretchOpts);
 
   const sxDiv = makeSliderField('X', 'he-sx', 0.1, 5, 0.05, h.keyStretchX, v=>parseFloat(v).toFixed(2));
   stretchOpts.appendChild(sxDiv);
@@ -839,10 +807,10 @@ function renderHarmonyEditor() {
   const keyOffXVal = h.keyOffsetX !== undefined ? h.keyOffsetX : 0;
   const keyOffYVal = h.keyOffsetY !== undefined ? h.keyOffsetY : 0;
   const offsetCheck = makeCheckRow('Key Offset', 'he-key-offset', keyOffXVal !== 0 || keyOffYVal !== 0, true);
-  appendSub(shapeSectionBody, offsetCheck);
+  appendSub(editor, offsetCheck);
   const offsetOpts = document.createElement('div');
   offsetOpts.style.cssText = `padding-left:1.2rem;margin-top:0.1rem;display:${(keyOffXVal !== 0 || keyOffYVal !== 0) ? 'flex' : 'none'};flex-direction:column;gap:0.1rem;`;
-  appendSub(shapeSectionBody, offsetOpts);
+  appendSub(editor, offsetOpts);
 
   const koffxDiv = makeSliderField('X', 'he-koffx', -50, 50, 1, keyOffXVal, v=>v);
   offsetOpts.appendChild(koffxDiv);
@@ -867,8 +835,6 @@ function renderHarmonyEditor() {
       refreshEditorDirtyState(); renderSVG(); markProjectDirty();
     }
   });
-
-  editor.appendChild(document.createElement('hr')).className = 'section-sep';
 
   // ── CONNECT TONES ──
   const connectMain = makeCheckRow('Connect Tones', 'he-connect-tones', h.connectTones !== false, true);
@@ -1043,34 +1009,33 @@ function renderHarmonyEditor() {
   if(h.transport) {
     editor.querySelector('#he-name').readOnly=true;
     ratiosTA.readOnly=true; modeSelect.disabled=true;
+    for(const input of [editor.querySelector('#he-name'),ratiosTA]) {
+      input.disabled=true;input.classList.add('transport-readonly');input.tabIndex=-1;
+    }
     tonesSection.querySelectorAll('button').forEach(button=>button.remove());
   }
   for(const id of ['he-key-style','he-key-rotation-check','he-key-stretch','he-key-offset','he-connect-tones','he-labels','he-labels2']) {
     const header=editor.querySelector(`#${id}`).parentElement;
-    makeIndependentSection(header,header.nextElementSibling);
+    makeIndependentSection(header,header.nextElementSibling,{
+      open:!['he-key-style','he-key-rotation-check','he-key-stretch','he-connect-tones','he-labels2'].includes(id)});
   }
   makeIndependentSection(shapeSectionHdr,shapeSectionBody);
+  const enable=(id,key,body,defaults)=>{
+    ConfigUI.autoEnable(body,editor.querySelector(`#${id}`),
+      ()=>Object.entries(defaults).some(([k,v])=>h[k]!==v),()=>{
+        h[key]=true;refreshEditorDirtyState();renderSVG();markProjectDirty();
+      });
+  };
+  enable('he-connect-tones','connectTones',connectOpts,{connectStyle:'curve',connectColor:'#888888',connectWidth:2});
+  enable('he-labels','showLabels',lblOpts,{labelType:'heji',labelFontSize:10,labelColor:'#000000',labelOffsetX:0,labelOffsetY:0,labelAllOctaves:false});
+  enable('he-labels2','showLabels2',lbl2Opts,{labelType2:'ratio',labelFontSize2:11,labelColor2:'',labelOffsetX2:0,labelOffsetY2:0,labelAllOctaves2:false});
   renderToneTable(h, editor);
 }
 
 // Shared native disclosure. Checking a feature and expanding its settings are independent.
-function makeIndependentSection(header,body) {
-  if(!header || !body || header.parentElement?.tagName==='SUMMARY') return;
-  const details=document.createElement('details'); details.className='independent-section'; details.open=true;
-  const summary=document.createElement('summary'); summary.className='editor-section-header';
-  const label=header.querySelector('label');
-  if(label) {
-    const title=document.createElement('span');title.className='section-title';title.textContent=label.textContent;
-    header.querySelector('input')?.setAttribute('aria-label',label.textContent);
-    label.replaceWith(title);
-  }
-  header.parentElement.insertBefore(details,header);
-  summary.append(...header.childNodes);
-  summary.insertAdjacentHTML('beforeend','<svg class="section-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>');
-  body.classList.add('independent-section-body');
-  details.append(summary,body); header.remove();
-  summary.querySelectorAll('input').forEach(input=>input.addEventListener('click',e=>e.stopPropagation()));
-  return details;
+function makeIndependentSection(header,body,options) {
+  const key=header?.querySelector('input')?.id||header?.textContent.trim();
+  return ConfigUI.adoptSection(header,body,{key:`keyboard:${key}`,...options});
 }
 
 // Application-owned confirmation also works in embedded previews that block window.confirm.
@@ -1096,6 +1061,13 @@ function confirmAction(message, action='Confirm') {
 function refreshEditorDirtyState() {
   const h = harmonies.find(x=>x.id===selectedHarmonyId);
   if (!h) return;
+  for(const [id,adjusted] of [
+    ['he-key-style',(h.keyRounding||0)!==0 || h.keyEdge!=='straight' || h.keyBulge!==.2],
+    ['he-key-rotation-check',(h.keyRotation||0)!==0],
+    ['he-key-stretch',h.keyStretchX!==1 || h.keyStretchY!==1],
+    ['he-key-offset',(h.keyOffsetX||0)!==0 || (h.keyOffsetY||0)!==0]]) {
+    const input=document.getElementById(id);if(input)input.checked=adjusted;
+  }
   const item = document.querySelector(`.harmony-item[data-id="${h.id}"]`);
   if (item) { const nm = item.querySelector('.harmony-name'); if (nm) nm.textContent = h.name; }
   // Keep title bar in sync when harmony is renamed

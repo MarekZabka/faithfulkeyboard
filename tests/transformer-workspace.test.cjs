@@ -1,8 +1,8 @@
 const assert=require('node:assert/strict');
 async function run(page,url='http://127.0.0.1:8766') {
-  const errors=[];let allowWithdraw=true;
+  const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
-  page.on('dialog',d=>d.message().startsWith('Withdraw')&&!allowWithdraw?d.dismiss():d.accept());
+  page.on('dialog',d=>d.accept());
   await page.goto(url,{waitUntil:'domcontentloaded'});
   await page.locator('.svg-key').first().waitFor();
   await page.locator('[data-tab="layout"]').click();
@@ -30,7 +30,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.equal(await labels.isChecked(),false);
   await page.locator('[title="Transform"]').first().click();
   assert.deepEqual(await page.locator('[data-tf-tab]').evaluateAll(es=>es.map(e=>e.title)),
-    ['Harmony','Layout','Design','Transformations','Derived neighborhoods','Transported harmonies']);
+    ['Harmony','Layout','Design','Transformations','Pinned neighborhoods','Transported harmonies']);
   await page.locator('[data-tf-tab="harmony"]').focus();
   await page.locator('[data-tf-tab="harmony"]').press('End');
   assert.equal(await page.locator('[data-tf-tab="transported"]').getAttribute('aria-selected'),'true');
@@ -84,8 +84,8 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.equal(await menu.locator('.tone-table tbody tr').count(),3);
   await page.locator('#tf-title').hover();
   await page.waitForFunction(()=>document.querySelector('.tf-selected')&&document.querySelector('.tf-hover-visible'));
-  await menu.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
-  assert.equal(await menu.getByRole('button',{name:'Hide derived neighborhood',exact:true}).count(),1);
+  await menu.getByRole('button',{name:'Pin neighborhood',exact:true}).click();
+  assert.equal(await menu.getByRole('button',{name:'Unpin neighborhood',exact:true}).count(),1);
   await menu.getByRole('button',{name:'Transport to keyboard',exact:true}).click();
   await page.locator('#app-confirm-dialog [data-cancel]').click();
   assert.equal(await page.evaluate(()=>harmonies.length),1);
@@ -93,22 +93,23 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.locator('#app-confirm-dialog [data-confirm]').click();
   assert.equal(await page.evaluate(()=>harmonies.length),2);
   assert.equal(await menu.getByRole('button',{name:'Withdraw from keyboard',exact:true}).count(),1);
-  allowWithdraw=false;
   await menu.getByRole('button',{name:'Withdraw from keyboard',exact:true}).click();
-  await page.locator('#app-confirm-dialog [data-cancel]').click();
+  assert.equal(await page.locator('#app-confirm-dialog').count(),0);
+  assert.equal(await page.evaluate(()=>harmonies.length),1);
+  await menu.getByRole('button',{name:'Transport to keyboard',exact:true}).click();
   assert.equal(await page.evaluate(()=>harmonies.length),2);
   await menu.getByRole('button',{name:'Close actions',exact:true}).click();
   assert.equal(await menu.isVisible(),false);
   assert.equal(await page.locator('.tf-selected').count(),0);
   await page.locator('[data-tf-tab="transformations"]').click();
-  assert.equal(await page.locator('#tf-pane-transformations .tf-list-item').count(),25);
+  assert.equal(await page.locator('#tf-pane-transformations .tf-list-item').count(),13);
   await page.locator('#tf-pane-transformations .tf-list-item[data-monomial="bc"]').first().click();
   assert.equal(await page.locator('#tf-pane-transformations .tone-table tbody tr').count(),3);
   await page.locator('#tf-pane-transformations .tone-table tbody tr').first().hover();
   assert.ok(await page.locator('.tf-hover-visible circle').count()>0);
-  await page.locator('[data-tf-tab="derived"]').click();
-  assert.equal(await page.locator('#tf-pane-derived .tf-list-item').count(),1);
-  await page.locator('#tf-pane-derived [title="Delete"]').click();
+  await page.locator('[data-tf-tab="pinned"]').click();
+  assert.equal(await page.locator('#tf-pane-pinned > .tf-collection > .tf-list-item').count(),1);
+  await page.locator('#tf-pane-pinned > .tf-collection [title="Unpin neighborhood"]').click();
   assert.equal(await page.locator('.tf-point').count(),13);
   await page.locator('[data-tf-tab="transported"]').click();
   const transported=page.locator('#tf-pane-transported .tf-list-item');
@@ -146,9 +147,8 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.locator('#harmony-list .transported-harmony [title="Transform"]').click();
   assert.deepEqual(await page.locator('#transformer-modal').boundingBox(),rect);
   assert.equal(await page.locator('#tf-pane-transported .tf-list-item').count(),1);
-  allowWithdraw=true;
   await page.locator('#tf-pane-transported [title="Withdraw from keyboard"]').click();
-  await page.locator('#app-confirm-dialog [data-confirm]').click();
+  assert.equal(await page.locator('#app-confirm-dialog').count(),0);
   assert.equal(await page.evaluate(()=>harmonies.length),1);
   assert.equal(await page.locator('#tf-pane-transported .tf-list-item').count(),0);
   await page.locator('[data-tf-tab="harmony"]').click();

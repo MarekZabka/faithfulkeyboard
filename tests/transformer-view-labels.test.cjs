@@ -36,7 +36,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   await field('toneLabels.type').selectOption('ratio');
   await field('circle.size').fill('320');
   await page.locator('.tf-point[data-monomial="bc"]').click();
-  await page.getByRole('button',{name:'Show derived neighborhood',exact:true}).click();
+  await page.getByRole('button',{name:'Pin neighborhood',exact:true}).click();
   await page.locator('#tf-point-menu [aria-label="Close actions"]').click();
   assert.equal(await view(),initial);
   await field('toneLabels.hideDerived').check();

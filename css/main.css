@@ -692,6 +692,10 @@
 .independent-section:not([open]) > .independent-section-body { display:none !important; }
 .transported-harmony { border-left:3px solid var(--color-primary); }
 .transport-badge { color:var(--color-primary);font-size:var(--text-xs);padding:0 .15rem; }
+.transport-readonly:disabled { background:var(--color-surface-dynamic);color:var(--color-text-muted);opacity:1;cursor:default;user-select:none;pointer-events:none; }
+.config-selection-bar { flex-shrink:0;border-bottom:1px solid var(--color-divider);min-width:0; }
+.config-selection-mini { display:inline-flex;flex-shrink:0; }
+.harmony-title-dropdown-item { width:100%;text-align:left; }
 .app-confirm { width:min(420px,calc(100vw - 32px));margin:auto;padding:1.25rem;color:var(--color-text);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);font:inherit; }
 .app-confirm::backdrop { background:rgba(0,0,0,.5); }
 .app-confirm h2 { font-size:var(--text-base);font-weight:700;margin:0 0 .75rem; }
