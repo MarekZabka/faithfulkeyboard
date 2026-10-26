@@ -10,6 +10,11 @@ The app lets you define harmonies as frequency ratios or prime-exponent vectors,
 assign pitch widths to basis intervals, and visualise the resulting 2-D keyboard
 layout with configurable key shapes, colours, and sound.
 
+The **Transformer** opens from a harmony's Transform action when Edit and octave
+equivalence are enabled. It explores Schritt/Wechsel neighborhoods, adds transformed
+harmonies to the keyboard, and saves its configuration per harmony in project JSON.
+See [Transformer documentation](docs/transformer.md) for algebra, controls, and tests.
+
 ---
 
 ## Project structure
@@ -63,7 +68,9 @@ math.js
                                                   └── ui-harmony.js
                                                         └── ui-layout.js
                                                               └── ui-project.js
-                                                                    └── main.js
+                                                                    └── transformer-math.js
+                                                                          └── ui-transformer.js
+                                                                                └── main.js
 ```
 
 Each module may reference globals declared in any earlier module.

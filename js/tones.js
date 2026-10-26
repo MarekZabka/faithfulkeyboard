@@ -111,7 +111,7 @@ function computeKeysForHarmony(harmony, baseFreq) {
         seen.add(key);
         keys.push({
           ratio: r.expsOverride ? null : baseRatio, label, cents: actual_cents, freq, width,
-          limit: r.expsOverride ? jiLimit(null) : jiLimit(baseRatio),
+          limit: jiLimit(baseRatio),
           x_logical: actual_cents, y_logical: width,
           harmonyId: harmony.id, harmonyName: harmony.name,
           oct: oct,
@@ -128,7 +128,7 @@ function computeKeysForHarmony(harmony, baseFreq) {
       seen.add(label);
       keys.push({
         ratio: r.expsOverride ? null : r, label, cents, freq: baseFreq * Math.pow(2, cents/1200),
-        width, limit: r.expsOverride ? 13 : jiLimit(r),
+        width, limit: jiLimit(r),
         x_logical: cents, y_logical: width,
         harmonyId: harmony.id, harmonyName: harmony.name,
         oct: null,

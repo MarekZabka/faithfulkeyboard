@@ -21,13 +21,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 function setPanelOpen(open) {
   const panel = document.getElementById('side-panel');
   const topBarPanel = document.getElementById('top-bar-panel');
-  if (open) {
-    panel.classList.add('open');
-    if (topBarPanel) topBarPanel.classList.remove('panel-hidden');
-  } else {
-    panel.classList.remove('open');
-    if (topBarPanel) topBarPanel.classList.add('panel-hidden');
-  }
+  ConfigUI.splitPanel({root:document.querySelector('.app'),panel,toolbarPanel:topBarPanel,open});
   // Show gear button only when panel is closed
   const toggleBtn = document.getElementById('btn-toggle-config');
   if (toggleBtn) {
@@ -445,6 +439,7 @@ document.addEventListener('click', e => {
 document.getElementById('global-octave-equiv').addEventListener('change', e => {
   layout.octaveEquiv = e.target.checked;
   harmonies.forEach(h => { h.octaveEquiv = layout.octaveEquiv; });
+  renderHarmonyList();
   applyAndDraw();
   markProjectDirty();
   updateLayoutDirtyIndicator();
@@ -546,6 +541,7 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
     resizing = true;
     startX = e.clientX;
     startW = panel.offsetWidth;
+    document.querySelector('.app').classList.add('panel-resizing');
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
     e.preventDefault();
@@ -554,12 +550,12 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
     if (!resizing) return;
     const dx = startX - e.clientX; // panel is on right, so moving left increases width
     const newW = Math.max(260, Math.min(600, startW + dx));
-    panel.style.width = newW + 'px';
-    const tbp = document.getElementById('top-bar-panel'); if (tbp) tbp.style.width = newW + 'px';
+    document.querySelector('.app').style.setProperty('--panel-width',newW+'px');
   });
   document.addEventListener('mouseup', () => {
     if (!resizing) return;
     resizing = false;
+    document.querySelector('.app').classList.remove('panel-resizing');
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
     renderSVG();
@@ -669,10 +665,42 @@ new ResizeObserver(()=>{ renderSVG(); }).observe(document.getElementById('stage-
   });
 
   // Mobile: start with panel closed
-  if (window.innerWidth < 960) {
-    setPanelOpen(false);
-  }
+  setPanelOpen(window.innerWidth>=960);
 
   initProjectName();
   initProjectDescription();
+  document.querySelectorAll('.tabs [data-tab]').forEach(button=>
+    ConfigUI.tab(button,button.querySelector('.tab-label')?.textContent||button.title));
+  for(const [check,body] of [['change-base-toggle','change-base-opts'],
+    ['show-octave-lines','octave-line-opts'],['show-semitone-lines','semitone-line-opts'],
+    ['show-major-width-lines','major-width-line-opts'],['show-minor-width-lines','minor-width-line-opts']]) {
+    makeIndependentSection(document.getElementById(check)?.parentElement,document.getElementById(body));
+    const input=document.getElementById(check),options=document.getElementById(body);
+    ConfigUI.autoEnable(options,input,()=>[...options.querySelectorAll('input')].some(field=>field.value!==field.defaultValue),
+      ()=>input.dispatchEvent(new Event('change',{bubbles:true})));
+  }
+  for(const selector of ['#coord-select','#width-controls','#bg-color']) {
+    const group=document.querySelector(selector)?.closest('.field-row');
+    const title=group?.querySelector(':scope > .field-label');if(!title) continue;
+    const header=document.createElement('div');header.innerHTML='<span class="section-title"></span>';
+    header.firstChild.textContent=title.textContent;title.replaceWith(header);
+    const body=document.createElement('div');
+    [...group.children].filter(el=>el!==header).forEach(el=>body.appendChild(el));
+    group.appendChild(body);makeIndependentSection(header,body);
+  }
+  for(const title of [...document.querySelectorAll('#tab-sound > .sound-section-label')]) {
+    const body=document.createElement('div');
+    let next=title.nextElementSibling;
+    while(next && !next.classList.contains('sound-section-label') && !next.querySelector('#btn-test-sound')) {
+      const following=next.nextElementSibling;body.appendChild(next);next=following;
+    }
+    title.insertAdjacentElement('afterend',body);
+    const text=title.textContent;title.replaceChildren();
+    const span=document.createElement('span');span.className='section-title';span.textContent=text;title.appendChild(span);
+    makeIndependentSection(title,body);
+  }
+  const hideRows=['hide-labels','hide-labels2','hide-connections'].map(id=>document.getElementById(id).parentElement);
+  const hide=ConfigUI.section('Hide');
+  hideRows[0].closest('details').parentElement.insertAdjacentElement('afterend',hide.el);
+  hide.body.append(...hideRows);
 })();
