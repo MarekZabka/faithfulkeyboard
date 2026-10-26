@@ -33,16 +33,8 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.equal(await page.locator('#tf-save').isVisible(),false);
   assert.equal(await page.locator('#tf-close').isVisible(),true);
   assert.ok(Math.abs((await box('.tf-stage')).width-(await box('.tf-content')).width)<1);
-  const theme=await page.locator('html').getAttribute('data-theme');
-  await page.locator('#tf-theme').click();
-  assert.notEqual(await page.locator('html').getAttribute('data-theme'),theme);
-  await page.locator('#tf-theme').click();
-  await page.locator('#tf-lock').click();
-  const camera=await page.locator('#tf-diagram').getAttribute('viewBox');
-  const canvas=await box('#tf-diagram');await page.mouse.move(canvas.x+100,canvas.y+100);await page.mouse.wheel(0,-120);
-  assert.equal(await page.locator('#tf-diagram').getAttribute('viewBox'),camera);
-  assert.equal(await page.locator('#tf-fit').isDisabled(),true);
-  await page.locator('#tf-lock').click();
+  assert.equal(await page.locator('#tf-theme,#tf-lock').count(),0);
+  assert.equal(await page.locator('#tf-stage-actions #tf-fit svg').count(),1);
   await page.locator('#tf-show-panel').click();
   assert.equal(await page.locator('#tf-save').evaluate(e=>e.classList.contains('tf-dirty')),false);
   await page.locator('#tf-tones').fill('1, 5/4, 3/2');
@@ -94,7 +86,8 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.locator('#tf-save').click();
   await row.locator('[data-action="transport"]').click();
   await page.locator('[data-tf-tab="transported"]').click();
-  await page.locator('#tf-pane-transported .tf-list-item').click();
+  if(!await page.locator('#tf-pane-transported .tf-list-item').evaluate(e=>e.classList.contains('selected')))
+    await page.locator('#tf-pane-transported .tf-list-item').click();
   assert.equal(await page.locator('#tf-pane-transported .tf-selected-tones .tone-table tbody tr').count(),3);
   await page.locator('[data-tf-tab="transformations"]').click();
   await page.locator('#tf-pane-transformations .tf-list-item[data-monomial="bc"] [data-action="pin"]').click();

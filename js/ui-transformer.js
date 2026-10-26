@@ -14,6 +14,7 @@ const Transformer = (() => {
     geometry: ['keyRotation','keyStretchX','keyStretchY','keyOffsetX','keyOffsetY']
   };
   const icons = {
+    fit:'<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>',
     save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12l4 4v12a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
     reset: '<path d="M3 11a9 9 0 1 1 2.6 6.4M3 4v7h7"/>',
     style: '<path d="m4 20 4-1L20 7l-3-3L5 16zM14 7l3 3"/>',
@@ -28,8 +29,14 @@ const Transformer = (() => {
   };
   function icon(name) { return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">${icons[name]}</svg>`; }
   function inverseColor(color, fallback) {
-    const match = /^#([0-9a-f]{6})$/i.exec(color || fallback);
-    return match ? '#' + (0xffffff ^ parseInt(match[1], 16)).toString(16).padStart(6, '0') : '#ffffff';
+    const hex=String(color||fallback).replace(/^#([a-f\d])([a-f\d])([a-f\d])$/i,'#$1$1$2$2$3$3');
+    const match = /^#([0-9a-f]{6})$/i.exec(hex);
+    if(!match)return '#ffffff';
+    const rgb=[0,2,4].map(i=>parseInt(match[1].slice(i,i+2),16));
+    const lo=Math.min(...rgb),hi=Math.max(...rgb);
+    // Complement the hue while preserving chromatic lightness, so pastel
+    // colors remain visibly colored. Neutral black/white/gray still invert.
+    return '#'+rgb.map(c=>(lo===hi?255-c:lo+hi-c).toString(16).padStart(2,'0')).join('');
   }
   function inherited(h) {
     const s = {};
@@ -58,7 +65,7 @@ const Transformer = (() => {
       showCollapses: false, collapses: {edgeWidth: 4, edgeColor: '#b34b4b',hideWeak:false,hideDerived:true},
       ...inherited(h), wechselSync: {label:true,shape:true,style:true,geometry:true},
       expanded: [], panelOpen: true, viewport:[-700,-700,1400,1400],
-      hovers:{neighborhoods:true,circles:true}, activeTab:'harmony', window:null,viewLocked:false,camera:null
+      hovers:{neighborhoods:true,circles:true}, activeTab:'harmony', window:null,camera:null,letters:{}
     };
   }
   function hydrate(h) {
@@ -78,6 +85,7 @@ const Transformer = (() => {
       result.window.width<=0 || result.window.height<=0)) result.window=null;
     if(result.camera && (!['x','y','units'].every(k=>Number.isFinite(result.camera[k])) || result.camera.units<=0))
       result.camera=null;
+    if(!result.letters || typeof result.letters!=='object' || Array.isArray(result.letters))result.letters={};
     return result;
   }
   function get(path) { return path.split('.').reduce((o,k) => o[k], state.draft.config); }
@@ -118,13 +126,58 @@ const Transformer = (() => {
     dialog.querySelector('#tf-show-panel').hidden=config.panelOpen;
     const actions=dialog.querySelector(config.panelOpen?'#tf-toolbar-panel':'#tf-stage-actions');
     actions.appendChild(dialog.querySelector('#tf-close'));
-    const locked=!!config.viewLocked,button=dialog.querySelector('#tf-lock');
-    button.title=locked?'Lock view':'Unlock view';button.setAttribute('aria-label',locked?'Unlock view':'Lock view');
-    button.classList.toggle('locked',locked);
-    button.setAttribute('aria-pressed',String(locked));
-    button.innerHTML=locked?LOCK_ICON_LOCKED:LOCK_ICON_UNLOCKED;
-    dialog.querySelector('#tf-fit').disabled=locked;
     preserveCamera(frame);
+  }
+  function monomial(op) { return TransformerMath.monomial(op,state.tones); }
+  function draftTones() {
+    const tones=TransformerMath.parse(state.draft.ratios,state.draft.toneMode),used=new Set();
+    for(const t of tones) {
+      const custom=get('letters')[t.key];
+      if(typeof custom==='string' && /^\p{L}$/u.test(custom) && !used.has(custom)) {
+        t.letter=custom;t.customLetter=true;used.add(custom);
+      }
+    }
+    for(const t of tones.filter(t=>!t.customLetter)) {
+      if(used.has(t.letter))t.letter=Array.from({length:26},(_,i)=>String.fromCharCode(97+i)).find(x=>!used.has(x));
+      used.add(t.letter);
+    }
+    return tones;
+  }
+  function renderLettering() {
+    const body=dialog.querySelector('#tf-lettering');
+    if(!body)return;
+    if(!state.tones) {body.replaceChildren();state.letteringSignature=null;return;}
+    const tones=[...state.tones].sort((a,b)=>a.sourceLog-b.sourceLog);
+    const signature=JSON.stringify(tones.map(t=>[t.key,t.sourceDisplay]));
+    if(signature!==state.letteringSignature || !body.firstChild) {
+      state.letteringSignature=signature;body.replaceChildren();
+      const table=document.createElement('table');table.className='tone-table tf-lettering-table';
+      table.innerHTML='<thead><tr><th>Tone</th><th>Tone Name</th><th>Letter</th></tr></thead>';
+      const rows=document.createElement('tbody');table.appendChild(rows);body.appendChild(table);
+      for(const tone of tones) {
+        const row=document.createElement('tr'),value=document.createElement('td'),name=document.createElement('td');
+        value.textContent=tone.sourceDisplay;name.className='tone-name-cell';
+        try{name.innerHTML=tone.v?expsToHEJI(tone.v):'';}catch(e){name.textContent='';}
+        const cell=document.createElement('td'),input=document.createElement('input');
+        input.className='field-input';input.dataset.toneKey=tone.key;input.value=tone.letter;
+        input.setAttribute('aria-label',`Letter for ${tone.sourceDisplay}`);
+        input.maxLength=2;input.required=true;input.autocomplete='off';
+        input.addEventListener('input',()=>{
+          const letter=input.value.trim().normalize('NFC');
+          const valid=/^\p{L}$/u.test(letter) && !state.tones.some(t=>t.key!==tone.key && t.letter===letter);
+          input.setCustomValidity(valid?'':'Use one unique letter.');
+          input.setAttribute('aria-invalid',String(!valid));
+          if(!valid)return;
+          input.value=letter;
+          state.draft.config.letters[tone.key]=letter;updateDirty();draw();
+        });
+        cell.appendChild(input);row.append(value,name,cell);rows.appendChild(row);
+      }
+    }
+    body.querySelectorAll('[data-tone-key]').forEach(input=>{
+      if(input!==document.activeElement && !input.validity.customError)
+        input.value=state.tones.find(t=>t.key===input.dataset.toneKey)?.letter||'';
+    });
   }
   function syncWechsel(group, force = false) {
     const config = state.draft.config, inverse = inherited(config.schritt).wechsel;
@@ -168,14 +221,34 @@ const Transformer = (() => {
     dialog.querySelector('#tf-title').textContent = `${state.draft.name || 'Unnamed harmony'}${dirty ? ' *' : ''}`;
   }
   function message(text, error = false) {
-    const el = dialog.querySelector('#tf-status');
+    const el = dialog.querySelector('#tf-message');
     el.textContent = text; el.classList.toggle('tf-error', error);
+    el.hidden=!text;
   }
   function svg(tag, attrs, parent) {
     const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
     Object.entries(attrs || {}).forEach(([k,v]) => el.setAttribute(k, v));
     if (parent) parent.appendChild(el);
     return el;
+  }
+  function markerLabel(parent,x,y,label,style) {
+    displayLabel(parent,x,y,label,style.labelFontSize*2,style.labelColor);
+    const luminance=color=>{
+      const rgb=String(color).match(/^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+      if(!rgb)return 0;
+      return rgb.slice(1).reduce((sum,c,i)=>{
+        const v=parseInt(c,16)/255;
+        return sum+[.2126,.7152,.0722][i]*(v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
+      },0);
+    };
+    const fg=luminance(style.labelColor),bg=luminance(style.uniformColor);
+    if((Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05)<4.5) {
+      const text=parent.querySelector('text:last-child');
+      if(text) {
+        text.style.paintOrder='stroke';text.style.stroke=fg>.179?'#000000':'#ffffff';
+        text.style.strokeWidth='1.5px';text.style.strokeLinejoin='round';
+      }
+    }
   }
   function field(parent, label, path, type = 'number', options = {}) {
     if (type === 'number') {
@@ -346,6 +419,7 @@ const Transformer = (() => {
     function changed() {
       state.draft.ratios = ta.value; state.draft.config.expanded = [];
       state.selectedNode=null;state.menuOpen=false;state.collectionSelection={};
+      state.pinnedPanels.forEach(p=>p.el?.remove());state.pinnedPanels=[];
       updateDirty(); draw();
     }
     ta.addEventListener('input', () => { resetSimplify(); changed(); });
@@ -378,6 +452,8 @@ const Transformer = (() => {
       } else { temp.ratios = original; resetSimplify(); }
       ta.value = temp.ratios; changed();
     }));
+    const lettering=section(panel,'Lettering',true);lettering.id='tf-lettering';
+    state.letteringSignature=null;
     panel=panes.layout;
     const circleWrapper=document.createElement('div');
     let body = section(circleWrapper, 'Circle Style', true);
@@ -451,12 +527,13 @@ const Transformer = (() => {
     clearHighlight();
     syncSplit();
     let tones;
-    try { tones = TransformerMath.parse(state.draft.ratios, state.draft.toneMode); }
+    try { tones = draftTones(); }
     catch (e) {
       diagram.replaceChildren(); message(e.message, true); state.nodes=[];state.scenes=[];state.tones=null;
-      state.selectedNode=null;state.menuOpen=false;renderCollections();return;
+      state.selectedNode=null;state.menuOpen=false;renderLettering();renderPinnedPanels();renderCollections();return;
     }
     state.tones = tones;
+    renderLettering();
     const scenes = [], nodeMap = new Map(), catalogMap=new Map();
     function visit(path, parent, origin) {
       const scene = TransformerMath.neighborhood(tones, parent, origin, config);
@@ -569,10 +646,10 @@ const Transformer = (() => {
       const markerSize = style.keySize * 0.25 * Math.pow(.85,n.depth);
       const extent = markerSize * Math.max(style.keyStretchX, style.keyStretchY) + 40;
       bounds.push([x - extent, y - extent], [x + extent, y + extent]);
-      const group = svg('g', {'class':'tf-point tf-visual', 'data-node':n.id, 'data-monomial':TransformerMath.monomial(n.op),
+      const group = svg('g', {'class':'tf-point tf-visual', 'data-node':n.id, 'data-monomial':monomial(n.op),
         'data-op':TransformerMath.opKey(n.op),'data-scene':n.scene,'data-depth':n.depth,opacity:Math.pow(.78,n.depth),
-        role:'button', tabindex:'0', 'aria-label':`${n.op.inverted ? 'Wechsel' : 'Schritt'} ${TransformerMath.monomial(n.op)}`}, pointLayer);
-      svg('title', {}, group).textContent = `${n.op.inverted ? 'Wechsel' : 'Schritt'} ${TransformerMath.monomial(n.op)} · click for actions`;
+        role:'button', tabindex:'0', 'aria-label':`${n.op.inverted ? 'Wechsel' : 'Schritt'} ${monomial(n.op)}`}, pointLayer);
+      svg('title', {}, group).textContent = `${n.op.inverted ? 'Wechsel' : 'Schritt'} ${monomial(n.op)} · click for actions`;
       const geometry = buildKeyPath(x, y, markerSize, style, false);
       let shape;
       if (geometry.type === 'circle') shape = svg('circle', {cx:x,cy:y,r:geometry.r}, group);
@@ -580,9 +657,9 @@ const Transformer = (() => {
       else shape = svg('path', {d:geometry.d}, group);
       Object.entries({fill:style.uniformColor, stroke:style.edgeColor, 'stroke-width':style.keyStrokeWidth, opacity:style.opacity}).forEach(([k,v]) => shape.setAttribute(k,v));
       const superscripts = '⁰¹²³⁴⁵⁶⁷⁸⁹';
-      const label = TransformerMath.monomial(n.op).replace(/\^(\d+)/g, (_, n) => [...n].map(d => superscripts[d]).join(''));
+      const label = monomial(n.op).replace(/\^(\d+)/g, (_, n) => [...n].map(d => superscripts[d]).join(''));
       if(!(n.depth && style.hideDerivedLabels))
-        displayLabel(group, x, y, label, style.labelFontSize * 2, style.labelColor);
+        markerLabel(group,x,y,label,style);
       const show = e => { e.stopPropagation(); pointMenu(n, e); };
       group.addEventListener('click', show);
       group.addEventListener('pointerenter',()=>highlightNeighborhood(n));
@@ -609,10 +686,11 @@ const Transformer = (() => {
     }
     diagram.setAttribute('viewBox', state.viewport.join(' '));
     rememberCamera();
-    message(`${tones.length} tones · ${scenes.length} neighborhood${scenes.length === 1 ? '' : 's'} · ${nodes.length} transformations`);
+    message('');
     renderCollections();
     restoreSelection();
     if(state.menuOpen && state.selectedNode) renderPointMenu(state.selectedNode);
+    renderPinnedPanels();
   }
   function clearHighlight() {
     if(!dialog) return;
@@ -637,7 +715,7 @@ const Transformer = (() => {
     clearTimeout(hoverLeaveTimer);
     hoverLeaveTimer=setTimeout(()=>{
       hoverLeaveTimer=null;
-      if(state?.selectedNode) restoreSelection(); else fadeHighlight();
+      fadeHighlight();
     },180);
   }
   function hoverLayer(preview=false) {
@@ -682,7 +760,7 @@ const Transformer = (() => {
   function paintPreviewPoint(parent,node,depth) {
     const style=node.op.inverted?get('wechsel'):get('schritt');
     const x=node.point[0]+(style.keyOffsetX||0),y=node.point[1]+(style.keyOffsetY||0);
-    const group=svg('g',{class:'tf-preview-point','data-monomial':TransformerMath.monomial(node.op)},parent);
+    const group=svg('g',{class:'tf-preview-point','data-monomial':monomial(node.op)},parent);
     const geometry=buildKeyPath(x,y,style.keySize*.25*Math.pow(.85,depth),style,false);
     let shape;
     if(geometry.type==='circle') shape=svg('circle',{cx:x,cy:y,r:geometry.r},group);
@@ -692,8 +770,8 @@ const Transformer = (() => {
       .forEach(([k,v])=>shape.setAttribute(k,v));
     if(!(depth && style.hideDerivedLabels)) {
       const superscripts='⁰¹²³⁴⁵⁶⁷⁸⁹';
-      const label=TransformerMath.monomial(node.op).replace(/\^(\d+)/g,(_,n)=>[...n].map(d=>superscripts[d]).join(''));
-      displayLabel(group,x,y,label,style.labelFontSize*2,style.labelColor);
+      const label=monomial(node.op).replace(/\^(\d+)/g,(_,n)=>[...n].map(d=>superscripts[d]).join(''));
+      markerLabel(group,x,y,label,style);
     }
   }
   function paintPreviewTone(parent,circle,depth,origin) {
@@ -754,17 +832,16 @@ const Transformer = (() => {
     const node=state.nodes.find(n=>n.id===state.selectedNode.id)||state.selectedNode;
     state.selectedNode=node;
     dialog.querySelectorAll('.tf-point').forEach(e=>e.classList.toggle('tf-selected',e.dataset.op===TransformerMath.opKey(node.op)));
-    if(state.selectionMode==='point') highlightPoint(node); else highlightNeighborhood(node,true);
   }
-  function dismissSelection() {
+  function dismissSelection(render=true) {
     state.selectedNode=null;state.menuOpen=false;
     dialog.querySelector('#tf-point-menu').hidden=true;
     dialog.querySelectorAll('.tf-selected').forEach(e=>e.classList.remove('tf-selected'));
-    clearHighlight();renderCollections();
+    clearHighlight();if(render)renderCollections();
   }
   function selectNode(node,mode='neighborhood') {
     if(!node) return;
-    state.selectedNode=node;state.selectionMode=mode;restoreSelection();renderCollections();
+    clearHighlight();state.selectedNode=node;state.selectionMode=mode;restoreSelection();renderCollections();
     if(['transformations','transported'].includes(get('activeTab')))
       dialog.querySelector(`#tf-pane-${get('activeTab')} .tf-selected-group`)?.scrollIntoView({block:'nearest'});
   }
@@ -799,7 +876,7 @@ const Transformer = (() => {
     const style=node.op.inverted?get('wechsel'):get('schritt');
     const op={inverted:node.op.inverted,q:state.tones.map((_,i)=>node.op.q[i]||0)};
     return {...snapshotHarmony(state.source),...clone(style),colorMode:'uniform',
-      name:`${TransformerMath.monomial(node.op)} of ${state.draft.name}`,octaveEquiv:true,
+      name:`${monomial(node.op)} of ${state.draft.name}`,octaveEquiv:true,
       toneMode:state.draft.toneMode,ratios:TransformerMath.imageText(state.tones,op,state.draft.toneMode),
       transformer:null,transport:null};
   }
@@ -814,7 +891,8 @@ const Transformer = (() => {
       if(selectedHarmonyId===existing.id) selectedHarmonyId=state.source.id;
     } else {
       if(state.source.ratios!==state.draft.ratios || state.source.name!==state.draft.name ||
-        state.source.toneMode!==state.draft.toneMode) {
+        state.source.toneMode!==state.draft.toneMode ||
+        JSON.stringify(state.source.transformer?.letters||{})!==JSON.stringify(get('letters'))) {
         if(!await confirmAction('Save the source harmony changes before transporting this transformation?','Save and transport')) return;
         if(!save()) return;
       }
@@ -827,6 +905,7 @@ const Transformer = (() => {
     renderHarmonyList();renderHarmonyEditor();applyAndDraw();markProjectDirty();
     renderCollections();
     if(state.menuOpen) renderPointMenu(node);
+    renderPinnedPanels();
   }
   function toggleNeighborhood(node) {
     if(!node.path.length) return;
@@ -856,8 +935,11 @@ const Transformer = (() => {
   }
   function includedTable(node,parent,transported=false) {
     const h=transported?transportedFor(node)||imageHarmony(node):imageHarmony(node);
+    const tones=TransformerMath.image(state.tones,node.op);
     renderToneTable({...h,id:`transformer-${state.source.id}`},parent,{
-      onHover:key=>highlightIncludedTone(node,key),onLeave:leaveHighlight
+      onHover:key=>highlightIncludedTone(node,key),onLeave:leaveHighlight,
+      letterForTone:key=>tones.filter(t=>
+        Math.abs((((t.log*1200-key.cents)%1200)+1800)%1200-600)<.01).map(t=>t.letter).join(', ')
     });
   }
   function actionButton(label,glyph,handler) {
@@ -885,6 +967,9 @@ const Transformer = (() => {
       if(selected)state.collectionSelection[kind]=selected.id;
       const choose=node=>{
         state.menuOpen=false;dialog.querySelector('#tf-point-menu').hidden=true;
+        if(state.collectionSelection[kind]===node.id) {
+          delete state.collectionSelection[kind];dismissSelection(false);renderCollections();return;
+        }
         state.collectionSelection[kind]=node.id;selectNode(node,kind==='transported'?'point':'neighborhood');
       };
       if(!nodes.length) {
@@ -908,7 +993,7 @@ const Transformer = (() => {
     }
   }
   function collectionName(node,kind) {
-    return kind==='transformations'?`${node.op.inverted?'Wechsel':'Schritt'} ${TransformerMath.monomial(node.op)}`:
+    return kind==='transformations'?`${node.op.inverted?'Wechsel':'Schritt'} ${monomial(node.op)}`:
       kind==='transported'?transportedFor(node)?.name||imageHarmony(node).name:imageHarmony(node).name;
   }
   function collectionIcon(node,kind) {
@@ -932,7 +1017,7 @@ const Transformer = (() => {
   function isIdentity(node) { return !node.op.inverted && node.op.q.every(n=>n===0); }
   function collectionRow(node,kind,selected,choose) {
     const row=ConfigUI.listRow(selected);row.classList.add('tf-list-item');row.tabIndex=0;row.setAttribute('role','group');
-    row.dataset.node=node.id;row.dataset.monomial=TransformerMath.monomial(node.op);
+    row.dataset.node=node.id;row.dataset.monomial=monomial(node.op);
     const mini=document.createElement('span');mini.className='harmony-vis-dot';mini.innerHTML=collectionIcon(node,kind);
     const name=document.createElement('span');name.className='harmony-name';name.textContent=collectionName(node,kind);
     row.append(mini,name);
@@ -945,17 +1030,52 @@ const Transformer = (() => {
     }
     row.addEventListener('click',choose);
     row.addEventListener('keydown',e=>{if(e.target===row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();choose(e);}});
-    const hover=()=>kind==='pinned'?highlightNeighborhood(node):highlightPoint(node);
+    const hover=()=>highlightNeighborhood(node);
     row.addEventListener('pointerenter',hover);row.addEventListener('pointerleave',leaveHighlight);
     row.addEventListener('focus',hover);row.addEventListener('blur',leaveHighlight);return row;
   }
-  function renderPointMenu(node) {
-    const menu = dialog.querySelector('#tf-point-menu'); menu.replaceChildren();
+  function renderPinnedPanels() {
+    for(const panel of state.pinnedPanels) {
+      if(!state.tones) {if(panel.el)panel.el.hidden=true;continue;}
+      const node=state.catalogNodes.find(n=>n.id===panel.node.id)||
+        nodeForTransport({transport:{op:panel.node.op,path:panel.node.path,point:panel.node.point}});
+      panel.node=node;renderPointMenu(node,panel);
+    }
+  }
+  function renderPointMenu(node, pinned=null) {
+    let menu=pinned?.el||dialog.querySelector('#tf-point-menu');
+    if(pinned && !pinned.el) {
+      menu=document.createElement('div');menu.className='tf-point-menu tf-pinned-panel';
+      menu.dataset.panel=pinned.id;dialog.querySelector('.tf-stage').appendChild(menu);pinned.el=menu;
+      menu.style.zIndex=String(++state.panelZ);
+      menu.addEventListener('pointerdown',()=>{clearHighlight();menu.style.zIndex=String(++state.panelZ);});
+    }
+    if(!pinned)menu.style.zIndex=String(++state.panelZ);
+    menu.replaceChildren();
     const title = document.createElement('div'); title.className = 'tf-menu-title';
-    title.textContent = `${node.op.inverted ? 'Wechsel' : 'Schritt'} ${TransformerMath.monomial(node.op)}`;
+    title.textContent = `${node.op.inverted ? 'Wechsel' : 'Schritt'} ${monomial(node.op)}`;
     menu.appendChild(title);
-    const closeButton=actionButton('Close actions','close',dismissSelection);closeButton.classList.add('tf-menu-close');
-    title.appendChild(closeButton);
+    const closeButton=actionButton('Close actions','close',()=>{
+      if(pinned) {state.pinnedPanels=state.pinnedPanels.filter(p=>p!==pinned);menu.remove();clearHighlight();}
+      else dismissSelection();
+    });closeButton.classList.add('tf-menu-close');
+    const pinButton=stateAction(pinned?'Unpin panel':'Pin panel','pin',!!pinned,()=>{
+      if(pinned) {
+        state.pinnedPanels=state.pinnedPanels.filter(p=>p!==pinned);menu.remove();
+        dismissSelection(false);state.selectedNode=node;state.menuOpen=true;
+        state.menuPosition={...pinned.position};renderPointMenu(node);
+      } else {
+        const existing=state.pinnedPanels.find(p=>TransformerMath.opKey(p.node.op)===TransformerMath.opKey(node.op));
+        if(existing)existing.el.style.zIndex=String(++state.panelZ);
+        else {
+          const panel={id:++state.panelCounter,node,position:{...state.menuPosition}};
+          state.pinnedPanels.push(panel);renderPointMenu(node,panel);
+        }
+        dismissSelection();
+      }
+      clearHighlight();
+    });pinButton.classList.add('tf-menu-pin');
+    title.append(pinButton,closeButton);
     for(const button of isIdentity(node)?[]:[pinAction(node),transportAction(node)]) {
       button.classList.add('tf-menu-action');
       const label=document.createElement('span');label.textContent=button.getAttribute('aria-label');
@@ -966,13 +1086,30 @@ const Transformer = (() => {
     const rect = dialog.querySelector('.tf-stage').getBoundingClientRect();
     const available=rect.width;
     const width=Math.min(360,Math.max(240,available-16));menu.style.width=`${width}px`;
-    const pos=state.menuPosition||{x:20,y:20};
+    const pos=(pinned?pinned.position:state.menuPosition)||{x:20,y:20};
     menu.style.left=`${Math.max(8,Math.min(pos.x,available-width-8))}px`;
     menu.style.top=`${Math.max(8,Math.min(pos.y,rect.height-Math.min(menu.scrollHeight,480)-8))}px`;
+    if(pinned) {
+      pinned.position={x:parseFloat(menu.style.left),y:parseFloat(menu.style.top)};
+      title.addEventListener('pointerdown',e=>{
+        if(e.target.closest('button')||e.button!==0)return;
+        e.preventDefault();title.setPointerCapture(e.pointerId);
+        const start={x:e.clientX,y:e.clientY,left:parseFloat(menu.style.left),top:parseFloat(menu.style.top)};
+        const move=event=>{
+          pinned.position={x:Math.max(8,Math.min(start.left+event.clientX-start.x,rect.width-menu.offsetWidth-8)),
+            y:Math.max(8,Math.min(start.top+event.clientY-start.y,rect.height-menu.offsetHeight-8))};
+          menu.style.left=`${pinned.position.x}px`;menu.style.top=`${pinned.position.y}px`;
+        };
+        const end=()=>{title.removeEventListener('pointermove',move);title.removeEventListener('pointerup',end);title.removeEventListener('pointercancel',end);};
+        title.addEventListener('pointermove',move);title.addEventListener('pointerup',end);title.addEventListener('pointercancel',end);
+      });
+    }
   }
   function save() {
     let tones;
-    try { tones=TransformerMath.parse(state.draft.ratios,state.draft.toneMode); }
+    const invalid=dialog.querySelector('#tf-lettering input:invalid');
+    if(invalid) {selectTab('harmony');invalid.closest('details').open=true;invalid.reportValidity();return false;}
+    try { tones=draftTones(); }
     catch(e) { message(e.message,true); return false; }
     const linked=harmonies.filter(h=>h.transport?.sourceId===state.source.id);
     if(linked.some(h=>h.transport.op.q.slice(tones.length).some(Boolean))) {
@@ -985,7 +1122,7 @@ const Transformer = (() => {
     state.saved = clone(state.draft); updateDirty();
     linked.forEach(h=>{
       h.transport.op.q=tones.map((_,i)=>h.transport.op.q[i]||0);
-      h.name=`${TransformerMath.monomial(h.transport.op)} of ${state.draft.name}`;
+      h.name=`${monomial(h.transport.op)} of ${state.draft.name}`;
       h.toneMode=state.draft.toneMode;
       h.ratios=TransformerMath.imageText(tones,h.transport.op,h.toneMode);
     });
@@ -1068,7 +1205,8 @@ const Transformer = (() => {
     previousFocus = document.activeElement;
     const draft = {name:h.name, ratios:h.ratios, toneMode:h.toneMode || 'ratios', config:hydrate(h)};
     if(options.tab) draft.config.activeTab=options.tab;
-    state = {source:h, draft, saved:clone(draft), viewport:clone(draft.config.viewport), nodes:[]};
+    state = {source:h,draft,saved:clone(draft),viewport:clone(draft.config.viewport),nodes:[],
+      pinnedPanels:[],panelCounter:0,panelZ:5};
     syncWechsel();
     state.saved=clone(state.draft);
     dialog = document.createElement('dialog'); dialog.id = 'transformer-modal'; dialog.className = 'tf-modal';
@@ -1079,8 +1217,7 @@ const Transformer = (() => {
           <div class="logo" title="Transformer">${icon('derived')}<span class="logo-text">Transformer</span></div>
           <strong id="tf-title" class="top-bar-project-name"></strong>
           <div class="header-actions" id="tf-stage-actions">
-            <button type="button" class="btn-icon" id="tf-lock" title="Unlock view" aria-label="Lock view"></button>
-            <button type="button" class="btn-icon" id="tf-theme" title="Toggle light/dark mode" aria-label="Toggle theme"></button>
+            <button type="button" class="btn-icon" id="tf-fit" title="Fit all neighborhoods" aria-label="Fit all neighborhoods">${icon('fit')}</button>
             <button type="button" class="btn-icon" id="tf-show-panel" title="Show configuration panel" aria-label="Show configuration panel" hidden>${document.querySelector('#btn-toggle-config')?.innerHTML || icon('panel')}</button>
           </div>
         </div>
@@ -1096,17 +1233,13 @@ const Transformer = (() => {
         <main class="tf-stage">
           <svg id="tf-diagram" aria-label="Neighborhood of harmony"></svg>
           <div id="tf-point-menu" class="tf-point-menu" hidden></div>
-          <div class="tf-navigation">
-            <button type="button" class="btn-sm" id="tf-fit" title="Fit all neighborhoods">Fit</button>
-            <span>Scroll to zoom · drag to pan · select a point for actions</span>
-          </div>
+          <div id="tf-message" role="status" hidden></div>
         </main>
         <aside class="tf-panel" id="tf-panel" aria-label="Transformer configuration">
           <nav id="tf-tabs" class="tf-tabs" role="tablist" aria-label="Transformer options"></nav>
           <div id="tf-options"></div>
         </aside>
       </div>
-      <footer id="tf-status" role="status"></footer>
       <div class="tf-resize tf-resize-e" data-axis="e" aria-hidden="true"></div>
       <div class="tf-resize tf-resize-s" data-axis="s" aria-hidden="true"></div>
       <div class="tf-resize tf-resize-se" data-axis="se" aria-hidden="true"></div>
@@ -1115,8 +1248,8 @@ const Transformer = (() => {
     dialog.querySelector('#tf-save').addEventListener('click',save);
     dialog.querySelector('#tf-close').addEventListener('click',close);
     dialog.addEventListener('pointerdown',e=>{
-      if(state.menuOpen && !e.target.closest('.tf-point-menu,.tf-point')) {
-        state.menuOpen=false;dialog.querySelector('#tf-point-menu').hidden=true;
+      if(state.menuOpen && !e.target.closest('#tf-point-menu,.tf-point')) {
+        dismissSelection(false);
       }
     },true);
     dialog.addEventListener('cancel',e=>{e.preventDefault(); close();});
@@ -1128,18 +1261,16 @@ const Transformer = (() => {
     });
     dialog.querySelector('#tf-reset').addEventListener('click',()=>{
       state.draft = clone(state.saved); state.viewport = clone(state.draft.config.viewport);
+      state.pinnedPanels.forEach(p=>p.el?.remove());state.pinnedPanels=[];
+      state.collectionSelection={};
       dismissSelection(); restoreWindow(); controls(); updateDirty(); draw();
     });
-    dialog.querySelector('#tf-lock').addEventListener('click',()=>set('viewLocked',!get('viewLocked')));
-    const themeButton=dialog.querySelector('#tf-theme'),mainTheme=document.querySelector('[data-theme-toggle]');
-    const syncTheme=()=>{themeButton.innerHTML=mainTheme.innerHTML;};
-    syncTheme();themeButton.addEventListener('click',()=>{mainTheme.click();syncTheme();});
     dialog.querySelector('#tf-collapse').addEventListener('click',()=>set('panelOpen',false));
     dialog.querySelector('#tf-show-panel').addEventListener('click',()=>set('panelOpen',true));
     dialog.querySelector('#tf-fit').addEventListener('click',()=>{state.fitRequested=true; draw();});
     const stage = dialog.querySelector('.tf-stage'), diagram = dialog.querySelector('#tf-diagram');
     diagram.addEventListener('wheel',e=>{
-      if (!state.viewport || get('viewLocked')) return; e.preventDefault();
+      if (!state.viewport) return; e.preventDefault();
       if(!state.selectedNode) clearHighlight();
       const [x,y,w,h] = state.viewport, factor = e.deltaY > 0 ? 1.12 : 1/1.12;
       if (w * factor < 30 || w * factor > 100000) return;
@@ -1149,7 +1280,7 @@ const Transformer = (() => {
     },{passive:false});
     let drag=null;
     diagram.addEventListener('pointerdown',e=>{
-      if (e.target.closest('.tf-point') || e.button !== 0 || !state.viewport || get('viewLocked')) return;
+      if (e.target.closest('.tf-point') || e.button !== 0 || !state.viewport) return;
       if(!state.selectedNode) clearHighlight();
       const m = diagram.getScreenCTM(); if(!m) return;
       drag={x:e.clientX,y:e.clientY,v:state.viewport.slice(),sx:m.a,sy:m.d};
@@ -1167,11 +1298,16 @@ const Transformer = (() => {
       setViewport([initialFrame.x,initialFrame.y,initialRect.width*initialFrame.ux,initialRect.height*initialFrame.uy]);
     }
     state.saved.config.viewport=state.viewport.slice();state.saved.config.camera=clone(state.draft.config.camera);updateDirty();
-    const canvasObserver=new ResizeObserver(()=>preserveCamera(state?.cameraFrame));
+    const canvasObserver=new ResizeObserver(()=>{
+      preserveCamera(state?.cameraFrame);
+      if(dialog && state) {
+        renderPinnedPanels();
+        if(state.menuOpen && state.selectedNode)renderPointMenu(state.selectedNode);
+      }
+    });
     canvasObserver.observe(diagram);
-    const themeObserver=new MutationObserver(syncTheme);themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
     const cleanup=state.windowCleanup;
-    state.windowCleanup=()=>{cleanup?.();canvasObserver.disconnect();themeObserver.disconnect();};
+    state.windowCleanup=()=>{cleanup?.();canvasObserver.disconnect();};
     if(options.transportedId) {
       const transported=harmonies.find(x=>x.id===options.transportedId);
       if(transported) selectNode(nodeForTransport(transported),'point');

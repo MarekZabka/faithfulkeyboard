@@ -23,12 +23,15 @@ Closing configuration gives the canvas the full width. The shared split helper
 keeps toolbar and body panel widths aligned and removes stale inline resize widths.
 Save/Reset sit at the left of the configuration toolbar, with Collapse at the right.
 On the canvas toolbar, Transformer has its intersecting-circle brand, the source
-harmony name in the center, and view-lock/theme controls. The gear returns when
+harmony name in the center, and an icon-only Fit action. Its brand icon is 24px,
+matching the Keyboard logo. The gear returns when
 configuration is hidden. Close remains at the far right of the active toolbar.
 There is no inherited-style-reset pencil button.
 Showing/hiding configuration crops or expands the visible world extent without
-changing the diagram's screen position or pixel scale. Lock blocks pan/zoom/Fit,
-and Theme uses the application's theme control.
+changing the diagram's screen position or pixel scale. Transformer has no Lock
+or Theme buttons; obsolete saved lock flags no longer disable navigation.
+The bottom count/status bar and navigation instructions are removed. Validation
+errors and save feedback use a separate accessible floating message.
 Numeric controls pair keyboard-style sliders with fine-value inputs. Section
 headings remain collapsible, independently of their enable checkboxes. The same
 disclosure design is used by the keyboard's harmony, layout and sound sections.
@@ -37,7 +40,7 @@ position, clamped within the current screen.
 
 ## Configuration tabs and actions
 
-- Harmony: source name, tones, format and tone operations.
+- Harmony: source name, tones, format, tone operations and Lettering.
 - Layout: Show Nontrivial Schritts, Show Collapses, Show Tone Labels, Circle Style,
   then Hovers. Hover neighborhoods and tone circles both default ON.
 - Design: Schritt/Wechsel label, shape, style and geometry controls.
@@ -49,16 +52,26 @@ position, clamped within the current screen.
   neighborhood. There are no transformation details below the list. Neighborhood
   miniatures overlap two copies of their transformation shape.
 - Transported harmonies: linked keyboard harmonies, each with Withdraw. Selecting
-  one shows Included Tones immediately below it; row hover emphasizes only its transformation point.
+  one shows Included Tones immediately below it; row hover emphasizes its neighborhood.
 
 Transformer list tabs have no separate selected-name bar. Active tab text appears
 next to the icon in the tab itself, and each tab is only as wide as its content.
+All three lists deselect an item when it is clicked again. Transformations and
+Transported harmonies both preview the respective neighborhood on hover.
 
 Diagram point actions are Pin/Unpin neighborhood and Transport/Withdraw from keyboard,
 with left-aligned labels and the same leading icons as their tabs. For the identity
-Schritt 1, both actions are omitted. The action panel has an X
-and the keyboard's shared Included Tones table. Selection remains highlighted
-until dismissed. The action panel also closes on an outside click. Hovering an
+Schritt 1, both actions are omitted. The action panel has X and Pin panel buttons
+and the shared Included Tones table. Outside clicks dismiss an unpinned panel,
+clear its selection and remove highlight layers. Clicking/opening a panel does
+not latch a neighborhood highlight; hover highlights fade normally.
+Multiple comparison panels can be pinned independently, dragged by their title,
+and individually unpinned or closed. They survive outside clicks and style redraws,
+but are temporary workspace state, not project settings. Editing source tones or
+resetting the draft clears these temporary panels. On very narrow canvases while
+configuration is open, comparison panels are temporarily concealed rather than
+clipped; collapsing configuration reveals them again without losing their state.
+Hovering an
 included tone shows its corresponding circle with a light beige fill.
 Hover previews are behind the primary graph, use the configured Schritt/Wechsel
 shapes and labels, and never gray out or change the opacity of the primary graph.
@@ -82,6 +95,9 @@ independent editable harmony. Deleting a source explicitly confirms withdrawal
 of its linked harmonies. Full project imports preserve links; batch harmony
 imports remap source IDs. A partial import without the source becomes independent,
 with an explanatory alert rather than an accidental link to an unrelated source.
+Transformer Included Tones tables omit W and insert Letter immediately after Name,
+including action panels, pinned comparison panels and both list-detail tables.
+The Keyboard's Included Tones table is unchanged.
 Source tone-format changes also update linked harmonies. Vector-defined keyboard
 tones calculate their prime limit from their exponents rather than a missing ratio,
 so vector transport, keyboard rendering and Included Tones work without errors.
@@ -98,7 +114,12 @@ Schritt Geometry and Wechsel Geometry each contain Rotation, Stretch X/Y and
 Offset X/Y. Each Wechsel section has a chain-button Sync toggle and a one-time
 Reset button. Sync disables manual edits in that section and follows its matching
 Schritt section live. Reset copies its current derived values without enabling
-Sync. Colors are inverted, rotation is shifted 180 degrees and offsets are negated;
+Sync. Chromatic colors use the complementary hue at the same lightness/saturation,
+so pale purple `#c5bff8` becomes pale yellow-green `#f2f8bf`, rather than nearly
+black. Neutral colors use the ordinary RGB negative (white/black swap).
+Marker labels get a contrasting outline when label/fill contrast is below 4.5:1,
+without changing the configured label color; this also applies to hover previews.
+Rotation is shifted 180 degrees and offsets are negated;
 all other values are copied unchanged. Sync defaults ON for new Transformers;
 existing saved choices are preserved. Tooltips are "Keep in sync with Schritt"
 and "Copy from Schritt". Sync settings persist per harmony.
@@ -133,6 +154,15 @@ then waits 180 ms after leaving before fading out over 350 ms. Reduced-motion
 preferences disable the fades.
 
 ## Algebra and coordinates
+
+Harmony > Lettering lists original Tone, Tone Name and editable Letter. Default
+letters start at a in ascending original pitch order, before octave reduction:
+`1,3,5` maps to `a,b,c` even though reduced pitches sort as `1,5/4,3/2`.
+Letters must be unique single Unicode letters. Edits persist as a per-harmony
+`letters` map keyed by normalized pitch, and update tone labels, monomials,
+transported names and Included Tones without changing operation vectors or
+neighborhood path IDs. Factors in displayed monomials are sorted by their current
+letters. The original geometric/index ordering is preserved.
 
 Schritt `q` maps a tone `x` to `qx`; Wechsel `q` maps `x` to `q/x`.
 Formal monomials are integer exponent vectors over the original tone letters.
@@ -199,6 +229,7 @@ node tests/transformer-links.test.cjs http://127.0.0.1:8766
 node tests/transformer-pins.test.cjs http://127.0.0.1:8766
 node tests/transformer-split-controls.test.cjs http://127.0.0.1:8766
 node tests/transformer-neighborhood-frame.test.cjs http://127.0.0.1:8766
+node tests/transformer-lettering-panels.test.cjs http://127.0.0.1:8766
 ```
 
 ## Shared configuration components

@@ -83,7 +83,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   const menu=page.locator('#tf-point-menu');
   assert.equal(await menu.locator('.tone-table tbody tr').count(),3);
   await page.locator('#tf-title').hover();
-  await page.waitForFunction(()=>document.querySelector('.tf-selected')&&document.querySelector('.tf-hover-visible'));
+  await page.waitForFunction(()=>document.querySelector('.tf-selected')&&!document.querySelector('.tf-hover-visible'));
   await menu.getByRole('button',{name:'Pin neighborhood',exact:true}).click();
   assert.equal(await menu.getByRole('button',{name:'Unpin neighborhood',exact:true}).count(),1);
   await menu.getByRole('button',{name:'Transport to keyboard',exact:true}).click();

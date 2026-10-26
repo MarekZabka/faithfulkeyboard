@@ -53,7 +53,7 @@ async function run(page,url='http://127.0.0.1:8766') {
     style:{keyRounding:'0.35',keyEdge:'convex',keyBulge:'0.45'},
     geometry:{keyRotation:'30',keyStretchX:'1.4',keyStretchY:'0.8',keyOffsetX:'12',keyOffsetY:'-9'}
   };
-  const expected={labelColor:'#edcba9',uniformColor:'#543210',edgeColor:'#efdfcf',
+  const expected={labelColor:'#563412',uniformColor:'#efcdab',edgeColor:'#302010',
     keyRotation:'-150',keyOffsetX:'-12',keyOffsetY:'9'};
   for(const [group,values] of Object.entries(groups)) {
     assert.equal(await page.locator(`[data-sync-toggle="${group}"]`).getAttribute('aria-pressed'),'true');
@@ -75,9 +75,9 @@ async function run(page,url='http://127.0.0.1:8766') {
   assert.equal(await input('wechsel.labelColor').isEnabled(),true);
   await input('wechsel.labelColor').fill('#aaaaaa');
   await page.locator('[data-sync-reset="label"]').click();
-  assert.equal(await input('wechsel.labelColor').inputValue(),'#edcba9');
+  assert.equal(await input('wechsel.labelColor').inputValue(),'#563412');
   await input('schritt.labelColor').fill('#010203');
-  assert.equal(await input('wechsel.labelColor').inputValue(),'#edcba9');
+  assert.equal(await input('wechsel.labelColor').inputValue(),'#563412');
   await page.locator('#tf-save').click();
   await page.locator('#tf-close').click();
   await page.locator('[title="Transform"]').first().click();

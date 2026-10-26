@@ -46,32 +46,38 @@ const TransformerMath = (() => {
   function parse(text, mode) {
     const parts = splitToneList(text);
     if (!parts.length) throw new Error('Enter at least one tone to generate a neighborhood.');
-    const tones = [], seen = new Set();
+    const tones = [], seen = new Map();
     for (const part of parts) {
-      let r = null, v = null;
+      let r = null, v = null, sourceLog;
       if (mode === 'vectors') {
         v = parseVectorStr(part);
         if (!v || !v.every(Number.isFinite) || v.some(e => Math.abs(e) > 256))
           throw new Error(`Invalid vector: ${part}`);
-        v = normVector(v); r = vectorRat(v);
+        sourceLog = vectorLog(v); v = normVector(v); r = vectorRat(v);
       } else if (mode === 'primepowers') {
         v = parsePrimePowersToExps(part);
         if (!v || !v.every(Number.isFinite)) throw new Error(`Invalid tone: ${part}`);
-        v = normVector(v); r = vectorRat(v);
+        sourceLog = vectorLog(v); v = normVector(v); r = vectorRat(v);
       } else {
         const a = evalRationalExpr(part);
         if (!a || a.isFloat || !Number.isSafeInteger(a.n) || !Number.isSafeInteger(a.d))
           throw new Error(`Enter a positive exact frequency ratio: ${part}`);
+        sourceLog = Math.log2(a.n / a.d);
         r = normRat(rational(BigInt(a.n), BigInt(a.d))); v = ratVector(r);
       }
       const log = r ? Math.log2(Number(r.n) / Number(r.d)) : vectorLog(v);
       const key = r ? ratText(r) : log.toFixed(10);
-      if (seen.has(key)) continue;
-      seen.add(key); tones.push({r, v, log, display: r ? ratText(r) : expsToString(v, 'vectors')});
+      if (seen.has(key)) {
+        const previous=seen.get(key);
+        if(sourceLog<previous.sourceLog) {previous.sourceLog=sourceLog;previous.sourceDisplay=part;}
+        continue;
+      }
+      const tone={r,v,log,key,sourceLog,sourceDisplay:part,display:r?ratText(r):expsToString(v,'vectors')};
+      seen.set(key,tone);tones.push(tone);
     }
     if (tones.length > 16) throw new Error('Use at most 16 distinct octave-equivalent tones per neighborhood.');
     tones.sort((a, b) => a.log - b.log);
-    tones.forEach((t, i) => { t.letter = String.fromCharCode(97 + i); });
+    [...tones].sort((a,b)=>a.sourceLog-b.sourceLog).forEach((t,i)=>{t.letter=String.fromCharCode(97+i);});
     return tones;
   }
   function identity(n) { return { q: Array(n).fill(0), inverted: false }; }
@@ -87,13 +93,13 @@ const TransformerMath = (() => {
       inverted: localOp.inverted !== parent.inverted
     };
   }
-  function monomial(op) {
+  function monomial(op, tones) {
     const top = [], bottom = [];
     op.q.forEach((e, i) => {
       if (!e) return;
-      (e > 0 ? top : bottom).push(String.fromCharCode(97 + i) + (Math.abs(e) === 1 ? '' : `^${Math.abs(e)}`));
+      (e > 0 ? top : bottom).push((tones?.[i]?.letter || String.fromCharCode(97+i)) + (Math.abs(e) === 1 ? '' : `^${Math.abs(e)}`));
     });
-    return (top.join('') || '1') + (bottom.length ? '/' + bottom.join('') : '');
+    return (top.sort().join('') || '1') + (bottom.length ? '/' + bottom.sort().join('') : '');
   }
   function opKey(op) { return `${op.inverted ? 'w' : 's'}:${op.q.join(',')}`; }
   function image(tones, op) {

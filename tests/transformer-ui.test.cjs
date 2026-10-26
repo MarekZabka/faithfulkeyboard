@@ -111,7 +111,7 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   assert.equal(await page.locator('#tf-name').inputValue(),'Triangle QA');
   assert.equal(await page.locator('.tf-point').count(),25);
   await page.locator('#tf-tones').fill('invalid');
-  assert.equal(await page.locator('#tf-status').getAttribute('class'),'tf-error');
+  assert.equal(await page.locator('#tf-message').getAttribute('class'),'tf-error');
   await page.locator('#tf-reset').click();
   assert.equal(await page.locator('.tf-point').count(),25);
   await page.locator('#tf-collapse').click();
@@ -140,7 +140,7 @@ async function run(page, url = 'http://127.0.0.1:8766') {
   await page.locator('#btn-new-project').click();
   assert.equal(await page.locator('#tab-harmony').isVisible(),true);
   await page.locator('[title="Transform"]').first().click();
-  assert.ok((await page.locator('#tf-status').textContent()).includes('Enter at least one tone'));
+  assert.ok((await page.locator('#tf-message').textContent()).includes('Enter at least one tone'));
   await page.locator('#tf-tones').fill('1, 5/4, 3/2');
   await page.locator('#tf-save').click();
   await page.locator('#tf-close').click();

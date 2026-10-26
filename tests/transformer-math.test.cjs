@@ -129,3 +129,18 @@ test('invalid inputs fail safely', `
     assert.throws(()=>TransformerMath.parse(raw,'ratios'));
   }
 `);
+test('letters follow original pitches and can label monomials independently of operation indices', `
+  var original=TransformerMath.parse('5, 1, 3','ratios');
+  assert.equal(original.find(t=>t.sourceDisplay==='1').letter,'a');
+  assert.equal(original.find(t=>t.sourceDisplay==='3').letter,'b');
+  assert.equal(original.find(t=>t.sourceDisplay==='5').letter,'c');
+  var indexes=original.map(t=>t.key);
+  assert.equal(TransformerMath.monomial({q:[0,1,1],inverted:true},original),'bc');
+  original.find(t=>t.sourceDisplay==='3').letter='β';
+  assert.equal(TransformerMath.monomial({q:[1,0,1],inverted:true},original),'aβ');
+  assert.deepEqual(original.map(t=>t.key),indexes);
+  var duplicate=TransformerMath.parse('6, 1, 3, 5','ratios');
+  assert.equal(duplicate.find(t=>t.key==='3/2').sourceDisplay,'3');
+  var vectorLetters=TransformerMath.parse('(0,0,1), (0,0), (0,1)','vectors');
+  assert.deepEqual(Array.from(vectorLetters,t=>t.letter),['a','c','b']);
+`);

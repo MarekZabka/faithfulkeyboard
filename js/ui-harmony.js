@@ -251,7 +251,8 @@ function renderToneTable(h, container, hooks = {}) {
     const lbl = document.createElement('div'); lbl.className='field-label'; lbl.style.marginBottom='0.25rem';
     lbl.textContent=`Included Tones (${keys.length})`; container.appendChild(lbl);
     const tbl = document.createElement('table'); tbl.className='tone-table';
-    tbl.innerHTML='<thead><tr><th></th><th>Tone</th><th>Name</th><th>¢</th><th>Hz</th><th>W</th></tr></thead>';
+    const lettering=typeof hooks.letterForTone==='function';
+    tbl.innerHTML=`<thead><tr><th></th><th>Tone</th><th>Name</th>${lettering?'<th>Letter</th>':''}<th>¢</th><th>Hz</th>${lettering?'':'<th>W</th>'}</tr></thead>`;
     const tbody=document.createElement('tbody');
     for (const k of keys.slice(0,30)) {
       const tr=document.createElement('tr');
@@ -262,7 +263,7 @@ function renderToneTable(h, container, hooks = {}) {
         hejiName = k._exps ? expsToHEJI(k._exps) : (k.ratio ? expsToHEJI(ratioExponents(k.ratio)) : '');
       } catch(e2) { hejiName=''; }
       const miniSvg=getMiniKeyShapeSVG(h);
-      tr.innerHTML=`<td style="padding:0 2px;">${miniSvg}</td><td>${ratioDisplay}</td><td class="tone-name-cell">${hejiName}</td><td>${k.cents.toFixed(1)}</td><td>${k.freq.toFixed(2)}</td><td>${k.width!==undefined?k.width.toFixed(2):'–'}</td>`;
+      tr.innerHTML=`<td style="padding:0 2px;">${miniSvg}</td><td>${ratioDisplay}</td><td class="tone-name-cell">${hejiName}</td>${lettering?`<td class="tf-tone-letter">${escHtml(hooks.letterForTone(k)||'')}</td>`:''}<td>${k.cents.toFixed(1)}</td><td>${k.freq.toFixed(2)}</td>${lettering?'':`<td>${k.width!==undefined?k.width.toFixed(2):'–'}</td>`}`;
       // Hover highlight matching SVG keys
       const hid = h.id;
       const klabel = k.label;
