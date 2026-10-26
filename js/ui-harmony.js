@@ -252,7 +252,7 @@ function renderToneTable(h, container, hooks = {}) {
     lbl.textContent=`Included Tones (${keys.length})`; container.appendChild(lbl);
     const tbl = document.createElement('table'); tbl.className='tone-table';
     const lettering=typeof hooks.letterForTone==='function';
-    tbl.innerHTML=`<thead><tr><th></th><th>Tone</th><th>Name</th>${lettering?'<th>Letter</th>':''}<th>¢</th><th>Hz</th>${lettering?'':'<th>W</th>'}</tr></thead>`;
+    tbl.innerHTML=`<thead><tr>${lettering?'<th>Letter</th>':'<th></th>'}<th>Tone</th><th>Name</th><th>¢</th><th>Hz</th>${lettering?'':'<th>W</th>'}</tr></thead>`;
     const tbody=document.createElement('tbody');
     for (const k of keys.slice(0,30)) {
       const tr=document.createElement('tr');
@@ -263,7 +263,10 @@ function renderToneTable(h, container, hooks = {}) {
         hejiName = k._exps ? expsToHEJI(k._exps) : (k.ratio ? expsToHEJI(ratioExponents(k.ratio)) : '');
       } catch(e2) { hejiName=''; }
       const miniSvg=getMiniKeyShapeSVG(h);
-      tr.innerHTML=`<td style="padding:0 2px;">${miniSvg}</td><td>${ratioDisplay}</td><td class="tone-name-cell">${hejiName}</td>${lettering?`<td class="tf-tone-letter">${escHtml(hooks.letterForTone(k)||'')}</td>`:''}<td>${k.cents.toFixed(1)}</td><td>${k.freq.toFixed(2)}</td>${lettering?'':`<td>${k.width!==undefined?k.width.toFixed(2):'–'}</td>`}`;
+      const firstCell=lettering?`<td class="tf-tone-letter">${escHtml(hooks.letterForTone(k)||'')}</td>`:
+        `<td style="padding:0 2px;">${miniSvg}</td>`;
+      const toneCell=lettering?`<span class="tf-tone-value">${miniSvg}<span>${ratioDisplay}</span></span>`:ratioDisplay;
+      tr.innerHTML=`${firstCell}<td>${toneCell}</td><td class="tone-name-cell">${hejiName}</td><td>${k.cents.toFixed(1)}</td><td>${k.freq.toFixed(2)}</td>${lettering?'':`<td>${k.width!==undefined?k.width.toFixed(2):'–'}</td>`}`;
       // Hover highlight matching SVG keys
       const hid = h.id;
       const klabel = k.label;
@@ -281,7 +284,7 @@ function renderToneTable(h, container, hooks = {}) {
     }
     if (keys.length>30) {
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td colspan="6" style="color:var(--color-text-faint);font-size:0.7rem;">…and ${keys.length-30} more</td>`;
+      tr.innerHTML=`<td colspan="${lettering?5:6}" style="color:var(--color-text-faint);font-size:0.7rem;">…and ${keys.length-30} more</td>`;
       tbody.appendChild(tr);
     }
     tbl.appendChild(tbody); container.appendChild(tbl);

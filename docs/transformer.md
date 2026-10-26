@@ -95,9 +95,14 @@ independent editable harmony. Deleting a source explicitly confirms withdrawal
 of its linked harmonies. Full project imports preserve links; batch harmony
 imports remap source IDs. A partial import without the source becomes independent,
 with an explanatory alert rather than an accidental link to an unrelated source.
-Transformer Included Tones tables omit W and insert Letter immediately after Name,
+Transformer Included Tones tables use Letter, Tone, Name, cents and Hz, with no W.
+The key miniature is retained inside the Tone cell, so Letter is truly the first column,
 including action panels, pinned comparison panels and both list-detail tables.
 The Keyboard's Included Tones table is unchanged.
+Letters follow their original tones through the transformation rather than being
+reassigned after sorting its image. For source `1 -> a, 3/2 -> b, 5/4 -> c`,
+Wechsel `ab` produces `3/2 -> a, 1 -> b, 6/5 -> c`. This correspondence is the
+same in comparison panels, pinned-neighborhood tone labels and transported tables.
 Source tone-format changes also update linked harmonies. Vector-defined keyboard
 tones calculate their prime limit from their exponents rather than a missing ratio,
 so vector transport, keyboard rendering and Included Tones work without errors.
@@ -230,6 +235,7 @@ node tests/transformer-pins.test.cjs http://127.0.0.1:8766
 node tests/transformer-split-controls.test.cjs http://127.0.0.1:8766
 node tests/transformer-neighborhood-frame.test.cjs http://127.0.0.1:8766
 node tests/transformer-lettering-panels.test.cjs http://127.0.0.1:8766
+node tests/transformer-wechsel-lettering.test.cjs http://127.0.0.1:8766
 ```
 
 ## Shared configuration components

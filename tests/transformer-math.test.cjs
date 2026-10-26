@@ -144,3 +144,19 @@ test('letters follow original pitches and can label monomials independently of o
   var vectorLetters=TransformerMath.parse('(0,0,1), (0,0), (0,1)','vectors');
   assert.deepEqual(Array.from(vectorLetters,t=>t.letter),['a','c','b']);
 `);
+test('Wechsel ab inverts tones while preserving their source letters', `
+  for(var [raw,mode] of [
+    ['1,3/2,5/4','ratios'],['(0,0),(-1,1),(-2,0,1)','vectors']
+  ]) {
+    var source=TransformerMath.parse(raw,mode);
+    source.forEach(t=>{t.letter={'1':'a','3/2':'b','5/4':'c'}[t.display];});
+    var ab={q:source.map(t=>t.letter==='a'||t.letter==='b'?1:0),inverted:true};
+    var inverted=TransformerMath.image(source,ab);
+    assert.deepEqual(Object.fromEntries(inverted.map(t=>[t.letter,t.display])),
+      {a:'3/2',b:'1',c:'6/5'});
+    assert.deepEqual(Object.fromEntries(TransformerMath.image(inverted,ab).map(t=>[t.letter,t.display])),
+      {a:'1',b:'3/2',c:'5/4'});
+    assert.deepEqual(Object.fromEntries(TransformerMath.image(source,{...ab,inverted:false}).map(t=>[t.letter,t.display])),
+      {a:'3/2',b:'9/8',c:'15/8'});
+  }
+`);

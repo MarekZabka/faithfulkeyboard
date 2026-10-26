@@ -75,6 +75,8 @@
 .tf-pinned-panel .tf-menu-title { cursor:move;touch-action:none;user-select:none; }
 .tf-lettering-table input { width:3rem;padding:.2rem .35rem;text-align:center;font-size:var(--text-xs); }
 .tf-lettering-table td:first-child { white-space:normal;overflow-wrap:anywhere; }
+.tf-tone-value { display:inline-flex;align-items:center;gap:4px; }
+.tf-tone-value > svg { flex-shrink:0; }
 .tf-lettering-table input[aria-invalid=true] { border-color:var(--color-danger); }
 .tf-toolbar .logo > svg { width:24px;height:24px;flex-shrink:0; }
 .tf-point-menu .tone-table { font-size:11px; }

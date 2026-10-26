@@ -30,7 +30,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   const headers=async selector=>page.locator(`${selector} .tone-table th`).allTextContents();
   const point=label=>page.locator(`.tf-point[data-depth="0"][data-monomial="${label}"]`);
   await point('aq').click();
-  assert.deepEqual(await headers('#tf-point-menu'),['','Tone','Name','Letter','¢','Hz']);
+  assert.deepEqual(await headers('#tf-point-menu'),['Letter','Tone','Name','¢','Hz']);
   assert.equal(await page.locator('.tf-hover-visible').count(),0);
   await page.locator('#tf-title').click();
   assert.equal(await page.locator('#tf-point-menu').isVisible(),false);
@@ -78,7 +78,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   const row=()=>page.locator('#tf-pane-transformations .tf-list-item[data-monomial="aq"]');
   await row().hover();await page.locator('.tf-hover-visible circle').first().waitFor();
   await row().click();assert.equal(await row().evaluate(e=>e.classList.contains('selected')),true);
-  assert.deepEqual(await headers('#tf-pane-transformations'),['','Tone','Name','Letter','¢','Hz']);
+  assert.deepEqual(await headers('#tf-pane-transformations'),['Letter','Tone','Name','¢','Hz']);
   assert.ok((await page.locator('#tf-pane-transformations .tf-tone-letter').allTextContents()).every(Boolean));
   await row().click();assert.equal(await page.locator('#tf-pane-transformations .tone-table').count(),0);
   await row().locator('[data-action="pin"]').click();
@@ -92,7 +92,7 @@ async function run(page,url='http://127.0.0.1:8766') {
   await page.locator('[data-tf-tab="transported"]').click();
   const transported=page.locator('#tf-pane-transported .tf-list-item');
   await transported.hover();await page.locator('.tf-hover-visible circle').first().waitFor();
-  await transported.click();assert.deepEqual(await headers('#tf-pane-transported'),['','Tone','Name','Letter','¢','Hz']);
+  await transported.click();assert.deepEqual(await headers('#tf-pane-transported'),['Letter','Tone','Name','¢','Hz']);
   await transported.click();assert.equal(await page.locator('#tf-pane-transported .tone-table').count(),0);
   await page.locator('#tf-save').click();
   const saved=JSON.parse(await page.evaluate(()=>buildProjectJSON()));
